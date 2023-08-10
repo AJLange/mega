@@ -1,3 +1,18 @@
+import re
+import time
+from django.conf import settings
+from evennia.accounts.models import AccountDB
+from evennia.server.throttle import Throttle
+from evennia import DefaultAccount
+from evennia.utils import class_from_module, create, logger
+# Create throttles for too many account-creations and login attempts
+CREATION_THROTTLE = Throttle(
+    limit=settings.CREATION_THROTTLE_LIMIT, timeout=settings.CREATION_THROTTLE_TIMEOUT
+)
+LOGIN_THROTTLE = Throttle(
+    limit=settings.LOGIN_THROTTLE_LIMIT, timeout=settings.LOGIN_THROTTLE_TIMEOUT
+)
+
 """
 Account
 
@@ -22,7 +37,7 @@ several more options for customizing the Guest account system.
 
 """
 
-from evennia.accounts.accounts import DefaultAccount, DefaultGuest
+
 
 
 class Account(DefaultAccount):
@@ -95,10 +110,143 @@ class Account(DefaultAccount):
     pass
 
 
-class Guest(DefaultGuest):
+class MegaGuest(DefaultAccount):
+    """
+    This class is used for guest logins. Unlike Accounts, Guests and
+    their characters are deleted after disconnection.
+    """
+
+    @classmethod
+    def create(cls, **kwargs):
+        """
+        Forwards request to cls.authenticate(); returns a DefaultGuest object
+        if one is available for use.
+        """
+        return cls.authenticate(**kwargs)
+
+    @classmethod
+    def authenticate(cls, **kwargs):
+        """
+        Gets or creates a Guest account object.
+
+        Keyword Args:
+            ip (str, optional): IP address of requestor; used for ban checking,
+                throttling and logging
+
+        Returns:
+            account (Object): Guest account object, if available
+            errors (list): List of error messages accrued during this request.
+
+        """
+        errors = []
+        account = None
+        username = None
+        ip = kwargs.get("ip", "").strip()
+
+        # check if guests are enabled.
+        if not settings.GUEST_ENABLED:
+            errors.append(("Guest accounts are not enabled on this server."))
+            return None, errors
+
+        try:
+            # Find an available guest name.
+            for name in settings.GUEST_LIST:
+                if not AccountDB.objects.filter(username__iexact=name).exists():
+                    username = name
+                    break
+            if not username:
+                errors.append(("All guest accounts are in use. Please try again later."))
+                if ip:
+                    LOGIN_THROTTLE.update(ip, "Too many requests for Guest access.")
+                return None, errors
+            else:
+                # build a new account with the found guest username
+                password = "genericguestpassword1"
+                home = settings.GUEST_HOME
+                permissions = settings.PERMISSION_GUEST_DEFAULT
+                typeclass = settings.BASE_GUEST_TYPECLASS
+
+                # Call parent class creator
+                account, errs = super(MegaGuest, cls).create(
+                    guest=True,
+                    username=username,
+                    password=password,
+                    permissions=permissions,
+                    typeclass=typeclass,
+                    home=home,
+                    ip=ip,
+                )
+                errors.extend(errs)
+
+                if not account.characters:
+                    # this can happen for multisession_mode > 1. For guests we
+                    # always auto-create a character, regardless of multi-session-mode.
+                    character, errs = account.create_character()
+
+                if errs:
+                    errors.extend(errs)
+
+                return account, errors
+
+        except Exception as e:
+            # We are in the middle between logged in and -not, so we have
+            # to handle tracebacks ourselves at this point. If we don't,
+            # we won't see any errors at all.
+            #errors.append(_("An error occurred. Please e-mail an admin if the problem persists."))
+            #logger.log_trace()
+            return None, errors
+
+        return account, errors
+
+    def at_post_login(self, session=None, **kwargs):
+        """
+        In theory, guests only have one character regardless of which
+        MULTISESSION_MODE we're in. They don't get a choice.
+
+        Args:
+            session (Session, optional): Session connecting.
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        """
+        self._send_to_connect_channel(("|G{key} connected|n").format(key=self.key))
+        self.puppet_object(session, self.db._last_puppet)
+
+    def at_server_shutdown(self):
+        """
+        We repeat the functionality of `at_disconnect()` here just to
+        be on the safe side.
+        """
+        super().at_server_shutdown()
+        characters = self.db._playable_characters
+        for character in characters:
+            if character:
+                character.delete()
+
+    def at_post_disconnect(self, **kwargs):
+        """
+        Once having disconnected, destroy the guest's characters and
+
+        Args:
+            **kwargs (dict): Arbitrary, optional arguments for users
+                overriding the call (unused by default).
+
+        """
+        super().at_post_disconnect()
+        characters = self.db._playable_characters
+        for character in characters:
+            if character:
+                character.delete()
+        self.delete()
+
+
+class Guest(MegaGuest):
     """
     This class is used for guest logins. Unlike Accounts, Guests and their
     characters are deleted after disconnection.
     """
 
-    pass
+    def at_first_login(self):
+        #self.remove(default_cmdsets.CharacterCmdSet())
+
+        pass
