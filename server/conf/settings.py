@@ -47,6 +47,7 @@ GAME_SLOGAN = "Welcome to MegaMan MUSH! Increasingly Capcom MUSH."
 
 DEFAULT_HOME = "#6"
 START_LOCATION = "#6"
+DISCORD_ENABLED = True
 
 
 ######################################################################
@@ -87,9 +88,12 @@ TIME_FACTOR = 1
 TIME_GAME_EPOCH = epoch_start
 WEBSERVER_PORTS = [(80,4001)]
 
-'''
 
-Django models. Will repair connections when all DBs are up
+######################################################################
+# Django Models for M3
+######################################################################
+
+'''
 
 INSTALLED_APPS +=  ["world.roster", 
                     "world.scenes",
