@@ -14,7 +14,40 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 """
 
+'''
+All commented out code needs rebuilt django models
+
+'''
+
 from evennia import default_cmds
+
+#from commands.cmdsets.chargen import CmdStartChargen
+from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside
+from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger
+#from commands.cmdsets.scenes import CmdPot
+from commands.cmdsets.mail import CmdMail, CmdMailCharacter
+from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
+
+from commands import command
+from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
+#from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
+#from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
+#from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
+#from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
+#from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
+#from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
+
+
+from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
+from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight
+from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
+from commands.default.unloggedin import CmdUnconnectedCreate
+# from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
+# from commands.default.comms import CmdChannelCreate, CmdCdestroy, CmdCBoot
+# from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead, CmdBBPost
+
+# from evennia.contrib.dice import CmdDice
+# from evennia.contrib import multidescer
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
