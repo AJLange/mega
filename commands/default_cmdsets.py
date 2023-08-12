@@ -22,7 +22,7 @@ All commented out code needs rebuilt django models
 from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
-from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside
+from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside, CmdPEmit
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
@@ -150,6 +150,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdClearProtector())
         self.add(CmdSetQuota())
         self.add(CmdBBCreate())
+        self.add(CmdPEmit())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):

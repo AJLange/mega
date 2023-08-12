@@ -85,20 +85,19 @@ class CmdFinger(BaseCommand):
         
 
 
-class CmdEFinger(BaseCommand):
+class CmdEFinger(MuxCommand):
     """
     Usage:
       efinger <character>
       info <character>
 
-    To get basic IC information about a character. Usually set to what 
-    is publically known or can be looked up about a character from an IC 
-    standpoint, including their reputation and known abilities.
+    To get basic IC information about a character. Usually set to what is publically 
+    known or can be looked up about a character from an IC standpoint, including their 
+    reputation and known abilities.
 
-    Players can fill these out themselves but staff has a right to 
-    double-check this information for accuracy. You may fill out
-    as much or as little of your +efinger as you like, depending
-    on what can be ICly known or interesting to share.
+    Players can fill these out themselves, but staff has a right to double-check this 
+    information for accuracy. You may fill out as much or as little of your +efinger as 
+    you like, depending on what can be ICly known or interesting to share.
     
     """
     key = "efinger"

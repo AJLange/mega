@@ -14,6 +14,8 @@ from commands.cmdsets import places
 #from commands.cmdsets import scenes
 from evennia.comms.models import TempMsg
 from evennia.server.sessionhandler import SESSIONS
+from evennia.utils.utils import inherits_from
+from django.conf import settings
 
     
 
@@ -117,46 +119,25 @@ class CmdEmit(MuxCommand):
     @emit
 
     Usage:
-      @emit[/switches] [<obj>, <obj>, ... =] <message>
-      @pemit           [<obj>, <obj>, ... =] <message>
+      @emit <message>
 
-    Switches:
-      room : limit emits to rooms only (default)
-      players : limit emits to players only
-      contents : send to the contents of matched objects too
-      stories : send to all current GM events
+    Emits a message to your immediate surroundings. Allows for the most flexible
+    structure of posing.
+    
+    This message will not necessarily contain your character's name, unless the 
+    other players in the room have nospoof set. It's polite to indicate the name
+    of your character somewhere in the pose, for clarity!
 
-    Emits a message to the selected objects or to
-    your immediate surroundings. If the object is a room,
-    send to its contents. @pemit is an emit directly
-    to another player.
-
-    For now, no event or room-level emits.
     """
 
     key = "@emit"
-    aliases = ["emit", "@pemit", "\\\\"]
+    aliases = ["emit", "\\\\"]
     locks = "cmd:all()"
     help_category = "Social"
-    perm_for_switches = "Builders"
     arg_regex = None
+    perm_for_switches = "Builders"
 
-    def get_help(self, caller, cmdset):
-        """Returns custom help file based on caller"""
-        if caller.check_permstring(self.perm_for_switches):
-            return self.__doc__
-        help_string = """
-        @emit
-
-        Usage :
-            @emit <message>
-
-        Emits a message to your immediate surroundings. This command is
-        used to provide more flexibility than the structure of poses, but
-        please remember to indicate your character's name.
-        """
-        return help_string
-
+    
     def func(self):
         """Implement the command"""
 
@@ -168,13 +149,10 @@ class CmdEmit(MuxCommand):
 
         if not args:
             string = "Usage: "
-            string += "\n@emit[/switches] [<obj>, <obj>, ... =] <message>"
-            string += "\n@pemit           [<obj>, <obj>, ... =] <message>"
+            string += "\n@emit <message>"
             caller.msg(string)
             return
 
-        players_only = "players" in self.switches
-        send_to_contents = "contents" in self.switches
         perm = self.perm_for_switches
         normal_emit = False
         has_perms = caller.check_permstring(perm)
@@ -183,8 +161,10 @@ class CmdEmit(MuxCommand):
         cmdstring = self.cmdstring.lstrip("@").lstrip("+")
 
         if cmdstring == "pemit":
+            if not caller.check_permstring("builders"):
+                caller.msg("Only staff can use this command.")
+                return
             players_only = True
-        
 
         if not caller.check_permstring(perm):
             rooms_only = False
@@ -223,42 +203,137 @@ class CmdEmit(MuxCommand):
                 return
         
             return
-            
-        # send to all objects
-        '''
-        for objname in objnames:
-            if players_only:
-                obj = caller.player.search(objname)
-                if obj:
-                    obj = obj.character
-            else:
-                obj = caller.search(objname, global_search=do_global)
-            if not obj:
-                caller.msg("Could not find %s." % objname)
-                continue
-            if rooms_only and obj.location:
-                caller.msg("%s is not a room. Ignored." % objname)
-                continue
-            if players_only and not obj.player:
-                caller.msg("%s has no active player. Ignored." % objname)
-                continue
-            if obj.access(caller, "tell"):
-                if obj.check_permstring(perm):
-                    bmessage = "{w[Emit by: {c%s{w]{n %s" % (caller.name, message)
-                    obj.msg(bmessage, options={"is_pose": True})
-                else:
-                    obj.msg(message, options={"is_pose": True})
-                if send_to_contents and hasattr(obj, "msg_contents"):
-                    obj.msg_contents(
-                        message, from_obj=caller, kwargs={"options": {"is_pose": True}}
-                    )
-                    caller.msg("Emitted to %s and contents:\n%s" % (objname, message))
-                elif caller.check_permstring(perm):
-                    caller.msg("Emitted to %s:\n%s" % (objname, message))
-            else:
-                caller.msg("You are not allowed to emit to %s." % objname)
-                '''
 
+
+class CmdPEmit(MuxCommand):
+    """
+    @pemit
+
+    Usage:
+      @pemit [<obj>, <obj>, ... =] <message>
+
+   
+    @pemit is an emit directly to another player or player list. 
+    This emit is not visible to other players, even in the same room as
+    the targetted player.
+    For now, this power is limited only to staffers.
+
+    """
+
+    key = "@pemit"
+    aliases = ["pemit"]
+    locks = "cmd:all()"
+    help_category = "Social"
+    arg_regex = None
+    perm_for_switches = "Builders"
+    success_emit = False
+
+    def get_help(self, caller, cmdset):
+        """Returns custom help file based on caller"""
+        if caller.check_permstring(self.perm_for_switches):
+            return self.__doc__
+        help_string = """
+        @emit
+
+        Usage :
+            @emit <message>
+
+        Emits a message to your immediate surroundings. This command is
+        used to provide more flexibility than the structure of poses, but
+        please remember to indicate your character's name.
+        """
+        return help_string
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
+        if caller.check_permstring(self.perm_for_switches):
+            args = self.args
+        else:
+            args = self.raw.lstrip(" ")
+
+        if not args:
+            string = "Usage: "
+            string += "\n@pemit  [<obj>, <obj>, ... =] <message>"
+            caller.msg(string)
+            return
+
+        perm = self.perm_for_switches
+        normal_emit = False
+        has_perms = caller.check_permstring(perm)
+
+        # we check which command was used to force the switches
+        cmdstring = self.cmdstring.lstrip("@").lstrip("+")
+
+        if cmdstring == "pemit":
+            if not caller.check_permstring("builders"):
+                caller.msg("Only staff can use this command.")
+                return
+            if not args:
+                string = "@pemit to who?"
+                caller.msg(string)
+                return
+            largs = args.split('=')
+            if len(largs) <= 1:
+                caller.msg("Emit what message?")
+                return
+            message = largs[1]
+            message = sub_old_ansi(message)
+            target_all = largs[0]
+            target_list = target_all.split(',')
+            for player in target_list:
+                player = player.strip()
+                # find a matching player (anywhere)
+                char = caller.search(player, global_search=True) 
+                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                        self.caller.msg("Character %s was not found." % player)
+                else:
+                    char.msg(message)
+                    success_emit = True
+                    caller.msg("Pemitted to: %s:" % char)
+            if not success_emit:
+                caller.msg("No message sent.")
+                return
+            # successfully did emit, so mirror message to myself.
+            caller.msg(message)
+            return                
+
+
+        if not self.rhs or not has_perms:
+            message = args
+            normal_emit = True
+            objnames = []
+            do_global = False
+        else:
+            do_global = True
+            message = self.rhs
+            if caller.check_permstring(perm):
+                objnames = self.lhslist
+            else:
+                objnames = [x.key for x in caller.location.contents if x.player]
+        if do_global:
+            do_global = has_perms
+
+
+        # normal emits by players are just sent to the room
+        # right now this does not do anything with nospoof. add later in 
+        # POT functionality.
+
+        if normal_emit:
+            try:
+                message = self.args
+                message = sub_old_ansi(message)
+                in_stage = caller.db.in_stage
+                if in_stage:
+                    message = append_stage(message)
+                self.caller.location.msg_contents(message, from_obj=caller)
+            except ValueError:
+                self.caller.msg("")
+                return
+        
+            return
+            
 
 class CmdPose(BaseCommand):
     """
