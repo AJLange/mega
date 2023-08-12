@@ -45,10 +45,10 @@ epoch_start = time.mktime(start.timetuple())
 SERVERNAME = "M3"
 GAME_SLOGAN = "Welcome to MegaMan MUSH! Increasingly Capcom MUSH."
 
-DEFAULT_HOME = "#6"
-START_LOCATION = "#6"
+DEFAULT_HOME = "#8"
+START_LOCATION = "#8"
 DISCORD_ENABLED = True
-
+_TEST_ENVIRONMENT = False
 
 ######################################################################
 # Guest Accounts Unlocked
@@ -60,9 +60,9 @@ BASE_GUEST_TYPECLASS = "typeclasses.accounts.Guest"
 # The permission given to guests
 PERMISSION_GUEST_DEFAULT = "Guests"
 # The default home location used for guests.
-GUEST_HOME = "#6"
+GUEST_HOME = "#8"
 # The start position used for guest characters.
-GUEST_START_LOCATION = "#6"
+GUEST_START_LOCATION = "#8"
 # The naming convention used for creating new guest
 # accounts/characters. The size of this list also determines how many
 # guests may be on the game at once. The default is a maximum of nine
