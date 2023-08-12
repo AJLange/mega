@@ -1,5 +1,8 @@
 """
 commands related to groups and rosters
+
+These commands do not work at all. They are not even hooked into the model yet. 
+
 """
 
 from evennia import CmdSet

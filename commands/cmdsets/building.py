@@ -21,7 +21,7 @@ from django.conf import settings
 from typeclasses.cities import City
 from typeclasses.cities import PersonalRoom
 from typeclasses.rooms import PrivateRoom
-from world.groups.models import PlayerGroup
+from world.pcgroups.models import PlayerGroup
 
 
 

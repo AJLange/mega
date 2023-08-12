@@ -113,27 +113,26 @@ INSTALLED_APPS = [
     "evennia.web",
 ]
 
+######################################################################
+# Django Models for M3
+######################################################################
+
 INSTALLED_APPS +=  ["world.roster",
                     "world.combat" ,
                     "world.armor",
                     "world.boards",
                     "world.pcgroups",
+                    "world.msgs",
                     ]
 
-######################################################################
-# Django Models for M3
-######################################################################
+
 
 '''
 
-INSTALLED_APPS +=  ["world.roster", 
+INSTALLED_APPS +=  [
                     "world.scenes",
-                    "world.msgs",
-                    "world.groups", 
                     "world.requests",
-                    "world.combat",
-                    "world.boards",
-                    "world.armor"]
+                    ]
 
 '''
 
