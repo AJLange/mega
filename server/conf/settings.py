@@ -115,8 +115,9 @@ INSTALLED_APPS = [
 
 INSTALLED_APPS +=  ["world.roster",
                     "world.combat" ,
-
-                    
+                    "world.armor",
+                    "world.boards",
+                    "world.pcgroups",
                     ]
 
 ######################################################################

@@ -67,6 +67,39 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        # use @typeclass/force self to reset yourself after adding new commands.
+        #
+
+        #pose commands
+
+        self.add(CmdThink())
+        self.add(CmdPose())
+        self.add(CmdMegaSay())
+        self.add(CmdEmit())
+        self.add(CmdAside())
+        self.add(CmdOOCSay())
+
+        #finger commands
+
+        self.add(CmdFinger())
+        self.add(CmdOOCFinger())
+        self.add(CmdEFinger())
+        self.add(CmdSheet())
+
+        #cookie commands will be moved to account level at a later time
+        self.add(CmdCookie())
+        self.add(CmdCookieCounter())
+
+        #moving around
+        self.add(CmdHome())
+        self.add(CmdSummon())
+        self.add(CmdJoin())
+        self.add(CmdFollow())
+        self.add(CmdDitch())
+        self.add(CmdDesc())
+        self.add(CmdEnterCity())
+        #self.add(CmdLeaveCity())
+        self.add(CmdPortal())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -87,7 +120,25 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(CmdWho())
+        self.add(CmdOOCLook())
+        self.add(CmdOOC())
+        self.add(CmdMail())
 
+
+        #self.add(CmdChannelCreate())
+        #self.add(CmdCBoot())
+        #self.add(CmdCdestroy())
+
+
+        #self.remove(default_cmds.CmdIRC2Chan())
+        #self.remove(default_cmds.CmdIrcStatus())
+        #self.remove(default_cmds.CmdRSS2Chan())
+        #self.remove(default_cmds.CmdGrapevine2Chan())
+
+        self.remove(default_cmds.CmdCharCreate())
+        self.remove(default_cmds.CmdCharDelete())
+        
 
 class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
     """
@@ -105,7 +156,7 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-
+        self.add(CmdUnconnectedCreate())
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
     """
