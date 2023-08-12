@@ -89,6 +89,36 @@ TIME_GAME_EPOCH = epoch_start
 WEBSERVER_PORTS = [(80,4001)]
 
 
+INSTALLED_APPS = [
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.admindocs",
+    "django.contrib.flatpages",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "django.contrib.admin",
+    "django.contrib.messages",
+    "rest_framework",
+    "django_filters",
+    "sekizai",
+    "evennia.utils.idmapper",
+    "evennia.server",
+    "evennia.typeclasses",
+    "evennia.accounts",
+    "evennia.objects",
+    "evennia.comms",
+    "evennia.help",
+    "evennia.scripts",
+    "evennia.web",
+]
+
+INSTALLED_APPS +=  ["world.roster",
+                    "world.combat" ,
+
+                    
+                    ]
+
 ######################################################################
 # Django Models for M3
 ######################################################################
