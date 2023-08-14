@@ -32,7 +32,7 @@ def append_stage(self, poser, pose):
     
 def see_players(location):
     #check for players in this location
-    objlist = location.msg_contents
+    objlist = location.contents
     players =[]
     for obj in objlist:
         if inherits_from(obj, settings.BASE_CHARACTER_TYPECLASS):
@@ -50,8 +50,6 @@ def process_pose(viewer, poser, pose):
     if viewer.db.highlightlist:
         pose = highlight_words(pose, viewer)
         
-    pose = (f"\n{pose}\n")
-
     return pose
 
 class CmdThink(BaseCommand):
@@ -77,12 +75,6 @@ class CmdThink(BaseCommand):
             self.caller.msg(errmsg)
             return
         
-'''
-Emit is basic and uncapped and unlocked and will require more locks
-at a later time to do things like nospoof. Just making it work for
-right now.
-
-'''
 
 class CmdOOCSay(MuxCommand):
     """
@@ -179,10 +171,18 @@ class CmdEmit(MuxCommand):
         try:
             message = args
             message = sub_old_ansi(message)
+            location = caller.location
             in_stage = caller.db.in_stage
             if in_stage:
                 message = append_stage(message)
-            self.caller.location.msg_contents(message, from_obj=caller)
+            target_list = see_players(location)
+            for player in target_list:
+                message = process_pose(player, caller, message)
+                player.msg(f"\n{message}\n")
+                
+                #self.caller.location.msg_contents(message, from_obj=caller)
+        
+        #todo - also emit to the auto logger
         except ValueError:
             self.caller.msg("")
             return
@@ -196,7 +196,6 @@ class CmdPEmit(MuxCommand):
 
     Usage:
       @pemit [<obj>, <obj>, ... =] <message>
-
    
     @pemit is an emit directly to another player or player list. 
     This emit is not visible to other players, even in the same room as
@@ -268,7 +267,7 @@ class CmdPEmit(MuxCommand):
             # find a matching player (anywhere)
             char = caller.search(player, global_search=True) 
             if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
-                self.caller.msg("Character %s was not found." % player)
+                caller.msg("Character %s was not found." % player)
             else:
                 message = process_pose(char, caller, message)
                 char.msg(message)
