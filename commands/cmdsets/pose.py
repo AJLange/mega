@@ -30,6 +30,15 @@ def append_stage(self, poser, pose):
         pose = prefix + pose
         return pose
     
+def see_players(location):
+    #check for players in this location
+    objlist = location.msg_contents
+    players =[]
+    for obj in objlist:
+        if inherits_from(obj, settings.BASE_CHARACTER_TYPECLASS):
+            #character found
+            players.append(obj)
+    return players
 
 def process_pose(self, viewer, poser, pose):
 
@@ -40,6 +49,8 @@ def process_pose(self, viewer, poser, pose):
         pose = (f"{poser} poses: \n") + pose
     if viewer.db.highlightlist:
         pose = highlight_words(pose, viewer)
+        
+    pose = (f"\n{pose}\n")
 
     return pose
 
@@ -157,10 +168,7 @@ class CmdEmit(MuxCommand):
         """Implement the command"""
 
         caller = self.caller
-        if caller.check_permstring(self.perm_for_switches):
-            args = self.args
-        else:
-            args = self.raw.lstrip(" ")
+        args = self.args
 
         if not args:
             string = "Usage: "
@@ -168,56 +176,20 @@ class CmdEmit(MuxCommand):
             caller.msg(string)
             return
 
-        perm = self.perm_for_switches
-        normal_emit = False
-        has_perms = caller.check_permstring(perm)
+        # ordinary player emit.
 
-        # we check which command was used to force the switches
-        cmdstring = self.cmdstring.lstrip("@").lstrip("+")
-
-        if cmdstring == "pemit":
-            if not caller.check_permstring("builders"):
-                caller.msg("Only staff can use this command.")
-                return
-            players_only = True
-
-        if not caller.check_permstring(perm):
-            rooms_only = False
-            players_only = False
-
-        if not self.rhs or not has_perms:
+        try:
             message = args
-            normal_emit = True
-            objnames = []
-            do_global = False
-        else:
-            do_global = True
-            message = self.rhs
-            if caller.check_permstring(perm):
-                objnames = self.lhslist
-            else:
-                objnames = [x.key for x in caller.location.contents if x.player]
-        if do_global:
-            do_global = has_perms
-
-
-        # normal emits by players are just sent to the room
-        # right now this does not do anything with nospoof. add later in 
-        # POT functionality.
-
-        if normal_emit:
-            try:
-                message = self.args
-                message = sub_old_ansi(message)
-                in_stage = caller.db.in_stage
-                if in_stage:
-                    message = append_stage(message)
-                self.caller.location.msg_contents(message, from_obj=caller)
-            except ValueError:
-                self.caller.msg("")
-                return
-        
+            message = sub_old_ansi(message)
+            in_stage = caller.db.in_stage
+            if in_stage:
+                message = append_stage(message)
+            self.caller.location.msg_contents(message, from_obj=caller)
+        except ValueError:
+            self.caller.msg("")
             return
+        
+        return
 
 
 class CmdPEmit(MuxCommand):
