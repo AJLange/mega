@@ -700,3 +700,5 @@ class CmdCookieMsg(MuxCommand):
         except ValueError:
             self.caller.msg("Some error occured.")
             return
+
+

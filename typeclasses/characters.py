@@ -67,9 +67,11 @@ class Character(DefaultCharacter):
         self.db.rollset = 1
         self.db.roomformat = 1
         self.db.in_stage = False
+        self.db.stage = ""
 
         self.db.desc = "You see a character. Desc yourself with +mdesc and a new desc."
         self.db.multidesc = [("Default", "You see a character.")]
+        self.db.nospoof = False
 
 
     def get_stats(self):

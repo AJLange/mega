@@ -19,8 +19,9 @@ from django.conf import settings
 
     
 
-def append_stage(self, stage, pose):
+def append_stage(self, poser, pose):
     
+    stage = poser.db.stage
     if not stage:
         return False
     else:
@@ -28,6 +29,20 @@ def append_stage(self, stage, pose):
         prefix = (f"From {stage}, \n")
         pose = prefix + pose
         return pose
+    
+
+def process_pose(self, viewer, poser, pose):
+
+    if not pose:
+        return False
+    #if a pose is coming in, process it first.
+    if viewer.db.nospoof:
+        pose = (f"{poser} poses: \n") + pose
+    if viewer.db.highlightlist:
+        pose = highlight_words(pose, viewer)
+
+    return pose
+
 
 
 class CmdThink(BaseCommand):
@@ -1074,3 +1089,40 @@ class CmdAside(MuxCommand):
             return
         
 
+class CmdSetSpoof(MuxCommand):
+
+    """
+    Toggle the 'nospoof' option.
+    
+    Usage:
+      nospoof
+
+    This toggles the 'nospoof' mode. When you are set 'nospoof' you will see 
+    a label that indicates the originator of any pose in the room you are in. 
+
+    With Nospoof off:
+        "A mysterious robot appears in your vision!"
+
+    With Nospoof on:
+        "Dr Wily poses:
+            A mysterious robot appears in your vision!"
+
+
+    """
+
+    key = "nospoof"
+    aliases = ["+nospoof", "spoof", "+spoof"]
+    locks = "perm(Player))"
+    help_category = "Social"
+
+    def func(self):
+        caller = self.caller
+
+        if caller.db.nospoof:
+            caller.db.nospoof = False
+            caller.msg("Nospoof OFF.")
+            return
+        else:
+            caller.db.nospoof = True
+            caller.msg("Nospoof ON.")
+            return
