@@ -40,7 +40,7 @@ def see_players(location):
             players.append(obj)
     return players
 
-def process_pose(self, viewer, poser, pose):
+def process_pose(viewer, poser, pose):
 
     if not pose:
         return False
@@ -53,8 +53,6 @@ def process_pose(self, viewer, poser, pose):
     pose = (f"\n{pose}\n")
 
     return pose
-
-
 
 class CmdThink(BaseCommand):
     """
@@ -213,7 +211,7 @@ class CmdPEmit(MuxCommand):
     help_category = "Social"
     arg_regex = None
     perm_for_switches = "Builders"
-    success_emit = False
+
 
     def get_help(self, caller, cmdset):
         """Returns custom help file based on caller"""
@@ -233,7 +231,7 @@ class CmdPEmit(MuxCommand):
 
     def func(self):
         """Implement the command"""
-
+        success_emit = False
         caller = self.caller
         if caller.check_permstring(self.perm_for_switches):
             args = self.args
@@ -247,80 +245,43 @@ class CmdPEmit(MuxCommand):
             return
 
         perm = self.perm_for_switches
-        normal_emit = False
         has_perms = caller.check_permstring(perm)
 
-        # we check which command was used to force the switches
-        cmdstring = self.cmdstring.lstrip("@").lstrip("+")
-
-        if cmdstring == "pemit":
-            if not caller.check_permstring("builders"):
-                caller.msg("Only staff can use this command.")
-                return
-            if not args:
-                string = "@pemit to who?"
-                caller.msg(string)
-                return
-            largs = args.split('=')
-            if len(largs) <= 1:
-                caller.msg("Emit what message?")
-                return
-            message = largs[1]
-            message = sub_old_ansi(message)
-            target_all = largs[0]
-            target_list = target_all.split(',')
-            for player in target_list:
-                player = player.strip()
-                # find a matching player (anywhere)
-                char = caller.search(player, global_search=True) 
-                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
-                        self.caller.msg("Character %s was not found." % player)
-                else:
-                    char.msg(message)
-                    success_emit = True
-                    caller.msg("Pemitted to: %s:" % char)
-            if not success_emit:
-                caller.msg("No message sent.")
-                return
-            # successfully did emit, so mirror message to myself.
-            caller.msg(message)
-            return                
-
-
-        if not self.rhs or not has_perms:
-            message = args
-            normal_emit = True
-            objnames = []
-            do_global = False
-        else:
-            do_global = True
-            message = self.rhs
-            if caller.check_permstring(perm):
-                objnames = self.lhslist
-            else:
-                objnames = [x.key for x in caller.location.contents if x.player]
-        if do_global:
-            do_global = has_perms
-
-
-        # normal emits by players are just sent to the room
-        # right now this does not do anything with nospoof. add later in 
-        # POT functionality.
-
-        if normal_emit:
-            try:
-                message = self.args
-                message = sub_old_ansi(message)
-                in_stage = caller.db.in_stage
-                if in_stage:
-                    message = append_stage(message)
-                self.caller.location.msg_contents(message, from_obj=caller)
-            except ValueError:
-                self.caller.msg("")
-                return
-        
+        if not has_perms:
+            caller.msg("This is a staff-only command.")
             return
-            
+
+        if not args:
+            string = "@pemit to who?"
+            caller.msg(string)
+            return
+        largs = args.split('=')
+        if len(largs) <= 1:
+            caller.msg("Emit what message?")
+            return
+        message = largs[1]
+        message = sub_old_ansi(message)
+        target_all = largs[0]
+        target_list = target_all.split(',')
+        for player in target_list:
+            player = player.strip()
+            # find a matching player (anywhere)
+            char = caller.search(player, global_search=True) 
+            if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                self.caller.msg("Character %s was not found." % player)
+            else:
+                message = process_pose(char, caller, message)
+                char.msg(message)
+                success_emit = True
+                caller.msg("Pemitted to: %s:" % char)
+        if not success_emit:
+            caller.msg("No message sent.")
+            return
+        # successfully did emit, so mirror message to myself.
+        caller.msg(message)
+        return                
+
+
 
 class CmdPose(BaseCommand):
     """
