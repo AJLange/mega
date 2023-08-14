@@ -7,10 +7,11 @@ teleport (override), follow, summon, are here.
 
 from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
+
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import Room, PrivateRoom
-from typeclasses.cities import City, PersonalRoom
+from typeclasses.cities import City, PersonalRoom, get_portal_tags
 from evennia.utils.search import search_tag, search_object
 
 class CmdSummon(MuxCommand):
@@ -392,11 +393,27 @@ class CmdPortal(MuxCommand):
             #todo: list format in a pretty grid with categories.
             teleport_message = ("Teleport locations available: \n")
 
+            portal_tags = get_portal_tags()
+            for portal in portal_tags:
+                teleport_message = teleport_message + portal + (": \n")
+                tele_cat = search_tag(portal, category="portal")
+                for site in tele_cat:
+                    site_label = str(site).split("-",1)
+                    site_string = ("|lcportal " + str(site) + "|lt" + str(site_label[0]).strip() + "|le ")
+                    teleport_message = teleport_message + site_string
+                teleport_message = teleport_message + ("\n")
+            for site in plotrooms:
+                site_label = str(site).split("-",1)
+                site_string = ("|lcportal " + str(site) + "|lt" + str(site_label[0]).strip() + "|le ")
+                teleport_message = teleport_message + site_string
+
+            '''
             for site in locations:
                 site_label = str(site).split("-",1)
                 site_string = ("|lcportal " + str(site) + "|lt" + str(site_label[0]).strip() + "|le ")
                 teleport_message = teleport_message + site_string
             #teleport_message = (f"Teleport locations available: {', '.join(str(ob) for ob in locations)}")
+            '''
             self.caller.msg(teleport_message)
             return
 
@@ -405,6 +422,9 @@ class CmdPortal(MuxCommand):
             
             locations = search_tag(category="portal")
             plotrooms = search_tag(category="plotroom")
+            if not args:
+                caller.msg("Portal to where?")
+                return
             destination = caller.search(args, global_search=True)
             if not destination:
                 caller.msg("Destination not found.")

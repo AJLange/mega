@@ -19,7 +19,7 @@ from evennia import Command, CmdSet
 from evennia.commands.default.muxcommand import MuxCommand
 from django.conf import settings
 from typeclasses.cities import City
-from typeclasses.cities import PersonalRoom
+from typeclasses.cities import PersonalRoom, get_portal_tags
 from typeclasses.rooms import PrivateRoom
 from world.pcgroups.models import PlayerGroup
 
@@ -30,6 +30,7 @@ Built attributes created by admin should be tamper-locked:
 see here to add this later:
 https://www.evennia.com/docs/0.9.5/Attributes.html#locking-and-checking-attributes
 '''
+
 
 class CmdMakeCity(MuxCommand):
     """
@@ -141,11 +142,16 @@ class CmdLinkTeleport(MuxCommand):
             caller.msg("You need to provide a portal category. See help +portalgrid.")
             return
         else:
+            portal_tags = get_portal_tags()
             hub = self.args
-            room.tags.add(hub, category ="portal")
+            if hub in portal_tags:
+                
+                room.tags.add(hub, category ="portal")
 
-            caller.msg("Added room %s to teleport category %s." % (room, hub) )
-            return
+                caller.msg("Added room %s to teleport category %s." % (room, hub) )
+                return
+            else:
+                caller.msg("Not a valid portal category. See help portalgrid.")
         
 
 

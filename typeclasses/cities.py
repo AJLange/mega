@@ -8,6 +8,11 @@ from typeclasses.exits import Exit
 from evennia import DefaultExit
 
 
+def get_portal_tags():
+    #storing a list of valid portal tags here
+    valid_tags = ["Asia", "Europe", "Faction"]
+    return valid_tags
+
 class City(Object):
     '''
     A type of object that, when entered, contains a 
