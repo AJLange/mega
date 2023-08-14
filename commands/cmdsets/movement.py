@@ -313,6 +313,9 @@ make warp link-clickable with this
 • |le to end the link text and the link definition.
 '''
 
+'''
+discontinuing use of the SCS MUSH version of portals
+
 class CmdWarp(MuxCommand):
     """
     teleport to another location
@@ -349,7 +352,7 @@ class CmdWarp(MuxCommand):
             else:
                 caller.move_to(destination)
                 caller.msg("Teleported to %s." % destination)
-
+'''
 
 class CmdPortal(MuxCommand):
     """
@@ -398,8 +401,8 @@ class CmdPortal(MuxCommand):
             return
 
         else:
-            #todo: limit this to rooms with portal tag only. Accept partial matches.
-            #todo: make web-clickable.
+            #todo: Accept partial matches.
+            
             locations = search_tag(category="portal")
             plotrooms = search_tag(category="plotroom")
             destination = caller.search(args, global_search=True)
@@ -411,8 +414,11 @@ class CmdPortal(MuxCommand):
                     caller.msg("Destination is not an IC room.")
                     return
                 else:
-                    caller.move_to(destination)
-                    caller.msg("Teleported to %s." % destination)
+                    if destination not in locations and destination not in plotrooms:
+                        caller.msg("That is not a teleport-ok location. See portal/list.")
+                    else:
+                        caller.move_to(destination)
+                        caller.msg("Teleported to %s." % destination)
 
 
 

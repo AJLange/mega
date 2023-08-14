@@ -26,7 +26,7 @@ from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOC
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
-from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
+from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal
 
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
@@ -128,7 +128,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdTaunt())
         self.add(CmdPersuade())
 
-        self.add(CmdWarp())       
+        #self.add(CmdWarp())       
         self.add(CmdPortal())
 
         #building and crafting
