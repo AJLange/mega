@@ -13,6 +13,7 @@ from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import ChargenRoom
 from evennia import create_object
+from evennia.utils.utils import inherits_from
 from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
 from world.combat.models import Weapon
@@ -82,7 +83,7 @@ class CmdStartChargen(MuxCommand):
     +setskill/<nameskill> <1-5> (for all 12 skills)
     +setprofile/<attribute> <value> (for all 7 text attributes)
     +setweapon <name> (for all weapons, including /primary and /secondary)
-    +setpower <name> (for the character's 'racetype' aka power set sources)
+    +settemplate <name> (for the character's templates (not structured data))
     +finishchargen
 
     +player <character> = <player>
@@ -97,7 +98,7 @@ class CmdStartChargen(MuxCommand):
     """
     
     key = "+chargen"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
 
     def func(self):
@@ -154,7 +155,7 @@ class CmdCreateWeapon(MuxCommand):
     key = "addweapon"
     aliases = ["+addweapon"]
     locks = "perm(Builder)"
-    help_category = "Chargen"
+    help_category = "Character"
 
     def func(self):        
         caller = self.caller
@@ -212,7 +213,7 @@ class CmdCreatePC(Command):
     key = "createpc"
     aliases = ["+createPC"]
     locks = "perm(Builder)"
-    help_category = "Chargen"
+    help_category = "Character"
     
     def func(self):
         "creates the object and names it"
@@ -256,7 +257,7 @@ class CmdWorkChar(Command):
     """
     key = "+workchar"
     aliases = ["workchar"]
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
     
     def func(self):
@@ -267,12 +268,17 @@ class CmdWorkChar(Command):
             return
 
         # set name as set
-        name = self.args
+        name = self.args.lstrip()
         
-        character = self.caller.search(name)
+
+        #character = ObjectDB.objects.filter(db_key__iexact=name)[0]
+        character = self.caller.search(name, global_search=True)
         if not character:
             caller.msg("Sorry, couldn't find that PC.")
             return
+        if not inherits_from(character, settings.BASE_CHARACTER_TYPECLASS):
+            self.caller.msg("Sorry, couldn't find that PC.")
+            return    
         
         # announce
         caller.db.workingchar = character
@@ -296,7 +302,7 @@ class CmdSetPlayer(MuxCommand):
     '''
 
     key = "+player"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
 
     def func(self):
@@ -352,7 +358,7 @@ class CmdUnPlayer(MuxCommand):
     '''
 
     key = "unplayer"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
     aliases = ["+unplayer"]
 
@@ -418,7 +424,7 @@ class CmdSetStat(MuxCommand):
     """
     
     key = "setstat"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
     alias = "+setstat"
 
@@ -487,7 +493,7 @@ class CmdSetSkills(MuxCommand):
     """
     
     key = "+setskill"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
 
     def func(self):
@@ -556,7 +562,7 @@ class CmdSetProfileAttr(MuxCommand):
     """
     
     key = "+setprofile"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
 
     '''
@@ -657,7 +663,7 @@ class CmdSetAttribute(MuxCommand):
     """
     
     key = "+setattribute"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
     
 
@@ -757,7 +763,7 @@ class CmdSetWeapons(MuxCommand):
     """
     
     key = "setweapon"
-    help_category = "Chargen"
+    help_category = "Character"
     locks = "perm(Builder)"
     aliases = ["+setweapon"]
 
@@ -794,7 +800,7 @@ class CmdSetArmors(Command):
     """
     
     key = "+setarmor"
-    help_category = "Chargen"
+    help_category = "Character"
 
     def func(self):
         "This performs the actual command"
@@ -812,24 +818,26 @@ class CmdSetArmors(Command):
         character.db.quote = text
         caller.msg("Added an armor named: %s" % text)
 
-class CmdSetPowers(Command):
+class CmdSetTemplate(Command):
     """
-    Setting or adding armors to characters.
+    Setting the templates for a character.
 
     Usage:
-      +setpower <name>
+      +settemplate <name>
+      +settemplate Human
+      +settemplate Cyborg, Adept
 
-    This sets the power source on characters.
-    Power sources are tied to certain abilities.
+    This sets the templates for characters. This simply takes a string 
+    as data and has no actual impact on the combat system for the time
+    being. A comma-seperated list is valid input.
 
-    This command works, but is temporary. You can also use
-    +setprofile/type <power>
+    You can also use +setprofile/type <template>
 
 
     """
     
-    key = "+setpower"
-    help_category = "Chargen"
+    key = "+settemplate"
+    help_category = "Character"
 
     def func(self):
         "This performs the actual command"
@@ -842,7 +850,7 @@ class CmdSetPowers(Command):
         try:
             text = self.args
             character.db.type = text
-            caller.msg("Added the power: %i" % text)
+            caller.msg("Added the template: %s" % text)
         except ValueError:
             caller.msg(errmsg)
             return
@@ -862,7 +870,7 @@ class CmdFinishChargen(MuxCommand):
     """
     
     key = "+finishchargen"
-    help_category = "Chargen"
+    help_category = "Character"
 
     def func(self):
         "This performs the actual command"
@@ -917,7 +925,7 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetWeapons())
         self.add(CmdSetArmors())
         self.add(CmdSetProfileAttr())
-        self.add(CmdSetPowers())
+        self.add(CmdSetTemplate())
         self.add(CmdFinishChargen())
         self.add(CmdSetPlayer())
         self.add(CmdUnPlayer())

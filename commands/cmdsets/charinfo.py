@@ -70,7 +70,7 @@ class CmdFinger(BaseCommand):
 
             border = "------------------------------------------------------------------------------"
             line1 = "Name: %s"  % (name)               
-            line2= "Powers: %s  Function: %s"  % (type, function)
+            line2= "Template: %s  Function: %s"  % (type, function)
             line3 = "Gender: %s Game: %s"  % (gender, game)
             line4 = "%s" % (quote)
             line5 = "%s" % (profile)
