@@ -84,7 +84,11 @@ class CmdStartChargen(MuxCommand):
     +setprofile/<attribute> <value> (for all 7 text attributes)
     +setweapon <name> (for all weapons, including /primary and /secondary)
     +settemplate <name> (for the character's templates (not structured data))
-    +finishchargen
+
+    If there are armor modes, create them by doing
+    +setarmor <name> = type>
+
+    +finishchargen when done.
 
     +player <character> = <player>
     to assign this character to a player account.
@@ -432,6 +436,9 @@ class CmdSetStat(MuxCommand):
         "This performs the actual command"
         caller = self.caller
         character = caller.db.workingchar 
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which stat?")
@@ -464,6 +471,8 @@ class CmdSetStat(MuxCommand):
             character.db.aur = stat
 
         caller.msg(f"The PC's {self.switches} was set to %i." % stat)
+
+
 
 class CmdSetSkills(MuxCommand):
     """
@@ -500,6 +509,9 @@ class CmdSetSkills(MuxCommand):
         "This performs the actual command"
         caller = self.caller
         character = caller.db.workingchar 
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which skill?")
@@ -574,6 +586,9 @@ class CmdSetProfileAttr(MuxCommand):
         errmsg = "Set value to what?"
         caller = self.caller
         character = caller.db.workingchar 
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
         if "gender" in self.switches or "Gender" in self.switches:
             if self.args:
                 text = self.args
@@ -670,7 +685,11 @@ class CmdSetAttribute(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = caller.db.workingchar 
+        character = caller.db.workingchar
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+
         errmsg = "Not a valid attribute."
         if "weakness" in self.switches:
             if self.args:
@@ -771,6 +790,11 @@ class CmdSetWeapons(MuxCommand):
         "This performs the actual command"
         caller = self.caller
         character = caller.db.workingchar 
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+
         errmsg = "What weapon?"
         if not self.args:
             caller.msg(errmsg)
@@ -783,40 +807,6 @@ class CmdSetWeapons(MuxCommand):
             caller.msg(errmsg)
             return
         
-
-class CmdSetArmors(Command):
-    """
-    Setting or adding armors to characters.
-
-    Usage:
-      +setarmor <name>
-
-    This command currently doesn't do anything, 
-    but is a good test for if other chargen
-    commands are available to the user.
-
-    When you execute it, you'll get a confirmation
-    that you added an armor but nothing else happens yet.
-    """
-    
-    key = "+setarmor"
-    help_category = "Character"
-
-    def func(self):
-        "This performs the actual command"
-        caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "What text?"
-        if not self.args:
-            caller.msg(errmsg)
-            return
-        try:
-            text = self.args
-        except ValueError:
-            caller.msg(errmsg)
-            return
-        character.db.quote = text
-        caller.msg("Added an armor named: %s" % text)
 
 class CmdSetTemplate(Command):
     """
@@ -843,6 +833,10 @@ class CmdSetTemplate(Command):
         "This performs the actual command"
         caller = self.caller
         character = caller.db.workingchar 
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
         errmsg = "What text?"
         if not self.args:
             caller.msg(errmsg)
@@ -854,6 +848,71 @@ class CmdSetTemplate(Command):
         except ValueError:
             caller.msg(errmsg)
             return
+        
+
+class CmdSetArmor(MuxCommand):
+    """
+    Sets the current stats on a character to an armor mode.
+
+    Usage:
+      +setarmor <name of armor>=<armor type>
+      +setarmor Mega Man=1
+
+    Armors are set as an INTEGER as below due to data structure.
+
+    Valid armor types are Mode, Stance, Focus, Form
+    VR, Summon, Minion, System, and just Armor.
+
+    1 - Mode - Technological mode change. Typical for robots.
+    2 - Stance - if this is a change in fighting style.
+    3 - Focus - the fight gets serious now, so I doubled down.
+    4 - Form - Mutated into another form or changed bodies.
+    5 - VR - Jacking in to a virtual form.
+    6 - Summon - Summoning a pet or assist.
+    7 - Minion - Playing as another character or squad.
+    8 - System - Using a special system activation, such as Double Gear.
+    9 - Armor - When you're not sure which one to use.
+
+    """
+    
+    key = "setarmor"
+    help_category = "Character"
+    locks = "perm(Builder)"
+    alias = "+setarmor"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+
+        errmsg = "Syntax error. See help +setarmor."
+        args = self.args
+        if not self.args:
+            caller.msg(errmsg)
+            return
+        armor_type = self.rhs
+        name = self.lhs
+
+        if not armor_type:
+            caller.msg(errmsg)
+            return
+        
+        try:
+            armor_type = int(armor_type)
+        except ValueError:
+            caller.msg(errmsg)
+            return
+        if not (1 <= armor_type <= 9):
+            caller.msg(errmsg)
+            return
+
+        character.db.armor.append(name)
+        caller.msg("Added an armor named: %s" % name)
+        
         
 
 class CmdFinishChargen(MuxCommand):
@@ -923,7 +982,7 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetSkills())
         self.add(CmdCreateWeapon())
         self.add(CmdSetWeapons())
-        self.add(CmdSetArmors())
+        self.add(CmdSetArmor())
         self.add(CmdSetProfileAttr())
         self.add(CmdSetTemplate())
         self.add(CmdFinishChargen())
