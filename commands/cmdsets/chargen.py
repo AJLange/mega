@@ -114,7 +114,7 @@ class CmdStartChargen(MuxCommand):
             
             caller.msg(chargeninit)
                 # add the chargen command set
-            self.cmdset.add(ChargenCmdset)
+            caller.cmdset.add(ChargenCmdset, persistent=True)
             
         else:
             caller.msg("You cannot do chargen here.")
