@@ -17,6 +17,7 @@ from evennia.utils.utils import inherits_from
 from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
 from world.combat.models import Weapon
+from world.armor.models import ArmorMode, Capability
 
 
 '''
@@ -203,6 +204,52 @@ class CmdCreateWeapon(MuxCommand):
             else:
                 caller.msg("Sorry, an error occured.")
 
+
+class CmdCreateCapability(MuxCommand):
+    """
+    Create a new capability, adding this to the selectable
+    db of Capabilities. 
+
+    Usage:
+        +addcapabilty <name>
+        +addcapabilty Enhanced-Senses
+
+    This adds a new capability to the database of capabilities.
+
+    This DB is actually called Capabilitys, because Django, but 
+    don't worry about it.
+    
+    Capabilities interact with the combat and non combat code in 
+    various ways when a string is matched. This command should be 
+    used rarely, because it is the database add. It is only used 
+    the first time a capability is added to the DB, not during 
+    general chargen.
+
+    To actually set a capability on a character from the existing
+    database, use +setcapability instead.
+
+    """
+
+    key = "addcapability"
+    aliases = ["+addcapability"]
+    locks = "perm(Builder)"
+    help_category = "Character"
+
+    def func(self):        
+        caller = self.caller
+        args = self.args
+        errmsg = "Add what capabilty? See help addcapabilty."
+        if not args:
+            caller.msg(errmsg)
+            return
+
+        cap_name = self.args
+        
+        new_cap = Capability.objects.create(db_name=cap_name)
+        if new_cap:
+            caller.msg("Added capability |w%s|n to the Capability database." % cap_name )
+        else:
+            caller.msg("Sorry, an error occured.")
         
 
 class CmdCreatePC(Command):
@@ -826,8 +873,9 @@ class CmdSetTemplate(Command):
 
     """
     
-    key = "+settemplate"
+    key = "settemplate"
     help_category = "Character"
+    aliases = ["+settemplate"]
 
     def func(self):
         "This performs the actual command"
@@ -849,6 +897,56 @@ class CmdSetTemplate(Command):
             caller.msg(errmsg)
             return
         
+
+class CmdSetCapability(MuxCommand):
+    """
+    Setting the capabilities on a character.
+
+    Usage:
+      +setcapability <name>
+      +setcapabilty Flight
+      +setcap Flight 
+
+    This adds a capability to the working character. Capabilities
+    must be valid capabilities that are in the Capability database.
+
+    Since 'capability' is a long word, 'setcap' can be used for sure.
+    
+    To add a new capability to the database, use +addcapability.
+    This should not be used often.
+
+    """
+    
+    key = "setcapability"
+    help_category = "Character"
+    aliases = ["+setcapability", "setcap", "+setcap"]
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+        if not self.args:
+            caller.msg("What text?")
+            return
+        try:
+            text = self.args
+            #make sure this is valid
+            valid_cap = Capability.objects.filter(db_name__iexact=text)
+            if not valid_cap:
+                caller.msg("Not a valid capability. See +addcapability.")
+                return
+            
+            character.db.capabilities.append(text)
+            caller.msg(f"Added the capability {text} to character {character}.")
+        except ValueError:
+            caller.msg("An error occured.")
+            return
+        
+
 
 class CmdSetArmor(MuxCommand):
     """
@@ -989,3 +1087,5 @@ class ChargenCmdset(CmdSet):
         self.add(CmdFinishChargen())
         self.add(CmdSetPlayer())
         self.add(CmdUnPlayer())
+        self.add(CmdCreateCapability())
+        self.add(CmdSetCapability())

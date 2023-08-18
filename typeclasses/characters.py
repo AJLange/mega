@@ -57,6 +57,7 @@ class Character(DefaultCharacter):
 
         self.db.files = []
         self.db.armor = []
+        self.db.capabilities = []
 
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
