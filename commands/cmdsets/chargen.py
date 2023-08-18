@@ -962,6 +962,7 @@ class CmdFinishChargen(MuxCommand):
             caller.msg("Missing attribute: specialties\n")
 
         try:
+            self.caller.cmdset.remove(ChargenCmdset)
             caller.msg("Char Creation Done. Make sure your character has stats and abilities set.")
         except ValueError:
             caller.msg(errmsg)
