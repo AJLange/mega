@@ -123,6 +123,16 @@ class CmdStartChargen(MuxCommand):
         
 
 
+'''
+CreateWeapon partially functions.
+Ways this is broken:
+    not accepting strings as input (needs the integers)
+    not always choosing what I thought I selected
+    Not processing the extra fields properly
+    Not checking for duplicates (do not make the same weapon twice, 
+        but will put a failsafe check in setweapon.)
+'''
+
 class CmdCreateWeapon(MuxCommand):
     """
     Create a new weapon.
@@ -352,9 +362,10 @@ class CmdSetPlayer(MuxCommand):
     To remove a character from an account, use +unplayer.
     '''
 
-    key = "+player"
+    key = "player"
     help_category = "Character"
     locks = "perm(Builder)"
+    aliases = ["+player", "+setplayer", "setplayer"]
 
     def func(self):
         "This performs the actual command"
@@ -548,9 +559,10 @@ class CmdSetSkills(MuxCommand):
 
     """
     
-    key = "+setskill"
+    key = "setskill"
     help_category = "Character"
     locks = "perm(Builder)"
+    alias = "+setskill"
 
     def func(self):
         "This performs the actual command"
@@ -620,9 +632,10 @@ class CmdSetProfileAttr(MuxCommand):
 
     """
     
-    key = "+setprofile"
+    key = "setprofile"
     help_category = "Character"
     locks = "perm(Builder)"
+    alias = "+setprofile]"
 
     '''
     This works, but it's pretty sloppy and could really use a refactor.
@@ -828,6 +841,7 @@ class CmdSetWeapons(MuxCommand):
 
     """
     
+
     key = "setweapon"
     help_category = "Character"
     locks = "perm(Builder)"
@@ -836,7 +850,8 @@ class CmdSetWeapons(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = caller.db.workingchar 
+        character = caller.db.workingchar
+        switches = self.switches
 
         if not character:
             caller.msg("You aren't working on an active character.")
@@ -845,11 +860,40 @@ class CmdSetWeapons(MuxCommand):
         errmsg = "What weapon?"
         if not self.args:
             caller.msg(errmsg)
-            character.db.attacktype = text
-            caller.msg("Added an attack type at: %s" % text)
             return
+        
+        if switches:
+            if not "primary" in switches and not "secondary" in switches:
+                caller.msg("Invalid switch.")
+                return        
+        
+        text = self.args
+        
+        check_weapon = Weapon.objects.filter(db_name__iexact=text)
+        if not check_weapon:
+            caller.msg("That weapon was not found. Add it first using +addweapon.")
+            return
+        if len(check_weapon) > 1:
+            caller.msg("Error, duplicate weapons found. Please fix this in database.")
+            return
+
+        weapon = Weapon.objects.filter(db_name__iexact=text)[0]
+
         try:
-            text = self.args
+            
+            character.db.weapons.append(weapon)
+            
+            if switches:
+                if "primary" in switches:
+                    character.db.primary = weapon
+                    caller.msg("Added the weapon (as primary): %s" % text)
+                    return
+                if "secondary" in switches:
+                    character.db.secondary = weapon
+                    caller.msg("Added the weapon (as secondary): %s" % text)
+                    return
+            caller.msg("Added the weapon: %s" % text)
+            return
         except ValueError:
             caller.msg(errmsg)
             return
@@ -939,8 +983,9 @@ class CmdSetCapability(MuxCommand):
             if not valid_cap:
                 caller.msg("Not a valid capability. See +addcapability.")
                 return
+            this_cap = Capability.objects.filter(db_name__iexact=text)[0]
             
-            character.db.capabilities.append(text)
+            character.db.capabilities.append(this_cap)
             caller.msg(f"Added the capability {text} to character {character}.")
         except ValueError:
             caller.msg("An error occured.")
@@ -981,9 +1026,9 @@ class CmdSetArmor(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = caller.db.workingchar 
+        char = caller.db.workingchar 
 
-        if not character:
+        if not char:
             caller.msg("You aren't working on an active character.")
             return
 
@@ -1007,9 +1052,26 @@ class CmdSetArmor(MuxCommand):
         if not (1 <= armor_type <= 9):
             caller.msg(errmsg)
             return
-
-        character.db.armor.append(name)
-        caller.msg("Added an armor named: %s" % name)
+        
+        if not char.db.primary or not char.db.secondary:
+            caller.msg("Character missing necessary attributes. Did you set primary weapons?")
+            return
+        
+        new_armor = ArmorMode.objects.create(db_name=name, db_swap = armor_type, db_pow = char.db.pow, db_dex = char.db.dex, db_ten = char.db.ten, db_cun = char.db.cun, 
+                                            db_edu = char.db.edu, db_chr = char.db.chr, db_aur = char.db.aur, db_size = char.db.size, db_speed = char.db.speed, db_strength = char.db.strength,
+                                            db_resistance = char.db.resistance, db_weakness = char.db.weakness,
+                                            db_discern = char.db.discern, db_aim = char.db.aim, db_athletics = char.db.athletics,
+                                            db_force = char.db.force, db_mechanics = char.db.mechanics, db_medicine = char.db.medicine, db_computer = char.db.computer,
+                                            db_stealth = char.db.stealth, db_heist = char.db.heist, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
+                                            db_primary = char.db.primary, db_secondary = char.db.secondary
+                                            )
+        #db_capabilities.set(char.db.capabilities), db_weapons.set(char.db.weapons)
+        try:
+            char.db.armor.append(new_armor)
+            caller.msg("Added an armor named: %s" % name)
+        except:
+            caller.msg("Sorry, some error occured.")
+        
         
         
 

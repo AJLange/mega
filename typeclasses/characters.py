@@ -58,12 +58,13 @@ class Character(DefaultCharacter):
         self.db.files = []
         self.db.armor = []
         self.db.capabilities = []
+        self.db.weapons = []
+        self.db.primary = 0
+        self.db.secondary = 0
 
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
         
-        # self.db.armor = []
-
         # Default display setup
 
         self.db.rollset = 1
@@ -156,7 +157,14 @@ class Character(DefaultCharacter):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
 
     def get_statobjs(self):
-        return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
+        return self.db.type, self.db.size, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
+    
+    def get_caps(self):
+        cap_list = self.db.capabilities
+        str_list = []
+        for cap in cap_list:
+            str_list.append(cap.db_name)
+        return str_list
 
     def get_quotas(self):
         return self.db.roomquota, self.db.craftquota, self.db.stagequota

@@ -499,8 +499,9 @@ class CmdSheet(BaseCommand):
                 name = caller.name
                 char = caller
 
-            types, size, cap, speed, weakness, resistance, elements, strength = char.get_statobjs()
+            types, size, speed, weakness, resistance, elements, strength = char.get_statobjs()
             pow, dex, ten, cun, edu, chr, aur = char.get_stats()
+            cap = char.get_caps()
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
