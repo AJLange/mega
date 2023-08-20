@@ -703,3 +703,29 @@ class CmdCookieMsg(MuxCommand):
             return
 
 
+class CmdShowMyToggles(MuxCommand):
+    """
+    Show what toggles you have set.
+    
+    Usage:
+      toggles
+
+    A quick glance to see if you have the following toggles set or not:
+
+    * nospoof
+    * stagemute
+    * radio stuff TBD
+
+
+    """
+    key = "toggles"
+    aliases = ["+toggles"]
+    locks = "perm(Player))"
+    help_category = "Scenes"
+
+    def func(self):
+        caller = self.caller
+        caller.msg("Toggles status:")
+        caller.msg(f"NoSpoof: {caller.db.nospoof}")
+        caller.msg(f"Stage Mute: {caller.db.stagemute}")
+        return

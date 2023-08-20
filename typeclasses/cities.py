@@ -96,11 +96,9 @@ class Stage(Object):
     the pose.
 
     '''
-
     def at_object_creation(self):
         self.db.occupants =[]
         self.db.desc = "This is a Stage. Select using the 'select' command to append your location to the room."
-
 
 class Vehicle(Stage):
     '''

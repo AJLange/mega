@@ -87,7 +87,8 @@ class CmdMakeStage(MuxCommand):
             caller.msg("Usage: makestage <Name of item>")
             return
 
-        stagename, desc = args.split("=")
+        stagename = self.lhs
+        desc = self.rhs
         new_obj = create_object("cities.Stage",key=stagename,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
 
         lockstring = self.new_obj_lockstring.format(id=caller.id)
@@ -145,8 +146,9 @@ class CmdSetStage(MuxCommand):
                 caller.msg("No object by that name was found.")
                 return
             if not obj[0].db.owner == caller:
-                caller.msg("That object is not yours.")
-                return
+                if not caller.check_permstring("builders"):
+                    caller.msg("That object is not yours.")
+                    return
             obj[0].db.desc = ("\n" + description + "\n")
             caller.msg("You update the desc of: %s" % str(obj[0]))
 
@@ -158,9 +160,15 @@ class CmdClearStage(MuxCommand):
 
     Usage:
       clearstage
+      clearstage <name>
+      clearstage Dinosaur Tank
 
     This is to be used when you are done with a scene that used
     stages and want to clean up after yourself.
+
+    Clearstage on its own clears all stages in a location.
+    Clearstage with an argument looks for a stage named 'arg' anywhere
+    and tries to delete that stage.
 
     """
 
@@ -169,17 +177,49 @@ class CmdClearStage(MuxCommand):
     locks = "perm(Player))"
     help_category = "Scenes"
     
+    def remove_stage(self, stage):
+        for occupant in stage.db.occupants:
+            occupant.db.stage = 0
+            occupant.msg(f"You were removed from stage {stage}.")
+        #delete it
+        stage.delete()
+        
 
     def func(self):
         """Implements command"""
         caller = self.caller
+        location = caller.location
         args = self.args
 
-        #for all items in location
-        #if the item is a stage
-        #and that stage is owned by the caller
-        #delete the item
-        #if the player is not a staffer, return a stagequota
+        if not args:
+            #for all stages in this location
+            stages = Stage.objects.filter(db_location=location)
+            for stage in stages:
+                #check for permissions
+                if stage.db.owner == caller:
+                    self.remove_stage(stage)
+                    caller.msg(f"Removed {stage}")
+                    #if the player is not a staffer, return a stagequota
+                    if not caller.check_permstring("builders"):
+                        caller.db.stagequota = caller.db.craftquota +1
+                    
+        else:
+            stage = Stage.objects.filter(args)
+            errmsg = "Couldn't find that stage."
+            if not stage:
+                caller.msg(errmsg)
+                return
+            else:
+                if stage.db.owner != caller:
+                    caller.msg(errmsg)
+                else:
+                    self.remove_stage(stage)
+                    caller.msg(f"Removed {stage}.")
+                    #if the player is not a staffer, return a stagequota
+                    if not caller.check_permstring("builders"):
+                        caller.db.stagequota = caller.db.craftquota +1
+            
+
 
 
 class CmdStageSelect(MuxCommand):
@@ -332,7 +372,6 @@ class CmdDepart(MuxCommand):
 
         #take me out of the list of stage occupants
 
-
         caller.msg(f"You leave {stage_name}.")
 
 
@@ -348,10 +387,8 @@ class CmdStageMute(MuxCommand):
     you are not in to cut down on screen spam. To do this, use the
     +stagemute command.
 
-    This command only works if you are in a stage. 
-
     This is a toggle; to turn off stagemute, just use the +stagemute 
-    command again. If you leave the stage you are in, other stages
+    command again. If you leave the stage you are in, stages
     automatically unmute.
     """
 
@@ -360,12 +397,21 @@ class CmdStageMute(MuxCommand):
     locks = "perm(Player))"
     help_category = "Scenes"
     # characters used for poses/emits
-    char_symbols = (";", ":", "|")
 
     def func(self):
         """Implement this command"""
-        return
-        
+        caller = self.caller
+        if not caller.db.stagemute:
+            #not muted, so toggle mute
+            caller.db.stagemute = True
+            caller.msg("You turn on stage muting.")
+            return
+        else:
+            #normal functionality
+            caller.db.stagemute = False
+            caller.msg("You turn off stage muting.")
+            return
+       
 
 
 

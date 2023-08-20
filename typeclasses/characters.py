@@ -71,6 +71,7 @@ class Character(DefaultCharacter):
         self.db.roomformat = 1
         self.db.in_stage = False
         self.db.stage = 0
+        self.db.stagemute = False
 
         self.db.desc = "You see a character. Desc yourself with +mdesc and a new desc."
         self.db.multidesc = [("Default", "You see a character.")]

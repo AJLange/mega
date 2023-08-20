@@ -16,6 +16,7 @@ from evennia.comms.models import TempMsg
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils.utils import inherits_from
 from django.conf import settings
+from typeclasses.cities import Stage
 
     
 
@@ -23,7 +24,8 @@ def append_stage(poser, pose):
     
     stage = poser.db.stage
     if not stage:
-        return False
+        #not sure how we got here. Don't alter the pose.
+        return pose
     else:
         stage_name = stage.db_key
         #append my stage to the pose and return it
@@ -42,15 +44,27 @@ def see_players(location):
     return players
 
 def process_pose(viewer, poser, pose):
-
     if not pose:
+        #got no text so do nothing
         return False
     #if a pose is coming in, process it first.
     if viewer.db.nospoof:
         pose = (f"{poser} poses: \n") + pose
     if viewer.db.highlightlist:
         pose = highlight_words(pose, viewer)
-        
+    if viewer.db.stagemute:
+        # do some magic here to process stagemute
+        if not viewer.db.stage:
+            #no stage, don't worry
+            pose = pose
+        if not poser.db.stage:
+            pose = pose
+        else:
+            # mute unmatching stages.
+            if poser.sb.stage != viewer.db.stage:
+                return
+            else:
+                pose = pose      
     return pose
 
 class CmdThink(BaseCommand):
@@ -1059,3 +1073,4 @@ class CmdSetSpoof(MuxCommand):
             caller.db.nospoof = True
             caller.msg("Nospoof ON.")
             return
+        
