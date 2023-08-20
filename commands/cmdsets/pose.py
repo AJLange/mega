@@ -19,14 +19,15 @@ from django.conf import settings
 
     
 
-def append_stage(self, poser, pose):
+def append_stage(poser, pose):
     
     stage = poser.db.stage
     if not stage:
         return False
     else:
+        stage_name = stage[0].db_key
         #append my stage to the pose and return it
-        prefix = (f"From {stage}, \n")
+        prefix = (f"From {stage_name}, \n")
         pose = prefix + pose
         return pose
     
@@ -172,7 +173,7 @@ class CmdEmit(MuxCommand):
             message = args
             message = sub_old_ansi(message)
             location = caller.location
-            in_stage = caller.db.in_stage
+            in_stage = caller.db.stage
             if in_stage:
                 message = append_stage(message)
             target_list = see_players(location)
@@ -332,7 +333,7 @@ class CmdPose(BaseCommand):
         try:
             message = self.args
             message = sub_old_ansi(message)
-            in_stage = caller.db.in_stage
+            in_stage = caller.db.stage
             # this won't work actually, but fix later
             if in_stage:
                 message = append_stage(message)
@@ -383,7 +384,7 @@ class CmdSay(MuxCommand):
             return
 
         # Call the at_after_say hook on the character
-        in_stage = caller.db.in_stage
+        in_stage = caller.db.stage
         if in_stage:
             message = append_stage(message)
         caller.at_say(message, msg_self=True)
@@ -1012,7 +1013,7 @@ class CmdAside(MuxCommand):
         try:
             message = self.args
             message = sub_old_ansi(message)
-            in_stage = caller.db.in_stage
+            in_stage = caller.db.stage
             if in_stage:
                 message = append_stage(message)
             self.caller.location.msg_contents(message, from_obj=caller)

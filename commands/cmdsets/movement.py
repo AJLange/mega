@@ -74,7 +74,7 @@ class CmdSummon(MuxCommand):
 
 class CmdJoin(MuxCommand):
     """
-    Join
+    Join a person on the grid.
 
     Usage:
         join <person>

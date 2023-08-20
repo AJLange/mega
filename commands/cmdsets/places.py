@@ -11,21 +11,14 @@ from evennia.commands.default.muxcommand import MuxCommand
 from evennia.utils.utils import list_to_string
 from typeclasses.cities import Stage
 from evennia import default_cmds, create_object
+from evennia.utils import search
 from evennia.utils import utils, create
 from server.utils import sub_old_ansi
+from evennia.utils.utils import inherits_from
 from evennia import ObjectDB
 
 
 
-def get_movement_message(verb, stage):
-    """Returns the movement message for joining/leaving a stage"""
-    if not stage or not stage.key:
-        return "You %s the stage." % verb
-    prefix = stage.key.split()[0]
-    article = ""
-    if prefix.lower() not in ("the", "a", "an"):
-        article = "the "
-    return "You %s %s%s." % (verb, article, stage.key)
 
 
 # ------------------------------------------------------------
@@ -189,12 +182,12 @@ class CmdClearStage(MuxCommand):
         #if the player is not a staffer, return a stagequota
 
 
-class CmdJoin(MuxCommand):
+class CmdStageSelect(MuxCommand):
     """
     Enters a particular stage.
 
     Usage:
-        join <stage name>
+        select <stage name>
 
     Enters a stage in the room.
     
@@ -205,40 +198,51 @@ class CmdJoin(MuxCommand):
     To leave, use 'depart'.
     """
 
-    key = "join"
-    alias = "+join"
+    key = "select"
+    alias = "+select"
     locks = "perm(Player))"
     help_category = "Scenes"
 
     def func(self):
         """Implements command"""
         caller = self.caller
-        # this line doesn't work probably
-        all_stages = caller.location.stages
+        location = caller.location
+        stages = Stage.objects.filter(db_location=location)
+  
         
         args = self.args
+
         if not args:
-            caller.msg("Usage: {wjoin <stage name>{n")
-            caller.msg("To see a list of stages: {wstages{n")
+            caller.msg("Usage: select <stage name>")
+            caller.msg("To see a list of stages: stages")
             return
         
-        if not all_stages:
+        if len(stages) < 1:
             caller.msg("This room has no stages.")
             return
+        
         args = args.lstrip()
 
-        stage_name = args
-        if caller.db.in_stage:
-            caller.msg(f"You move from {caller.db.stage}.")
+        my_stage = Stage.objects.filter(db_key__icontains=args, db_location=location)
 
-        if not (0 <= args < len(all_stages)):
-            caller.msg("Number specified does not match any of the stages here.")
+        if not my_stage:
+            caller.msg("No match for that stage was found.")
             return
-        stage = all_stages[args]
+        if len(my_stage) > 1:
+            caller.msg("Multiple matches, be more specific.")
+            return
 
-        stage.join(caller)
-        caller.msg(get_movement_message("join", stage))
-        caller.location.msg_contents(f"{caller} moves to {stage}.", from_obj=caller)
+        if caller.db.stage:
+            caller.msg(f"You leave {caller.db.stage}.")
+
+        # found a match, so set that stage.
+        name = my_stage[0].db_key
+        caller.db.stage = my_stage[0]
+        my_stage[0].db.occupants.append(caller)
+
+        # I am now in a stage.
+
+        caller.location.msg_contents(f"{caller} moves to {name}.", from_obj=caller)
 
 
 class CmdListStages(MuxCommand):
@@ -273,19 +277,23 @@ class CmdListStages(MuxCommand):
     def func(self):
         """Implements command"""
         caller = self.caller
-        stages = caller.location.stages
-        caller.msg("{wStages here:{n")
-        caller.msg("{w------------{n")
-        if not stages:
+        location = caller.location
+
+        stages = Stage.objects.filter(db_location=location)
+
+    
+        if len(stages) < 1:
             caller.msg("No stages found.")
             return
+
+        caller.msg("|wStages here:|n")
+        caller.msg("|w------------|n")
+
         for num in range(len(stages)):
             p_name = stages[num].key
-            max_spots = stages[num].item_data.max_spots
-            occupants = stages[num].item_data.occupants
-            spots = max_spots - len(occupants)
-            caller.msg("%s (#%s) : %s empty spaces" % (p_name, num + 1, spots))
-            if occupants:
+            caller.msg(p_name)
+            occupants = stages[num].db.occupants
+            if len(occupants) > 0:
                 # get names
                 names = [ob.name for ob in occupants if ob.access(caller, "view")]
                 caller.msg("-Occupants: %s" % list_to_string(names))
@@ -310,12 +318,22 @@ class CmdDepart(MuxCommand):
     def func(self):
         """Implements command"""
         caller = self.caller
-        stage = caller.sitting_at_stage
-        if not stage:
+        stage = caller.db.stage
+        location = caller.location
+
+        if not caller.db.stage:
             caller.msg("You are not in a stage.")
             return
-        stage.leave(caller)
-        caller.msg(get_movement_message("leave", stage))
+
+        my_stage = Stage.objects.filter(db_key__icontains=stage, db_location=location)
+        stage_name = my_stage[0].db_key
+        stage.db.occupants.remove(caller)
+        caller.db.stage = 0
+
+        #take me out of the list of stage occupants
+
+
+        caller.msg(f"You leave {stage_name}.")
 
 
 class CmdStageMute(MuxCommand):

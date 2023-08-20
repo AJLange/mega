@@ -35,6 +35,7 @@ from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
+from commands.cmdsets.places import CmdClearStage, CmdListStages, CmdMakeStage, CmdSetStage, CmdStageMute, CmdDepart, CmdStageSelect
 #from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
 
 
@@ -141,6 +142,18 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCraft())
         self.add(CmdDescCraft())
         self.add(CmdJunkCraft())
+
+        #stages
+
+        self.add(CmdDepart())
+        self.add(CmdListStages())
+        self.add(CmdMakeStage())
+        self.add(CmdSetStage())
+        self.add(CmdClearStage())
+        self.add(CmdStageMute())
+        self.add(CmdListStages())
+        self.add(CmdStageSelect())
+        
 
         # any command below this line is only available to staff.
 

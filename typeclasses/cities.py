@@ -98,7 +98,8 @@ class Stage(Object):
     '''
 
     def at_object_creation(self):
-        self.db.desc = "This is a Stage. Enter it to append your location to the room."
+        self.db.occupants =[]
+        self.db.desc = "This is a Stage. Select using the 'select' command to append your location to the room."
 
 
 class Vehicle(Stage):
