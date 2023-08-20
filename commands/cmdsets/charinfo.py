@@ -721,7 +721,7 @@ class CmdShowMyToggles(MuxCommand):
     key = "toggles"
     aliases = ["+toggles"]
     locks = "perm(Player))"
-    help_category = "Scenes"
+    help_category = "General"
 
     def func(self):
         caller = self.caller
