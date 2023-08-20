@@ -25,7 +25,7 @@ def append_stage(poser, pose):
     if not stage:
         return False
     else:
-        stage_name = stage[0].db_key
+        stage_name = stage.db_key
         #append my stage to the pose and return it
         prefix = (f"From {stage_name}, \n")
         pose = prefix + pose
@@ -175,7 +175,7 @@ class CmdEmit(MuxCommand):
             location = caller.location
             in_stage = caller.db.stage
             if in_stage:
-                message = append_stage(message)
+                message = append_stage(caller, message)
             target_list = see_players(location)
             for player in target_list:
                 message = process_pose(player, caller, message)
@@ -336,7 +336,7 @@ class CmdPose(BaseCommand):
             in_stage = caller.db.stage
             # this won't work actually, but fix later
             if in_stage:
-                message = append_stage(message)
+                message = append_stage(caller, message)
             caller.location.msg_action(caller, message)
         except ValueError:
             self.caller.msg(errmsg)
@@ -386,7 +386,7 @@ class CmdSay(MuxCommand):
         # Call the at_after_say hook on the character
         in_stage = caller.db.stage
         if in_stage:
-            message = append_stage(message)
+            message = append_stage(caller, message)
         caller.at_say(message, msg_self=True)
 
         # If an event is running in the current room, then write to event log
@@ -1015,7 +1015,7 @@ class CmdAside(MuxCommand):
             message = sub_old_ansi(message)
             in_stage = caller.db.stage
             if in_stage:
-                message = append_stage(message)
+                message = append_stage(caller, message)
             self.caller.location.msg_contents(message, from_obj=caller)
         except ValueError:
             self.caller.msg("")
