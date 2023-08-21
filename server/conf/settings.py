@@ -123,6 +123,7 @@ INSTALLED_APPS +=  ["world.roster",
                     "world.boards",
                     "world.pcgroups",
                     "world.msgs",
+                    "world.scenes",
                     ]
 
 
@@ -130,7 +131,6 @@ INSTALLED_APPS +=  ["world.roster",
 '''
 
 INSTALLED_APPS +=  [
-                    "world.scenes",
                     "world.requests",
                     ]
 
