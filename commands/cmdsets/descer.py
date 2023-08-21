@@ -67,8 +67,8 @@ class CmdMultiDesc(MuxCommand):
     Descing yourself with the multidescer.
 
     Usage:
-       +multidesc = <text of desc>
-       +mdesc = <text of desc>
+       +multidesc <text of desc>
+       +mdesc <text of desc>
        +multidesc/store <name>
        +multidesc/set <name>
        +multidesc/view <name>

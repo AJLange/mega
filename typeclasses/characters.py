@@ -76,6 +76,8 @@ class Character(DefaultCharacter):
         self.db.desc = "You see a character. Desc yourself with +mdesc and a new desc."
         self.db.multidesc = [("Default", "You see a character.")]
         self.db.nospoof = False
+        
+        self.db.gm = False
 
 
     def get_stats(self):

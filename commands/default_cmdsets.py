@@ -88,6 +88,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdEFinger())
         self.add(CmdSheet())
         self.add(CmdShowMyToggles())
+        self.add(CmdDesc())
+        self.add(CmdMultiDesc())
 
         #cookie commands will be moved to account level at a later time
         self.add(CmdCookie())
@@ -99,7 +101,6 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdJoin())
         self.add(CmdFollow())
         self.add(CmdDitch())
-        self.add(CmdDesc())
         self.add(CmdEnterCity())
         #self.add(CmdLeaveCity())
         self.add(CmdPortal())
