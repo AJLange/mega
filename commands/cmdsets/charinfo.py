@@ -728,4 +728,6 @@ class CmdShowMyToggles(MuxCommand):
         caller.msg("Toggles status:")
         caller.msg(f"NoSpoof: {caller.db.nospoof}")
         caller.msg(f"Stage Mute: {caller.db.stagemute}")
+        caller.msg(f"Observer: {caller.db.observer}")
+        caller.msg(f"Pose privacy: {caller.db.potprivate}")
         return

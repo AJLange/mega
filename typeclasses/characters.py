@@ -78,6 +78,10 @@ class Character(DefaultCharacter):
         self.db.nospoof = False
         
         self.db.gm = False
+        self.db.boss = False
+
+        self.db.observer = False
+        self.db.potprivate = False
 
 
     def get_stats(self):

@@ -36,6 +36,7 @@ from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
 from commands.cmdsets.places import CmdClearStage, CmdListStages, CmdMakeStage, CmdSetStage, CmdStageMute, CmdDepart, CmdStageSelect
+from commands.cmdsets.scenes import CmdSequenceStart, CmdAutolog
 #from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
 
 
@@ -155,7 +156,9 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdStageMute())
         self.add(CmdListStages())
         self.add(CmdStageSelect())
-        
+
+        #GM and autologger
+        self.add(CmdSequenceStart())
 
         # any command below this line is only available to staff.
 

@@ -18,6 +18,7 @@ from evennia.utils import utils, create, evtable, make_iter, inherits_from, date
 from evennia.comms.models import Msg
 from world.scenes.models import Scene, LogEntry
 from typeclasses.rooms import Room
+from django.conf import settings
 
 from datetime import datetime
 
@@ -278,7 +279,8 @@ turned on, the location becomes a way to teleport to the room.
                                                                               
         The next command will add your scene to the database along with       
 posting it to the Scene Announcements board. +Scene/add operates using the    
-number for a month. An example of the command would be:                       
+number for a month. An example of the command would be:
+
         +scene/add 2/13 7 PM This Is A Sample Title=This is a sample post.    
         +scene/add 10/31 7:30 Another Sample=Yes PM is optional.              
                                                                               
@@ -448,7 +450,7 @@ class CmdSequenceStart(MuxCommand):
             +sequence/stop
             +sequence/gm <name>
             +sequence/stepdown
-            +sequence/status
+            +sequence/status or +sequence
 
     When you initiate a Sequence, you're setting yourself as a GM 
     in that scene. You can appoint a co-GM by using +sequence/gm <name>
@@ -456,19 +458,16 @@ class CmdSequenceStart(MuxCommand):
     or want to pass off the GMing role to someone else while still
     leaving the sequence active).
 
-    Each Sequence has a number of beats, multipled by the number
-    of protagonists in the scene (people you're up against). 
-    A beat is essentially the HP of the challenge at hand, 
-    however it is resolved.  The default number of beats is 
-    3 times the amount of adversarial players involved.
-    Players set +observer or appointed GM wil not be added
-    to this calculation.  If you set another player as co-GM
-    their beats will be removed. If you want to set this to 
-    a different value, you can choose that number when you 
-    start a sequence. 
+    Each Sequence has a number of beats, multipled by the number of protagonists 
+    in the scene (people you're up against). A beat is essentially the HP of 
+    the challenge at hand, however it is resolved.  The default number of
+    beats is 3 times the amount of adversarial players involved. Players set 
+    +observer or appointed GM wil not be added to this calculation.  If you 
+    set another player as co-GM their beats will be removed. If you want to set 
+    this to a different value, you can choose that number when you start a sequence. 
 
-    +sequence/status views the amount of beats and remaining
-    beats.
+    +sequence/status or +sequence views the players, GM list, amount of beats and 
+    remaining beats. 
 
     +sequence/stop ends the sequence for all participants.
     Only a GM in the sequence can do this.
@@ -484,19 +483,16 @@ class CmdSequenceStart(MuxCommand):
     def func(self):
         caller = self.caller
         room = caller.location
+        switches = self.switches
+        args = self.args
 
-        if not self.switches:
-            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
-            return
-
-        #this is from the event code, make it actually do the thing at a later time.
         # if the room has a protector, remind the player to check that.
 
         if room.db.protector== "Staff" and not not caller.check_permstring("builders"):
-            caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
+            caller.msg("You can't start a sequence event here - it's protected by staff. Ask staff about using this room.")
             return
 
-        elif "start" in self.switches:
+        if "start" in switches:
             if room.db.protector:
                 caller.msg("This room has a protector set, so make sure they were alerted to your scene happening here (+protector).")
             # Make sure the current room doesn't already have an active event, and otherwise mark it
@@ -504,38 +500,77 @@ class CmdSequenceStart(MuxCommand):
                 caller.msg("There is currently an active event running in this room already.")
                 return
             caller.location.db.active_event = True
-            event = Scene.objects.create(
-                name='Unnamed Event',
-                start_time=datetime.now(),
-                description='Placeholder description of scene plz change k thx bai',
-                location=caller.location,
-            )
-
-            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
-
-            caller.location.db.event_id = event.id
-
-            self.caller.location.msg_contents("|y<SCENE>|n A log has been started in this room with scene ID {0}.".format(event.id))
+            caller.db.gm = True
+            caller.msg("You start a sequence in this location.")
+            # todo - create scene model for sequence
+            # give HP to the sequence
+            
             return
 
-        elif "stop" in self.switches:
+        if "stop" in switches:
             # Make sure the current room's event hasn't already been stopped
             if not caller.location.db.active_event:
                 caller.msg("There is no active event running in this room.")
                 return
 
-            # Find the scene object that matches the scene/event reference on the
-            # location.
-            try:
-                events = Scene.objects.filter(id=caller.location.db.event_id).get()
-            except Exception as original:
-                raise Exception("Found zero or multiple Scenes :/") from original
-
-            # Stop the Room's active event by removing the active event attribute.
-            Scene.objects.filter(id=caller.location.db.event_id).update(end_time=datetime.now())
-            self.caller.location.msg_contents("|y<SCENE>|n A log has been stopped in this room with scene ID {0}.".format(events.id))
-            del caller.location.db.active_event
+            #remove gm flag from anybody who is in this room
+            charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS)
+            for char in charlist:
+                char.db.gm = False
+            caller.msg("You stop the sequence in this location.")
             return
+        
+        if "gm" in switches:
+            if not args:
+                caller.msg("Set who as GM? Please supply a name.")
+                return
+            co_gm = self.caller.search(args, global_search=False)
+
+            #make sure this is a valid player in the same room
+            errmsg = ("Character not found. A co-GM must be in the same location.")
+            if not co_gm:
+                self.caller.msg(errmsg)
+                return
+            if not inherits_from(co_gm, settings.BASE_CHARACTER_TYPECLASS):
+                self.caller.msg(errmsg)
+                return 
+            #all checks succeeded
+            co_gm.db.gm = True
+            return
+        
+        if "stepdown" in switches:
+            if not caller.db.gm:
+                caller.msg("You are not an active GM right now.")
+                return
+            else:
+                caller.db.gm = False
+                caller.msg("You step down from being GM of this sequence.")
+                return
+
+        if not switches or "status" in switches:
+            # if no switch provided, assume I'm looking for status and process this
+            text = ("Sequence Status: \n")
+            text += ("GM:")
+            # find all players here
+            charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_location=room )
+            playerlist = []
+            #hacky solution for now, fix with object later
+            for char in charlist:
+                if char.db.gm: 
+                    text += (f" {char}")
+                else:
+                    playerlist.append(char) 
+            text += ("\nPlayers:")
+            for char in playerlist:
+                #all gms were removed above, this is everyone else.
+                text += (f" {char}")
+ 
+            #to add - beats remaining - may have to make django model for this
+            #to do - make sure observer status is honored
+
+            caller.msg(text)
+            return
+
 
 class CmdAutolog(MuxCommand):
     """
