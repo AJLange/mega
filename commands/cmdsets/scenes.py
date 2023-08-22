@@ -253,15 +253,24 @@ class CmdObserve(MuxCommand):
     """
 
     key = "observe"
-    aliases = ["+observe"]
+    aliases = ["+observe", "observer", "+observer"]
     locks = "cmd:all()"
 
     def func(self):
-        self.caller.set_pose_time(0.0)
-        self.caller.set_obs_mode(True)
-        self.msg("Entering observer mode.")
-        self.caller.location.msg_contents(
-            "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
+
+        caller = self.caller
+        if caller.db.observer:
+            caller.location.msg_contents(
+            "|y<SCENE>|n {0} is no longer an observer.".format(self.caller.name))
+            caller.db.observer = False
+            return
+        else:
+            caller.set_pose_time(0.0)
+            caller.db.observer = True
+            caller.msg("Entering observer mode.")
+            caller.location.msg_contents(
+                "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
+            return
 
 
 class CmdSceneSched(MuxCommand):

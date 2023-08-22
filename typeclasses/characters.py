@@ -83,6 +83,8 @@ class Character(DefaultCharacter):
         self.db.observer = False
         self.db.potprivate = False
 
+        self.db.lastpose = 0
+
 
     def get_stats(self):
         """

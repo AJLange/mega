@@ -36,7 +36,7 @@ from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
 from commands.cmdsets.places import CmdClearStage, CmdListStages, CmdMakeStage, CmdSetStage, CmdStageMute, CmdDepart, CmdStageSelect
-from commands.cmdsets.scenes import CmdSequenceStart, CmdAutolog
+from commands.cmdsets.scenes import CmdSequenceStart, CmdAutolog, CmdObserve
 #from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
 
 
@@ -120,6 +120,9 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #boards
         self.add(CmdBBRead())
         self.add(CmdBBPost())
+
+        #POT commands
+        self.add(CmdObserve())
 
         #commands related to dice 
 
