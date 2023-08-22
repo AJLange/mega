@@ -148,6 +148,10 @@ class CmdPot(MuxCommand):
     
     Usage:
       +pot
+      +pot/last 
+      +pot/last <name>
+      +pot/since
+      +pot/scene
     
     The pose tracker displays the name, time connected, time idle, and 
     time since last posed of every character in the room, ordered starting 
@@ -156,6 +160,22 @@ class CmdPot(MuxCommand):
     Those who have not posed are listed below all those who have.
     To signify that you are leaving an ongoing scene, type +observe
     to reset your pose timer and move to the bottom (see "help observe").
+
+    +pot will display the last combat action a player was involved in along with 
+    their LE condition. 
+    At the very bottom of +pot, a Scene Pose might be listed that can be pulled up 
+    with +pot/scene. 
+
+    The +pot/last <Name> command displays the given person's last pose    
+    unless they have +pot/privacy toggled on.                                     
+    The +pot/last command will display, in order of oldest to newest, all 
+    the poses currently stored in the room.                                       
+    The +pot/since <Name> command will display, in order of oldest to     
+    newest, the pose of the given person and everyone who has posed since they    
+    did.         
+
+    TODO: except for listing names and idle times, the rest of the functionality
+    doesn't work yet, but details are above.
 
     """
 
@@ -171,13 +191,11 @@ class CmdPot(MuxCommand):
         Get all connected accounts by polling session.
         """
 
-        account = self.account
         all_sessions = SESSIONS.get_sessions()
 
-        all_sessions = sorted(all_sessions, key=lambda o: o.account.character.get_pose_time()) # sort by last posed time
+        all_sessions = sorted(all_sessions, key=lambda o: o.account.character[0].get_pose_time()) # sort by last posed time
         pruned_sessions = prune_sessions(all_sessions)
 
-        naccounts = SESSIONS.account_count()
         table = self.styled_table(
             "|wCharacter",
             "|wOn for",
@@ -191,11 +209,11 @@ class CmdPot(MuxCommand):
             if not session.logged_in:
                 continue
 
-            session_account = session.get_account()
             puppet = session.get_puppet()
             delta_cmd = time.time() - session.cmd_last_visible
             delta_conn = time.time() - session.conn_time
             delta_pose_time = time.time() - puppet.get_pose_time()
+
 
             '''
             SCS timed out sessions longer than an hour.
@@ -206,7 +224,7 @@ class CmdPot(MuxCommand):
                 continue
             
 
-            if puppet.location == self.caller.character.location:
+            if puppet.location == self.caller.location:
                 # logic for setting up pose table
                 table.add_row(puppet.key,
                               utils.time_format(delta_conn, 0),
@@ -214,14 +232,14 @@ class CmdPot(MuxCommand):
                               utils.time_format(delta_pose_time, 1))
 
         for session in old_session_list:
-            session_account = session.get_account()
             puppet = session.get_puppet()
             delta_cmd = time.time() - session.cmd_last_visible
             delta_conn = time.time() - session.conn_time
-            delta_pose_time = time.time() - puppet.get_pose_time()
 
-            if puppet.location == self.caller.character.location:
-                if puppet.get_obs_mode() == True:
+
+            # Changes display depending on if someone has set themselves as an observer or not.
+            if puppet.location == self.caller.character[0].location:
+                if puppet.db.observer == True:
                     table.add_row("|y" + puppet.key + " (O)",
                                   utils.time_format(delta_conn, 0),
                                   utils.time_format(delta_cmd, 1),
@@ -312,6 +330,12 @@ number for a month. An example of the command would be:
 
         elif "add" in self.switches:
             # Add scene
+            event = Scene.objects.create(
+                name='Unnamed Event',
+                start_time=datetime.now(),
+                description='Placeholder description of scene plz change k thx bai',
+                location=caller.location,
+            )
             caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
 
             # caller.location.db.event_id = event.id

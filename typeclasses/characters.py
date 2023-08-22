@@ -47,7 +47,7 @@ class Character(DefaultCharacter):
         self.db.discern = self.db.aim = self.db.athletics =  self.db.force = self.db.mechanics = self.db.medicine = self.db.computer = self.db.stealth = self.db.heist = self.db.convince =  self.db.presence = self.db.arcana = 1
 
         self.db.size = "Medium"
-        self.db.speed = "Medium"
+        self.db.speed = 1
         self.db.strength = "Normal"
         self.db.type = "Human"
         self.db.cookiecount = 0
@@ -84,6 +84,7 @@ class Character(DefaultCharacter):
         self.db.potprivate = False
 
         self.db.lastpose = 0
+        self.db.pose_time = 0.0
 
 
     def get_stats(self):
@@ -178,6 +179,13 @@ class Character(DefaultCharacter):
     def get_quotas(self):
         return self.db.roomquota, self.db.craftquota, self.db.stagequota
     
+    def get_pose_time(self):
+        return self.db.pose_time
+
+    def set_pose_time(self, time):
+        self.db.pose_time = time
+
+    
     def get_numbered_name(self, count, looker, **kwargs):
         """
         simply overloading this method to squash pluralization of character objects
@@ -189,9 +197,9 @@ class Character(DefaultCharacter):
                 
         return singular, plural
     
-    def get_groups(self):
+    def get_pcgroups(self):
         
-        return self.db.groups
+        return self.db.pcgroups
 
     def set_initial_combat(self):
         self.db.aimdice = 0
