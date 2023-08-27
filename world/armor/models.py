@@ -71,7 +71,7 @@ class ArmorMode(SharedMemoryModel):
     db_aur = models.IntegerField('Aura', default=1)
 
     db_size = models.CharField('Size',blank=True,null=True, max_length=40)
-    db_speed = models.CharField('Speed',blank=True,null=True,max_length=40)
+    db_speed = models.IntegerField('Speed',default=1)
     db_strength = models.CharField('Strength',blank=True,null=True, max_length=40)
 
     db_resistance = models.CharField('Resistance',blank=True,null=True, max_length=100)
