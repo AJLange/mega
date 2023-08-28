@@ -229,6 +229,7 @@ def process_elements(type_string):
     #nothing found? It will return 0, process as an error
     return val
 
+
 '''
 attack rolls
 '''

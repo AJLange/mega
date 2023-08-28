@@ -27,6 +27,64 @@ STANDARD_HP = 60
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
 """
 
+def swap_armor(caller, armor):    
+
+        #armor was found, so replace my stats with this armor
+        caller.db.pow = armor.db_pow
+        caller.db.dex = armor.db_dex
+        caller.db.ten = armor.db_ten
+        caller.db.cun = armor.db_cun
+        caller.db.edu = armor.db_edu
+        caller.db.chr = armor.db_chr
+        caller.db.aur = armor.db_aur
+
+        caller.discern = armor.db_discern
+        caller.db.aim = armor.db_aim
+        caller.db.athletics =  armor.db_
+        caller.db.force = armor.db_athletics
+        caller.db.mechanics = armor.db_mechanics
+        caller.db.medicine = armor.db_medicine
+        caller.db.computer = armor.db_computer
+        caller.db.stealth = armor.db_stealth
+        caller.db.heist = armor.db_heist
+        caller.db.convince =  armor.db_convince
+        caller.db.presence = armor.db_presence
+        caller.db.arcana = armor.db_arcana
+
+        caller.db.size = armor.db_size
+        caller.db.speed = armor.db_speed
+        caller.db.strength = armor.db_strength
+
+        #right now, changing armors does not change buster list
+        caller.db.capabilities = armor.db_capabilities
+        caller.db.weapons = armor.db_weapons
+        caller.db.primary = armor.db_primary
+        caller.db.secondary = armor.db_secondary
+
+        #process the armor message
+        #TODO - better pronoun processing
+        swap_msg = (f"{caller} activates their {armor.db_name} armor!")
+        if armor.db_swap == 1:
+            swap_msg = (f"{caller} has activated their {armor.db_name} mode!")
+        elif armor.db_swap == 2:   
+            swap_msg = (f"{caller} has swapped to their {armor.db_name} stance!")
+        elif armor.db_swap == 3:
+            swap_msg = (f"{caller} focuses their efforts, becoming {armor.db_name} !")
+        elif armor.db_swap == 4:
+            swap_msg = (f"{caller} changes forms, becoming their {armor.db_name}!")
+        elif armor.db_swap == 5:
+            swap_msg = (f"{caller} jacks in, activating {armor.db_name}!")
+        elif armor.db_swap == 6:
+            swap_msg = (f"{caller} summons {armor.db_name} to assist!")
+        elif armor.db_swap == 7:
+            swap_msg = (f"{caller} is playing as squadron {armor.db_name}.")
+        elif armor.db_swap == 8:
+            swap_msg = (f"{caller} activates their {armor.db_name} system!")
+
+        # the generic '9' is currently a catch-all
+        caller.location.msg_contents(swap_msg, from_obj=caller)
+        return
+
 
 class ModeSwap(MuxCommand):
     """
@@ -53,6 +111,31 @@ class ModeSwap(MuxCommand):
 
         if not self.args:
             caller.msg("Swap to which armor?")
+            return
+        else:
+            # search the armor DB for a matching armor (not case sensitive)
+            armor_name = self.args
+            armor_list = ArmorMode.objects.filter(db_name__icontains=armor_name)
+            errmsg = "No match for that armor was found."
+            # did not find, return error
+            if not armor_list:
+                caller.msg(errmsg)
+                return
+            #handle multiple matches
+            my_armors = caller.armor
+            for my_armor in my_armors:
+                for armor in armor_list:
+                    if my_armor.id == armor.id:
+                        #match found, do the swap
+                        swap_armor(caller,my_armor)
+                        caller.msg("Swapped.")
+                        return
+                    else:
+                        caller.msg(errmsg)
+                        return
+            #TODO: change my desc based on the armor mode
+
+        
 
 class CmdShowdown(Command):
     """
