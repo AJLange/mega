@@ -212,6 +212,7 @@ class Character(DefaultCharacter):
     
 
 
+
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:

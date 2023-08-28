@@ -137,12 +137,96 @@ def check_weapons(char):
     weapon = char.db.weapons
     return weapon
 
+def process_attack_class(type_string):
+    type_string = str(type_string)
+    type_string = type_string.upper()
+
+    val = 0
+    if type_string == "RANGED":
+        val = 1
+    elif type_string == "WAVE":
+        val = 2
+    elif type_string == "THROWN":
+        val = 3
+    elif type_string == "MELEE":
+        val = 4
+    elif type_string == "BLITZ":
+        val = 5
+    elif type_string == "SNEAK":
+        val = 6
+    elif type_string == "GRAPPLE":
+        val = 7
+    elif type_string == "SPELL":
+        val = 8
+    elif type_string == "WILL":
+        val = 9
+    elif type_string == "GADGET":
+        val = 10
+    elif type_string == "CHIP":
+        val = 11
+    elif type_string == "RANDOM":
+        val = 12
+   
+    #nothing found? It will return 0, process as an error
+    return val
+
 def process_elements(type_string):
     '''
     process to convert string to structured data to see what element was used
-    '''
-    val = 0
     
+    '''
+    type_string = str(type_string)    
+    type_string = type_string.upper()
+
+    val = 0
+    if type_string == "SLASHING":
+        val = 1
+    elif type_string == "PIERCING":
+         val = 2
+    elif type_string == "ELECTRIC":
+        val = 3
+    elif type_string ==  "EXPLOSIVE" :
+        val = 4
+    elif type_string == "FIRE" :
+        val = 5
+    elif type_string == "GRAVITY" :
+        val = 6
+    elif type_string ==  "AIR" :
+        val = 7
+    elif type_string ==  "ICE" :
+        val = 8
+    elif type_string ==  "TOXIC" :
+        val = 9
+    elif type_string ==  "BLUNT" :
+        val = 10
+    elif type_string ==  "QUAKE" :
+        val = 11
+    elif type_string ==  "KARATE" :
+        val = 12
+    elif type_string ==  "SONIC" :
+        val = 13
+    elif type_string ==  "TIME":
+        val = 14
+    elif type_string ==  "WOOD" :
+        val = 15
+    elif type_string ==  "WATER" :
+        val = 16
+    elif type_string ==  "PLASMA" :
+        val = 17
+    elif type_string ==  "LASER" :
+        val = 18
+    elif type_string ==  "LIGHT" :
+        val = 19
+    elif type_string ==  "DARKNESS" :
+        val = 20
+    elif type_string ==  "PSYCHO" :
+        val = 21
+    elif type_string ==  "CHI" :
+        val = 22
+    elif type_string ==  "DISENCHANT":
+        val  = 23
+            
+    #nothing found? It will return 0, process as an error
     return val
 
 '''

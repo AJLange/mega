@@ -18,6 +18,7 @@ from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
 from world.combat.models import Weapon
 from world.armor.models import ArmorMode, Capability
+from server.battle import process_elements, process_attack_class, process_effects
 
 
 '''
@@ -65,6 +66,9 @@ Voice
 Info
 
 '''
+
+
+
 
 class CmdStartChargen(MuxCommand):
     """
@@ -198,21 +202,84 @@ class CmdCreateWeapon(MuxCommand):
         types_list = divide_fx[0].split(" ")
         weapon_class = types_list[0]
         types_list.pop(0)
+        element_list =[]
 
-        #elements and effect aren't parsing yet, but we can add to db a weapon of class.
+        #convert weapon class to DB stored integer
+        style_weapon = process_attack_class(weapon_class)
+        if style_weapon == 0:
+            caller.msg("Invalid weapon class. No weapon added.")
+            return 
+        for element in types_list:
+            element = process_elements(element)
+            if element == 0:
+                caller.msg("Invalid element choice. No weapon added.")
+                return 
+            element_list.append(element)
+        
+        # TODO - effect flags are not in, do not do anything with these yet
 
+        # preventing out of range errors if no more elements
+        errmsg = "Sorry, an error occured."
         if effects_list:
-            new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=weapon_class, db_type_1=1, db_flag_1=1)
-            if new_weapon:
-                caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
-            else: 
-                caller.msg("Sorry, an error occured.")
-        else:
-            new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=weapon_class, db_type_1=1)
-            if new_weapon:
-                caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+            if len(element_list) == 1:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0], db_flag_1=1)
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+                    return
+                else: 
+                    caller.msg(errmsg)
+                    return
+            elif len(element_list) ==2:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0], db_type_2= element_list[1], db_flag_1=1)
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+                    return
+                else: 
+                    caller.msg(errmsg)
+                    return
+            elif len(element_list) == 3:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0], db_type_2= element_list[1], db_type_3= element_list[2], db_flag_1=1)
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+                    return
+                else: 
+                    caller.msg("Sorry, an error occured.")
+            elif len(element_list) > 3:
+                caller.msg("Too many elements for that weapon.")
+                return
             else:
-                caller.msg("Sorry, an error occured.")
+                caller.msg(errmsg)
+                return
+        else:
+            if len(element_list) == 1:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0])
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+                    return
+                else: 
+                    caller.msg(errmsg)
+                    return
+            elif len(element_list) ==2:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0], db_type_2= element_list[1])
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s" % (weapon_name, weapon_class, types_list) )
+                    return
+                else: 
+                    caller.msg(errmsg)
+                    return
+            elif len(element_list) == 3:
+                new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=style_weapon, db_type_1=element_list[0], db_type_2= element_list[1], db_type_3= element_list[2])
+                if new_weapon:
+                    caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+                    return
+                else: 
+                    caller.msg("Sorry, an error occured.")
+            elif len(element_list) > 3:
+                caller.msg("Too many elements for that weapon.")
+                return
+            else:
+                caller.msg(errmsg)
+                return
 
 
 class CmdCreateCapability(MuxCommand):
