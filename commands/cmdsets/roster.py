@@ -1,15 +1,21 @@
 """
 commands related to groups and rosters
 
-These commands do not work at all. They are not even hooked into the model yet. 
+Commands not hooked into the system yet - make sure PCs are created before testing.
 
 """
+
+# TODO - valid char check is a bit messy, refactor it later
 
 from evennia import CmdSet
 from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from world.pcgroups.models import Squad, PlayerGroup
 from world.roster.models import Roster
+from evennia.utils import evmenu
+from evennia.utils.search import object_search
+from evennia.utils.utils import inherits_from
+from django.conf import settings
 
 
 def get_group(caller, name):
@@ -19,6 +25,17 @@ def get_group(caller, name):
         return 0
     else:
         return groups[0]
+    
+
+def check_char_valid(caller, char):
+    if not char:
+        caller.msg("Character not found.")
+        return 0
+    if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+        caller.msg("Character not found.")
+        return 0
+    else:
+        return char
 
 
 class CmdSetGroups(MuxCommand):
@@ -40,12 +57,20 @@ class CmdSetGroups(MuxCommand):
     aliases = ["ally", "addgroup", "+ally"]
     help_category = "Roster"
 
-    def groupadd(caller, char, name):        
+    def groupadd(caller, char_string, name):        
         #choosing first match
         group = get_group(caller, name)
         if group:
-            char.db.groups.append(group)
-            caller.msg(f"Added {char} to the group {group.db_name}.")
+            #make sure that's a valid character
+            char = caller.search(char_string, global_search=True)
+
+            char = check_char_valid(caller,char)
+            if not char:
+                caller.msg("Character not found.")
+                return
+            
+            group.db_members.add(char)
+            caller.msg(f"Added {char.name} to the group {group.db_name}.")
             char.msg(f"You were added to the group {group.db_name}.")
             return
         else:
@@ -59,11 +84,16 @@ class CmdSetGroups(MuxCommand):
 
         try:
             group = self.rhs
-            char = self.lhs
+            char_string = self.lhs
         except ValueError:
             caller.msg(errmsg)
             return
-        callergroups = caller.db.groups
+        char = caller.search(char_string, global_search=True)
+        char = check_char_valid(caller,char)
+        if not char:
+            caller.msg("Character not found.")
+            return
+            
         my_group = get_group(caller,group)
         # am I admin?
         if caller.check_permstring("builders"):
@@ -71,8 +101,8 @@ class CmdSetGroups(MuxCommand):
             return
         # am I in that group?
         else:
-            for group in callergroups:
-                if group == my_group:
+            for member in my_group.db_members:
+                if member == char:
                     #TODO - if rank above a number. not checking this for now
                     self.groupadd(caller,char,group)
                     return
@@ -148,13 +178,24 @@ class CmdSetRank(MuxCommand):
     help_category = "Roster"
 
     def func(self):
-        "This performs the actual command"
+        caller= self.caller
+        try:
+            set_string = self.rhs
+            char_string = self.lhs
+        except ValueError:
+            caller.msg(errmsg)
+            return
+        char = caller.search(char_string, global_search=True)
+        char = check_char_valid(caller,char)
+        if not char:
+            caller.msg("Character not found.")
+            return
         errmsg = "What text?"
         if not self.args:
             self.caller.msg(errmsg)
             return
-            #todo - parse with the equals
         try:
+            #parse the split variable
             text = self.args
             # am I admin?
 
@@ -164,7 +205,6 @@ class CmdSetRank(MuxCommand):
         except ValueError:
             self.caller.msg(errmsg)
             return
-        self.caller.db.quote = text
         self.caller.msg("Add the rank: %s" % text)
 
 
@@ -396,18 +436,51 @@ class CmdFCList(MuxCommand):
     Get a list of feature characters.
 
     Usage:
-      +fclist
+      +fclist, +cast, +roster
+      +fclist/game <game>                                             
+      +fclist/group <group>
+      +fclist/avail                                     
+                                                                              
+    The +fclist command will list all the various games that are included 
+    in our theme and the created FCs (feature characters) from that game. The   
+    +fclist/game <Game> will pull up the specific FCs from that game while 
+    +fclist/group <Group> will pull up the various game FCs that are part of that 
+    group.    
+    (Ex. +fclist/game Megaman X4, +fclist/group Repliforce)
+
+    +cast and +roster are aliases for +fclist.  
+      
 
     """
     
     key = "+fclist"
-    aliases = ["fclist","+roster","roster"]
+    aliases = ["fclist","+roster","roster", "cast", "+cast"]
     help_category = "Roster"
 
     def func(self):
         
         self.caller.msg("In the future this will list of available and unavailable characters.")
-        return
+        switches = self.switches
+        caller = self.caller
+        args = self.args
+        
+        if not switches:
+            caller.msg("list all rosters")
+            return
+        elif "game" in switches:
+            caller.msg("list roster by game.")
+            return
+        elif "group" in switches:
+            if not args:
+                caller.msg("From which group? See help groups for a list.")
+                return
+            else:
+                group = get_group(caller,args)
+                caller.msg(f"list roster of group {group.db_name}")
+                return
+        else: 
+            caller.msg("Invalid switch. See help +fclist.")
+            return
     
 
 class CmdCreateGroup(MuxCommand):
@@ -416,7 +489,18 @@ class CmdCreateGroup(MuxCommand):
     Admin side command to create a new PC group.
 
     Usage:
-      makegroup <name>
+      makegroup <name>=<leader>
+      makegroup/desc <name>=<desc>
+      makegroup/2ic <name>=<character>
+      
+    Makegroup will make a group with the suggested name, assigning the
+    selected person as the leader. A leader is required for any new group.
+
+    The additional command makegroup/desc will change the description for
+    the specified group.
+
+    makegroup/2ic will select a character to be the second-in-command of the 
+    specified group. Having a second in command is optional.
 
     """
     
@@ -425,8 +509,73 @@ class CmdCreateGroup(MuxCommand):
     help_category = "Roster"
     locks = "perm(Builder)"
 
+
     def func(self):
-        args = self.args
-        
-        self.caller.msg(f"Created the new group {args}.")
-        return
+
+        caller = self.caller
+        switches = self.switches
+        errmsg = "Syntax error. Please check help makegroup."
+
+        if not switches:
+            try:
+                char_string = self.rhs
+                group_name = self.lhs
+            except:
+                caller.msg(errmsg)
+                return
+            leader = self.caller.search(char_string, global_search=True)
+
+            #make sure this is a valid player!
+            if not leader:
+                self.caller.msg("Character not found.")
+                return
+            if not inherits_from(leader, settings.BASE_CHARACTER_TYPECLASS):
+                self.caller.msg("Character not found.")
+                return  
+            description = "Starter group description. Ask your admin to change this!"
+            group = PlayerGroup.objects.create(db_name=group_name, db_leader = leader, db_description = description)
+            
+            if group:
+                caller.msg(f"Created the new group {group_name} lead by {leader.name}.")
+                group.db_members.add(leader)
+                leader.msg(f"You were just set leader of a new group: {group.db_name}.")
+                return
+            else:
+                caller.msg("Sorry, an error occured.")
+                return
+        elif "desc" in switches:
+            try:
+                desc = self.rhs
+                group_name = self.lhs
+                group = get_group(caller,group_name)
+                if group:
+                    group.db_descrption = desc
+                    caller.msg(f"Description for group {group_name}: \n {desc}")
+                return
+            except:
+                caller.msg(errmsg)
+                return
+            
+        elif "2ic" in switches:
+            try:
+                char_string = self.rhs
+                char = self.caller.search(char_string, global_search=True)
+
+                #make sure this is a valid player!
+                if not char:
+                    self.caller.msg("Character not found.")
+                    return
+                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                    self.caller.msg("Character not found.")
+                    return    
+                group_name = self.lhs
+                group = get_group(caller,group_name)
+                caller.msg(f"Set {char.name} as second in command to the group {group_name}.")
+                return
+            except:
+                caller.msg(errmsg)
+                return
+
+        else:
+            caller.msg("Invalid switch. See help makegroup.")
+            return
