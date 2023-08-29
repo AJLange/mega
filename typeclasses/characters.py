@@ -85,6 +85,8 @@ class Character(DefaultCharacter):
 
         self.db.lastpose = 0
         self.db.pose_time = 0.0
+        
+        self.db.groups = []
 
 
     def get_stats(self):

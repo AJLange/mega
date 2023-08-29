@@ -8,6 +8,18 @@ These commands do not work at all. They are not even hooked into the model yet.
 from evennia import CmdSet
 from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
+from world.pcgroups.models import Squad, PlayerGroup
+from world.roster.models import Roster
+
+
+def get_group(caller, name):
+    groups = PlayerGroup.objects.filter(db_name__icontains=name)
+    if len.groups > 1:
+        caller.msg("Multiple matches. Check the group name or contact admin.")
+        return 0
+    else:
+        return groups[0]
+
 
 class CmdSetGroups(MuxCommand):
     """
@@ -28,26 +40,45 @@ class CmdSetGroups(MuxCommand):
     aliases = ["ally", "addgroup", "+ally"]
     help_category = "Roster"
 
+    def groupadd(caller, char, name):        
+        #choosing first match
+        group = get_group(caller, name)
+        if group:
+            char.db.groups.append(group)
+            caller.msg(f"Added {char} to the group {group.db_name}.")
+            char.msg(f"You were added to the group {group.db_name}.")
+            return
+        else:
+            caller.msg("Error occured. Check the group name or contact admin.")
+            return
+
     def func(self):
-        "This performs the actual command"
-        errmsg = "What text?"
-        if not self.args:
-            self.caller.msg(errmsg)
-            return
-            #todo - parse with the equals
+        
+        caller = self.caller
+        errmsg = "Syntax error - check help addgroup"
+
         try:
-            text = self.args
-            # am I admin?
-
-            # am I a leader? 
-            
-            # ...of the group I specified?
+            group = self.rhs
+            char = self.lhs
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        self.caller.db.quote = text
-        self.caller.msg("Add the character to the group: %s" % text)
-
+        callergroups = caller.db.groups
+        my_group = get_group(caller,group)
+        # am I admin?
+        if caller.check_permstring("builders"):
+            self.groupadd(caller, char, group)
+            return
+        # am I in that group?
+        else:
+            for group in callergroups:
+                if group == my_group:
+                    #TODO - if rank above a number. not checking this for now
+                    self.groupadd(caller,char,group)
+                    return
+                else:
+                    caller.msg(f"You aren't a member of the group {group}.")
+                    return
 
 class CmdCreateSquad(MuxCommand):
     """
@@ -202,11 +233,15 @@ class CmdShowGroups(MuxCommand):
         "This performs the actual command"
         caller = self.caller
         switches = self.switches
+        args = self.args
+
         if not switches:
             if not self.args:
-                #todo- get list of groups
-            
-                self.caller.msg("List of groups:")
+                groups = PlayerGroup.objects.all()
+                msg = "List of all Groups:"
+                for group in groups:
+                    msg = msg + group.db_name + " "
+                caller.msg(msg)
                 return
             else:
                 # was the argument a group?
@@ -220,10 +255,13 @@ class CmdShowGroups(MuxCommand):
                 caller.msg("Get info for which group?")
                 return
             else:
-                caller.msg("get description of group, return formatted nicely.")
+                group = get_group(args)
+                text = (f"{group.db_name} \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
+                caller.msg(text)
                 return
         if "me" in switches:
-            caller.msg("return the list of groups of which i am member")
+            text = (f"My groups: {caller.db.groups}")
+            caller.msg(text)
             return
         if "squad" in switches:
             errmsg = "Syntax: +group/squad <group>/<name>"
@@ -368,5 +406,27 @@ class CmdFCList(MuxCommand):
 
     def func(self):
         
-        self.caller.msg("Get list of available and unavailable characters.")
+        self.caller.msg("In the future this will list of available and unavailable characters.")
+        return
+    
+
+class CmdCreateGroup(MuxCommand):
+
+    """
+    Admin side command to create a new PC group.
+
+    Usage:
+      makegroup <name>
+
+    """
+    
+    key = "makegroup"
+    aliases = ["+makegroup"]
+    help_category = "Roster"
+    locks = "perm(Builder)"
+
+    def func(self):
+        args = self.args
+        
+        self.caller.msg(f"Created the new group {args}.")
         return
