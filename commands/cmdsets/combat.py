@@ -129,6 +129,8 @@ class ModeSwap(MuxCommand):
                         #match found, do the swap
                         swap_armor(caller,my_armor)
                         caller.msg("Swapped.")
+                        #set the name of the armor, for the sheet
+                        caller.db.currentmode = my_armor.db_name
                         return
                     else:
                         caller.msg(errmsg)

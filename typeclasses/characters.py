@@ -61,6 +61,7 @@ class Character(DefaultCharacter):
         self.db.weapons = []
         self.db.primary = 0
         self.db.secondary = 0
+        self.db.currentmode = "Base"
 
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
@@ -168,7 +169,7 @@ class Character(DefaultCharacter):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
 
     def get_statobjs(self):
-        return self.db.type, self.db.size, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
+        return self.db.type, self.db.size, self.db.speed, self.db.weakness, self.db.resistance, self.db.strength
     
     def get_caps(self):
         cap_list = self.db.capabilities
@@ -211,7 +212,13 @@ class Character(DefaultCharacter):
         self.db.defending = 0
         return
     
-
+    def get_all_armors(self):
+        #this is a list of armors
+        return self.db.armor
+    
+    def get_current_armor(self):
+        #this is a string, not an armor
+        return self.db.currentmode
 
 
     """

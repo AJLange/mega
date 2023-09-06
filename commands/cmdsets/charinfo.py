@@ -499,22 +499,27 @@ class CmdSheet(BaseCommand):
                 name = caller.name
                 char = caller
 
-            types, size, speed, weakness, resistance, elements, strength = char.get_statobjs()
+            types, size, speed, weakness, resistance, strength = char.get_statobjs()
             pow, dex, ten, cun, edu, chr, aur = char.get_stats()
             cap = char.get_caps()
+            armor = char.get_current_armor()
+            all_armors_names = []
+            for mode in char.get_all_armors():
+                all_armors_names.append(mode.db_name)
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
-            line2 = "Power Types: %s" % (types)
-            line3 = "Current Mode: Base"            
+            line2 = "Templates: %s" % (types)
+            line3 = "Current Mode: %s " % (armor)
+            line35 = "Available Armors: %s" % str(all_armors_names)
             line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
             #line5 = "Skills go here"
             line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
             line6 = "Capabilities: %s" % (cap)
             line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
-            line8 = "Elements: %s Weakness: %s Resistance: %s" % (elements, weakness, resistance)
+            line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
             # not sure yet about attack lists, if that will be a thing or not
-            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
 
