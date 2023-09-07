@@ -22,10 +22,10 @@ constants set here for testing purposes
 
 DUEL_HP = 90
 STANDARD_HP = 60
+DUEL_MORALE = 100
+STANDARD_MORALE = 70
 
-"""
-Combat is a type of scene called a Showdown which can be initiated via a showdown command
-"""
+
 
 def swap_armor(caller, armor):    
 
@@ -122,7 +122,7 @@ class ModeSwap(MuxCommand):
                 caller.msg(errmsg)
                 return
             #handle multiple matches
-            my_armors = caller.armor
+            my_armors = caller.db.armor
             for my_armor in my_armors:
                 for armor in armor_list:
                     if my_armor.id == armor.id:
@@ -137,7 +137,9 @@ class ModeSwap(MuxCommand):
                         return
             #TODO: change my desc based on the armor mode
 
-        
+"""
+Combat is a type of scene called a Showdown which can be initiated via a showdown command
+"""  
 
 class CmdShowdown(Command):
     """
@@ -579,6 +581,7 @@ class CmdCharge(Command):
         except ValueError:
             caller.msg(errmsg)
             return
+        
 
 class CmdAttack(MuxCommand):
     """
@@ -633,10 +636,25 @@ class CmdAttack(MuxCommand):
                 else:
                     caller.msg("Specify a valid weapon to use.")
                     return
-            
-            char = self.caller.search(target, global_search=False)
-    
 
+
+            weapon_check = Weapon.objects.filter(db_name__icontains=weapon)
+            my_weapons = caller.db.weapons
+            
+            # TODO - if the weapon is a generic attack, pull from that DB first
+            
+            # match found. Weapons should have a unique name with no duplicates.
+            # this currently will fail on partial matches, so be more clever 
+            # about this in the future.
+
+            for w in my_weapons:
+                if weapon_check[0].id == w.id:
+                    
+                    caller.msg(f"Using weapon {w.db_name}")
+                    #set the name of the armor, for the sheet
+                    caller.db.active_weapon = w
+    
+            char = self.caller.search(target, global_search=False)
             #if I attack I'm not defending
             caller.db.defending = 0
             target_defense = target.db.ten
@@ -794,6 +812,7 @@ class CmdIntimidate(MuxCommand):
         stat = max(caller.db.chr, caller.db.aur, caller.db.pow)
 
         skill = caller.get_a_skill("presence")
+        #TODO - if this roll fails, future difficulties are harder
 
         try:
             caller.db.defending = 0
@@ -924,7 +943,7 @@ class CmdPersuade(Command):
         caller= self.caller
         
         if not self.args:
-            caller.msg("Heal who?")
+            caller.msg("Persuade who?")
             return
 
         #check target is valid
@@ -950,6 +969,8 @@ class CmdPersuade(Command):
             str_result = roll_to_string(result)
             outputmsg = (f"{caller.name} rolls to persuade: {str_result}" )
             caller.location.msg_contents(outputmsg, from_obj=caller)
+        # TODO - if this roll fails, future difficulties are harder
+
         except ValueError:
             caller.msg(errmsg)
             return

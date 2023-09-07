@@ -208,6 +208,7 @@ class Character(DefaultCharacter):
         self.db.chargedice = 0
         self.db.bonusdice = 0
         self.db.hp = 60
+        self.db.morale = 70
         self.db.active_weapon = "None"
         self.db.defending = 0
         return
