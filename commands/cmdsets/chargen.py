@@ -34,6 +34,7 @@ Game (if applicable)
 Type (FC or OC)
 Power Source (eg Race)
 Specialties (the cute list of skills)
+Focuses (the skill specialties to be rolled)
 
 Primary Weapon
 
@@ -89,6 +90,8 @@ class CmdStartChargen(MuxCommand):
     +setprofile/<attribute> <value> (for all 7 text attributes)
     +setweapon <name> (for all weapons, including /primary and /secondary)
     +settemplate <name> (for the character's templates (not structured data))
+    +setcapability <name> (for each capability to add)
+    +setfocuses <name> (as many times as needed for all focuses)
 
     If there are armor modes, create them by doing
     +setarmor <name> = type>
@@ -130,8 +133,6 @@ class CmdStartChargen(MuxCommand):
 '''
 CreateWeapon partially functions.
 Ways this is broken:
-    not accepting strings as input (needs the integers)
-    not always choosing what I thought I selected
     Not processing the extra fields properly
     Not checking for duplicates (do not make the same weapon twice, 
         but will put a failsafe check in setweapon.)
@@ -1008,6 +1009,92 @@ class CmdSetTemplate(Command):
             caller.msg(errmsg)
             return
         
+class CmdSetFocus(Command):
+    """
+    Setting the templates for a character.
+
+    Usage:
+      +setfocus <name>
+      +setfocus Meditation
+
+    This adds a focus to a character. 
+    
+    A character can only have 5 focuses. Focuses are free text to write
+    anything within reason. When using that focus in a non-showdown situation,
+    the character can get 2 extra dice.
+
+
+    """
+    
+    key = "setfocus"
+    help_category = "Character"
+    aliases = ["+setfocus"]
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+        errmsg = "What text?"
+        if not self.args:
+            caller.msg(errmsg)
+            return
+        
+        get_focuses = character.db.focuses
+        if len(get_focuses) >= 5:
+            caller.msg("That character already has 5 focuses. Remove a focus with +removefocus")
+        try:
+            text = self.args
+            character.db.workingchar.append(text)
+            caller.msg("Added the focus: %s" % text)
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdRmFocus(Command):
+    """
+    Setting the templates for a character.
+
+    Usage:
+      +removefocus <name>
+
+    This removes a focus from a character so that a new one might be added.
+    
+
+    """
+    
+    key = "removefocus"
+    help_category = "Character"
+    aliases = ["+removefocus"]
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar
+        args = self.args
+
+        if not character:
+            caller.msg("You aren't working on an active character.")
+            return
+        errmsg = "What text?"
+        if not self.args:
+            caller.msg(errmsg)
+            return
+        
+        get_focuses = character.db.focuses
+
+        for focus in get_focuses:
+            if focus == args:
+                get_focuses.pop(focus)
+                caller.msg("Removed the focus: %s" % focus)
+                return
+        caller.msg("That focus wasn't found. Exact matches only.")
+        return
+
 
 class CmdSetCapability(MuxCommand):
     """

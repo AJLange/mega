@@ -506,6 +506,7 @@ class CmdSheet(BaseCommand):
             all_armors_names = []
             for mode in char.get_all_armors():
                 all_armors_names.append(mode.db_name)
+            focuses = char.db.focuses
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
@@ -518,8 +519,9 @@ class CmdSheet(BaseCommand):
             line6 = "Capabilities: %s" % (cap)
             line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
             line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
+            line9 = "Focuses: %s" % (focuses)
             # not sure yet about attack lists, if that will be a thing or not
-            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n" + line9 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
 
