@@ -55,17 +55,14 @@ def roll_to_string(roll):
             die_string = die_string + "|R" + str(value)+ "|n "
     return die_string
 
-def check_valid_target(self, char):
+def check_valid_target(char):
+    
     """
-    code this check to make sure a target of any assail is:
+    code this check to make sure a target of any possible showdown is:
     in the room with me X
     a valid character X
     that is not KOed
-    and is in a showdown with me already
-    or unoccupied - remind them to start the showdown.
-
     """
-    caller= self.caller
     
     if not char:
         return False

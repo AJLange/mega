@@ -141,7 +141,37 @@ class ModeSwap(MuxCommand):
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
 """  
 
-class CmdShowdown(Command):
+class CmdHPDisplay(MuxCommand):
+    """
+    Show my current HP.
+
+    Usage:
+        +hp
+        hp
+        health
+        morale
+
+    A future version might also allow certain characters to see the HP of others.
+    This also shows your morale.
+
+    """
+        
+    key = "hp"
+    aliases = ["+hp","health", "+health", "morale", "+morale"]
+    help_category = "Dice"
+    locks = "perm(Player))"
+
+    def func(self):
+        caller = self.caller
+        # build a string
+        # TODO - make pretty 
+        border = "________________________________________________________________________________"
+
+        sheetmsg = (border + "HP: " + str(caller.db.hp) + "\n" + "Morale: " + str(caller.db.morale) + "\n" + border + "\n")
+        caller.msg(sheetmsg)
+
+
+class CmdShowdown(MuxCommand):
     """
     Starts a showdown.
 
@@ -186,7 +216,8 @@ class CmdShowdown(Command):
             return
         if room.db.protector:
                 caller.msg("This room has a +protector set, so make sure they were consulted about your combat if necessary.")
-        if self.switches or self.args:
+
+        if self.switches:
             if "boss" in self.switches:
                 caller.msg("You start a boss fight in this location!")
                 caller.location.msg_contents(caller.name + " has begun a Boss Showdown in this location!" )
@@ -194,13 +225,15 @@ class CmdShowdown(Command):
                 '''
                 what needs to happen:
                 Set HP based on the involved number of attackers
-                check if the room has a protector, return a warning if it does.
                 '''
             if "end" in self.switches:
                 caller.db.hp = STANDARD_HP
                 ''' 
                 remove everyone's aimdice and bonus dice
                 '''
+            else:
+                caller.msg("Invalid switch. See help showdown.")
+                return
 
         if not self.args:
             caller.msg(errmsg)
@@ -209,8 +242,16 @@ class CmdShowdown(Command):
             '''
             do-to: error check - is target a character? are they in the room?
             '''
-            target = self.args
-            caller.msg(f"You start a showdown with {target.name}.")
+            target = self.args.strip()
+
+            char = self.caller.search(target, global_search=False)
+
+            if not check_valid_target(char):
+                caller.msg("Not a valid target to attack.")
+                return
+
+
+            caller.msg(f"You start a showdown with {char.name}.")
             target.msg(f"{caller.name} has challenged you a duel!")
             ''' 
             set duel HP

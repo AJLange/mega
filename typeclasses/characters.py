@@ -62,6 +62,7 @@ class Character(DefaultCharacter):
         self.db.primary = 0
         self.db.secondary = 0
         self.db.currentmode = "Base"
+        self.db.focuses = []
 
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
