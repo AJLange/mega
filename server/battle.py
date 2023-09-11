@@ -231,31 +231,31 @@ def process_elements(type_string):
 attack rolls
 '''
 
-def roll_attack(attack):
+def roll_attack(char, attack):
     if attack.db_class == 1:
-        return "dex", "aim"
+        return char.db.dex, char.db.aim
     if attack.db_class == 2:
-        return "pow", "force"
+        return char.db.pow, char.db.force
     if attack.db_class == 3:
-        return "pow", "aim"
+        return char.db.pow, char.db.aim
     if attack.db_class == 4:
-        return "dex", "athletics"
+        return char.db.dex, char.db.athletics
     if attack.db_class == 5:
-        return "dex", "force"
+        return char.db.dex, char.db.force
     if attack.db_class == 6:
-        return "dex", "stealth"
+        return char.db.dex, char.db.stealth
     if attack.db_class == 7:
-        return "pow", "athletics"
+        return char.db.pow, char.db.athletics
     if attack.db_class == 8:
-        return "aur", "arana"
+        return char.db.aur, char.db.arcana
     if attack.db_class == 9:
-        return "aur", "presence"
+        return char.db.aur, char.db.presence
     if attack.db_class == 10:
-        return "cun", "mechanics"
+        return char.db.cun, char.db.mechanics
     if attack.db_class == 11:
-        return "cun", "computer"
+        return char.db.cun, char.db.computer
     if attack.db_class == 12:
-        return "random", "random"
+        return randint(1,10), randint(1,10)
 
 
 def process_effects(target, attacker):

@@ -652,7 +652,7 @@ class CmdAttack(MuxCommand):
         if not self.args:
             caller.msg("Attack who?")
             return
-        weapon = self.rhs
+        attack_string = self.rhs
         target = self.lhs
         bonus_dice = 0
         result = 0
@@ -660,26 +660,24 @@ class CmdAttack(MuxCommand):
             #any target?
             msg = "Target not found."
             if not target:
-                caller.msg(msg)
-                return
+                target = self.args.strip()
+    
+            char = self.caller.search(target, global_search=False)
 
-            #is it a character/valid target?
-            target_ok = check_valid_target(target)
+            target_ok = check_valid_target(char)
             if not target_ok:
                 caller.msg(msg)
                 return
 
-            if not weapon:
-                if caller.db.active_weapon:
-                    weapon = caller.db.active_weapon
+            if not attack_string:
+                if not caller.db.active_weapon:
                 #there should be a value there, but if there isn't,
                 #eg, I've changed armors to a mode that doesn't have that weapon anymore
-                else:
                     caller.msg("Specify a valid weapon to use.")
                     return
-
-
-            weapon_check = Weapon.objects.filter(db_name__icontains=weapon)
+                
+            target = char
+            weapon_check = Weapon.objects.filter(db_name__icontains=attack_string)
             my_weapons = caller.db.weapons
             
             # TODO - if the weapon is a generic attack, pull from that DB first
@@ -687,22 +685,25 @@ class CmdAttack(MuxCommand):
             # match found. Weapons should have a unique name with no duplicates.
             # this currently will fail on partial matches, so be more clever 
             # about this in the future.
-
+            found_weapon = False
             for w in my_weapons:
-                if weapon_check[0].id == w.id:
-                    
+                if weapon_check[0].id == w.id:                    
                     caller.msg(f"Using weapon {w.db_name}")
-                    #set the name of the armor, for the sheet
                     caller.db.active_weapon = w
+                    found_weapon = True
+            
+            if not found_weapon:
+                caller.msg("That weapon is not in your arsenal.")
+                return
     
             char = self.caller.search(target, global_search=False)
             #if I attack I'm not defending
             caller.db.defending = 0
             target_defense = target.db.ten
             target_cap = check_capabilities(target)
-
-            # don't need for now
-            # attacker_cap = check_capabilities(caller)
+            attacker_cap = check_capabilities(caller)
+            #either a stored weapon or the one just set
+            weapon = caller.db.active_weapon
 
             #to check: is the target in full defense?
             #if so, if target is defender, no damage can be done
@@ -724,7 +725,7 @@ class CmdAttack(MuxCommand):
             #if so, high chance of redirecting this attack.
             #higher if you have bodyguard
 
-            which_stat, which_skill = roll_attack(weapon)
+            which_stat, which_skill = roll_attack(caller, weapon)
             if which_stat == "random":
                 rand1 = randint(1,10)
                 rand2 = randint(1,10)
@@ -732,16 +733,17 @@ class CmdAttack(MuxCommand):
             else:
                 result = do_roll(which_stat,which_skill)
             # add aimdice to the to-hit
-            if self.db.aimdice:
-                bonus_dice = self.db.aimdice
+            if caller.db.aimdice:
+                bonus_dice = caller.db.aimdice
                 bonus = do_roll(bonus_dice,0)
                 result = result + bonus
             str_result = str(result)
             dodge_roll = do_roll(target_defense,target.db.athletics)
             str_dodge = str(dodge_roll)
             
-            caller.msg("You attack %s with %s." % str(char), weapon)
-            outputmsg = (f"{caller.name} rolls to attack: {str_result} \n" )
+            caller.msg(f"You attack {char.name} with {weapon.db_name}.")
+
+            outputmsg = (f"{caller.name} rolls to attack with {weapon.db_name}: {str_result} \n" )
             outputmsg += (f"{target.name} defends with: {str_dodge}." )
             caller.location.msg_contents(outputmsg, from_obj=caller)
 
@@ -789,7 +791,7 @@ class CmdTaunt(MuxCommand):
         #check target is valid
         target = self.args.strip()
         char = self.caller.search(target, global_search=False)
-        valid_target = check_valid_target(self, char)
+        valid_target = check_valid_target(char)
         
         if not valid_target:
             caller.msg("Not a valid target.")
@@ -843,7 +845,7 @@ class CmdIntimidate(MuxCommand):
         #check target is valid
         target = self.args.strip()
         char = self.caller.search(target, global_search=False)
-        valid_target = check_valid_target(self, char)
+        valid_target = check_valid_target(char)
         
         if not valid_target:
             caller.msg("Not a valid target.")
@@ -945,7 +947,7 @@ class CmdHeal(Command):
         #check target is valid
         target = self.args.strip()
         char = self.caller.search(target, global_search=False)
-        valid_target = check_valid_target(self, char)
+        valid_target = check_valid_target(char)
         
         if not valid_target:
             caller.msg("Not a valid target.")
@@ -990,7 +992,7 @@ class CmdPersuade(Command):
         #check target is valid
         target = self.args.strip()
         char = self.caller.search(target, global_search=False)
-        valid_target = check_valid_target(self, char)
+        valid_target = check_valid_target(char)
 
         if not valid_target:
             caller.msg("Not a valid target.")
