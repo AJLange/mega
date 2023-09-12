@@ -637,6 +637,24 @@ class CmdAttack(MuxCommand):
     If you don't specify a weapon, this will use the same weapon you used
     last time you attacked, provided that weapon is still available.
 
+    Optionally, you can type 
+
+    attack <target>=<weapon>|<Flavor text>
+
+    This adds a little flavor text to the name of the weapon that you are 
+    using. 
+
+    Example:
+    attack Bass=Mega Buster
+    "Rock attacks Bass with Mega Buster!"
+
+    attack Bass=Mega Buster|Charged Shot
+
+    "Rock attacks Bass with Charged Shot (Mega Buster)!"
+
+    Flavor text is optional and has zero impact on the attack rolls.
+    For more information check 'help combat'.
+
     """
     
     key = "attack"
@@ -676,8 +694,21 @@ class CmdAttack(MuxCommand):
                     caller.msg("Specify a valid weapon to use.")
                     return
                 
+            #start assuming name is name
+            attack_name = attack_string
+            try:
+                attack_text = attack_string.split("|", 1)
+            except:
+                attack_name = attack_string
+
+            if len(attack_text) > 1:
+                flavor_text = attack_text[1]
+                attack_name = attack_text[0]
+            else:
+                flavor_text = 0
+                
             target = char
-            weapon_check = Weapon.objects.filter(db_name__icontains=attack_string)
+            weapon_check = Weapon.objects.filter(db_name__icontains=attack_name)
             my_weapons = caller.db.weapons
             
             # TODO - if the weapon is a generic attack, pull from that DB first
@@ -688,7 +719,7 @@ class CmdAttack(MuxCommand):
             found_weapon = False
             for w in my_weapons:
                 if weapon_check[0].id == w.id:                    
-                    caller.msg(f"Using weapon {w.db_name}")
+                    caller.msg(f"Using weapon {w.db_name}.")
                     caller.db.active_weapon = w
                     found_weapon = True
             
@@ -704,6 +735,14 @@ class CmdAttack(MuxCommand):
             attacker_cap = check_capabilities(caller)
             #either a stored weapon or the one just set
             weapon = caller.db.active_weapon
+
+            if flavor_text:
+                if len(flavor_text) > 65:
+                    caller.msg("Please type a shorter flavor message")
+                    return
+                weapon_string = (f"{flavor_text} ({weapon.db_name})")
+            else:
+                weapon_string = weapon.db_name
 
             #to check: is the target in full defense?
             #if so, if target is defender, no damage can be done
@@ -743,7 +782,7 @@ class CmdAttack(MuxCommand):
             
             caller.msg(f"You attack {char.name} with {weapon.db_name}.")
 
-            outputmsg = (f"{caller.name} rolls to attack with {weapon.db_name}: {str_result} \n" )
+            outputmsg = (f"{caller.name} rolls to attack with {weapon_string}: {str_result} \n" )
             outputmsg += (f"{target.name} defends with: {str_dodge}." )
             caller.location.msg_contents(outputmsg, from_obj=caller)
 
