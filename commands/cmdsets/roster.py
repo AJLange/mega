@@ -20,6 +20,9 @@ from django.conf import settings
 
 def get_group(caller, name):
     groups = PlayerGroup.objects.filter(db_name__icontains=name)
+    if not groups:
+        #no group found.
+        return 0
     if len.groups > 1:
         caller.msg("Multiple matches. Check the group name or contact admin.")
         return 0
@@ -468,7 +471,12 @@ class CmdFCList(MuxCommand):
             caller.msg("list all rosters")
             return
         elif "game" in switches:
-            caller.msg("list roster by game.")
+            if not args:
+                caller.msg("From which game? See fclist (no args) for a list.")
+                return
+            else:
+                caller.msg(f"This doesn't work yet.")
+                return
             return
         elif "group" in switches:
             if not args:
@@ -476,6 +484,9 @@ class CmdFCList(MuxCommand):
                 return
             else:
                 group = get_group(caller,args)
+                if not group:
+                    caller.msg("That group was not found.")
+                    return
                 caller.msg(f"list roster of group {group.db_name}")
                 return
         else: 
