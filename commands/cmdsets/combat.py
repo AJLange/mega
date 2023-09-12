@@ -775,6 +775,7 @@ class CmdAttack(MuxCommand):
             if caller.db.aimdice:
                 bonus_dice = caller.db.aimdice
                 bonus = do_roll(bonus_dice,0)
+                #not sure this works
                 result = result + bonus
             str_result = str(result)
             dodge_roll = do_roll(target_defense,target.db.athletics)
@@ -783,7 +784,25 @@ class CmdAttack(MuxCommand):
             caller.msg(f"You attack {char.name} with {weapon.db_name}.")
 
             outputmsg = (f"{caller.name} rolls to attack with {weapon_string}: {str_result} \n" )
-            outputmsg += (f"{target.name} defends with: {str_dodge}." )
+            outputmsg += (f"{target.name} defends with: {str_dodge}. \n" )
+
+            #primitive first draft damage calc
+            damage = 0
+            for die in result:
+                damage = damage + int(die)
+            for die in dodge_roll:
+                damage = damage - int(die)
+            
+            #can't do negative damage
+            if damage < 0:
+                damage = 0
+            
+            if damage == 0:
+                outputmsg += (f"The attack misses." )
+            else:
+                outputmsg += (f"The attack does {str(damage)} physical damage." )
+                target.db.hp = target.db.hp - damage
+
             caller.location.msg_contents(outputmsg, from_obj=caller)
 
             #still to do: types, damage
@@ -844,7 +863,26 @@ class CmdTaunt(MuxCommand):
             caller.db.defending = 0
             result = do_roll(stat, skill)
             str_result = roll_to_string(result)
-            outputmsg = (f"{caller.name} rolls to taunt: {str_result}" )
+            dodge_roll = do_roll(char.db.cun, char.db.convince)
+            outputmsg = (f"{caller.name} rolls to taunt: {str_result} \n" )
+
+#primitive first draft damage calc
+            damage = 0
+            for die in result:
+                damage = damage + int(die)
+            for die in dodge_roll:
+                damage = damage - int(die)
+            
+            #can't do negative damage
+            if damage < 0:
+                damage = 0
+            
+            if damage == 0:
+                outputmsg += (f"The attack misses." )
+            else:
+                outputmsg += (f"The attack does {str(damage)} morale damage." )
+                char.db.morale = char.db.morale - damage
+
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
@@ -900,7 +938,26 @@ class CmdIntimidate(MuxCommand):
             caller.db.defending = 0
             result = do_roll(stat, skill)
             str_result = roll_to_string(result)
-            outputmsg = (f"{caller.name} rolls to intimidate: {str_result}" )
+            dodge_roll = do_roll(char.db.ten, char.db.presence)
+            outputmsg = (f"{caller.name} rolls to intimidate: {str_result} \n" )
+
+            #primitive first draft damage calc
+            damage = 0
+            for die in result:
+                damage = damage + int(die)
+            for die in dodge_roll:
+                damage = damage - int(die)
+            
+            #can't do negative damage
+            if damage < 0:
+                damage = 0
+            
+            if damage == 0:
+                outputmsg += (f"The attack misses." )
+            else:
+                outputmsg += (f"The attack does {str(damage)} morale damage." )
+                char.db.morale = char.db.morale - damage
+
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
@@ -1049,7 +1106,27 @@ class CmdPersuade(Command):
             caller.db.defending = 0
             result = do_roll(stat, skill)
             str_result = roll_to_string(result)
-            outputmsg = (f"{caller.name} rolls to persuade: {str_result}" )
+            # TODO - update this dodge roll later and make it better
+            dodge_roll = do_roll(char.db.ten, char.db.presence)
+            outputmsg = (f"{caller.name} rolls to persuade: {str_result} \n" )
+
+            #primitive first draft damage calc
+            damage = 0
+            for die in result:
+                damage = damage + int(die)
+            for die in dodge_roll:
+                damage = damage - int(die)
+            
+            #can't do negative damage
+            if damage < 0:
+                damage = 0
+            
+            if damage == 0:
+                outputmsg += (f"The attack misses." )
+            else:
+                outputmsg += (f"The attack does {str(damage)} morale damage." )
+                char.db.morale = char.db.morale - damage
+
             caller.location.msg_contents(outputmsg, from_obj=caller)
         # TODO - if this roll fails, future difficulties are harder
 
