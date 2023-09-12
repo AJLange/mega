@@ -678,6 +678,7 @@ class CmdAttack(MuxCommand):
         target = self.lhs
         bonus_dice = 0
         result = 0
+        attack_text = []
         try:
             #any target?
             msg = "Target not found."
@@ -731,7 +732,6 @@ class CmdAttack(MuxCommand):
                 caller.msg("That weapon is not in your arsenal.")
                 return
     
-            char = self.caller.search(target, global_search=False)
             #if I attack I'm not defending
             caller.db.defending = 0
             target_defense = target.db.ten
@@ -790,6 +790,7 @@ class CmdAttack(MuxCommand):
             outputmsg = (f"{caller.name} rolls to attack with {weapon_string}: {str_result} \n" )
             outputmsg += (f"{target.name} defends with: {str_dodge}. \n" )
 
+
             #primitive first draft damage calc
             damage = 0
             for die in result:
@@ -800,16 +801,27 @@ class CmdAttack(MuxCommand):
             #can't do negative damage
             if damage < 0:
                 damage = 0
+
+            weapon_elements = [weapon.db_type_1, weapon.db_type_2, weapon.db_type_3]
+            for element in weapon_elements:
+                if element:
+                    if element == char.db.weakness:
+                        outputmsg += (f"You hit a weakness! \n")
+                        damage = damage * 1.5
+                if element:
+                    if element == char.db.resistance:
+                        outputmsg += (f"You hit a resist! \n")
+                        damage = damage * 0.75
             
             if damage == 0:
                 outputmsg += (f"The attack misses." )
             else:
+                damage = int(damage)
                 outputmsg += (f"The attack does {str(damage)} physical damage." )
                 target.db.hp = target.db.hp - damage
 
             caller.location.msg_contents(outputmsg, from_obj=caller)
 
-            #still to do: types, damage
 
             '''
             You attack <person> with <weapon>
