@@ -55,6 +55,9 @@ class Character(DefaultCharacter):
         self.db.roomquota = 10
         self.db.craftquota = 10
 
+        self.db.weakness = 0
+        self.db.resistance = 0
+
         self.db.files = []
         self.db.armor = []
         self.db.capabilities = []
@@ -170,7 +173,7 @@ class Character(DefaultCharacter):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
 
     def get_statobjs(self):
-        return self.db.type, self.db.size, self.db.speed, self.db.weakness, self.db.resistance, self.db.strength
+        return self.db.type, self.db.size, self.db.speed, self.db.strength
     
     def get_caps(self):
         cap_list = self.db.capabilities

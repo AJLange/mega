@@ -19,7 +19,7 @@ from math import floor
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
-
+from server.battle import process_elements, process_attack_class, process_effects, get_element_text, get_class_text, get_effect_text
 
 class CmdFinger(BaseCommand):
     """
@@ -499,11 +499,17 @@ class CmdSheet(BaseCommand):
                 name = caller.name
                 char = caller
 
-            types, size, speed, weakness, resistance, strength = char.get_statobjs()
+            types, size, speed, strength = char.get_statobjs()
             pow, dex, ten, cun, edu, chr, aur = char.get_stats()
             cap = char.get_caps()
             armor = char.get_current_armor()
             all_armors_names = []
+            weakness = process_elements(char.db.weakness)
+            resistance = process_elements(char.db.resistance)
+            if not weakness:
+                weakness = "None"
+            if not resistance:
+                resistance = "None"
             for mode in char.get_all_armors():
                 all_armors_names.append(mode.db_name)
             focuses = char.db.focuses
@@ -520,11 +526,76 @@ class CmdSheet(BaseCommand):
             line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
             line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
             line9 = "Focuses: %s" % (focuses)
-            # not sure yet about attack lists, if that will be a thing or not
+
             sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n" + line9 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
 
+
+class CmdCheckWeapons(MuxCommand):
+
+        """
+        List my weapons.
+
+        Usage:
+          weapons
+
+        Displays a list of your current weapons.
+        """
+
+        key = "weapons"
+        aliases = ["+weapons"]
+        locks = "perm(Player))"
+        help_category = "General"
+
+        def func(self):
+            """implements the actual functionality"""
+            caller = self.caller
+
+            # if I'm staff, I can look at other character's arsenal
+
+            if self.args:
+                if not caller.check_permstring("builders"):
+                    caller.msg("Only staff can check other player's stats. stats to see your own stats.")
+                    return
+                else:
+                    name = self.args.strip()
+                    name = name.title()
+                    char = caller.search(name, global_search=True) 
+                    if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                        self.caller.msg("Character not found.")
+                        return
+
+            else:
+                name = caller.name
+                char = caller
+
+
+            weapon_list = char.db.weapons
+
+            sheetmsg = ("Weapons: \n")
+            for weapon in weapon_list:
+                w_name = weapon.db_name
+                w_class = get_class_text(weapon.db_class)
+                w_type1 = get_element_text(weapon.db_type_1)
+                w_type2 = ""
+                w_type3 = ""
+                w_flag1 = ""
+                w_flag2 = ""
+                if weapon.db_type_2:
+                    w_type2 = get_element_text(weapon.db_type_2)
+                if weapon.db_type_3:
+                    w_type3 = get_element_text(weapon.db_type_3)
+                if weapon.db_flag_1:
+                    w_flag1 = get_effect_text(weapon.db_flag_1)
+                if weapon.db_flag_2:
+                    w_flag2 = get_effect_text(weapon.db_flag_2)
+
+                sheetmsg = (sheetmsg + w_name + ": " + w_class + " " + w_type1 + " " + w_type2 + " " + w_type3 + " " + w_flag1 + " " + w_flag2 + "\n")
+
+            #sheetmsg = (weapon_list)
+            caller.msg(sheetmsg)
+            return
 
 class CmdCookie(MuxCommand):
 

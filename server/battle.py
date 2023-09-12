@@ -167,6 +167,14 @@ def process_attack_class(type_string):
     #nothing found? It will return 0, process as an error
     return val
 
+def get_class_text(num):
+    if not num:
+        num == 0
+    num = int(num)
+    element_list = ["None", "Ranged", "Wave" , "Thrown", "Melee", "Blitz", "Sneak,", "Grapple", "Spell","Will", "Gadget", "Chip","Random"]
+    return element_list[num]
+
+
 def process_elements(type_string):
     '''
     process to convert string to structured data to see what element was used
@@ -226,6 +234,13 @@ def process_elements(type_string):
     #nothing found? It will return 0, process as an error
     return val
 
+def get_element_text(num):
+    if not num:
+        num == 0
+    num = int(num)
+    element_list = ["None", "Slashing", "Piercing", "Electric", "Explosive", "Fire", "Gravity", "Air", "Ice", "Toxic", "Blunt", "Quake", "Karate", "Sonic", "Time", "Wood", "Water", "Plasma", "Laser", "Light", "Darkness", "Psycho", "Chi", "Disenchant"]
+    return element_list[num]
+
 
 '''
 attack rolls
@@ -258,8 +273,38 @@ def roll_attack(char, attack):
         return randint(1,10), randint(1,10)
 
 
-def process_effects(target, attacker):
-    pass
+def process_effects(type_string):
+    '''
+    process to convert string to structured data to see what element was used
+    
+    '''
+    type_string = str(type_string)    
+    type_string = type_string.upper()
+
+    val = 0
+    if type_string == "MEGABLAST":
+        val = 1
+    elif type_string == "EXCEED":
+         val = 2
+    elif type_string == "PRIORITY":
+        val = 3
+    elif type_string ==  "STABLE" :
+        val = 4
+    elif type_string == "BLIND" :
+        val = 5
+    elif type_string == "DEGRADE" :
+        val = 6
+    elif type_string == "ENTANGLE" :
+        val = 7
+    #nothing found? It will return 0, process as an error
+    return val
+
+def get_effect_text(num):
+    if not num:
+        num == 0
+    num = int(num)
+    element_list = ["None", "Megablast", "Exceed", "Priority", "Stable", "Blind", "Degrade", "Entangle"]
+    return element_list[num]
 
 def calc_damage(target,attacker):
     damage = randint(1,10)

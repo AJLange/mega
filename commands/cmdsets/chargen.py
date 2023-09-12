@@ -29,10 +29,10 @@ Name
 Function
 Quote
 Profile 
-Gender/Sex
+Gender
 Game (if applicable)
 Type (FC or OC)
-Power Source (eg Race)
+Template (eg Race, can have multiple)
 Specialties (the cute list of skills)
 Focuses (the skill specialties to be rolled)
 
@@ -55,6 +55,7 @@ Faction related info (to be added later)
 
 Flags which are flexible per scene:
 HP
+Morale
 
 OOCfinger info:
 Can be set by player so not in this file
@@ -821,11 +822,21 @@ class CmdSetAttribute(MuxCommand):
         errmsg = "Not a valid attribute."
         if "weakness" in self.switches:
             if self.args:
-                character.db.weakness = self.args
+                character.db.weakness = process_elements(self.args)
+            else:
+                caller.msg(errmsg)
+            if character.db.weakness == 0:
+                caller.msg("Value not set, please be sure this is spelled correctly.")
+                caller.msg("Weakness type set to 'None'.")
             return
         if "resistance" in self.switches:
             if self.args:
-                character.db.resistance = self.args
+                character.db.resistance = process_elements(self.args)
+            else:
+                caller.msg(errmsg)
+            if character.db.weakness == 0:
+                caller.msg("Value not set, please be sure this is spelled correctly.")
+                caller.msg("Resist type set to 'None'.")
             return
         if "height" in self.switches:
             if self.args:

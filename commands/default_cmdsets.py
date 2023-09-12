@@ -23,7 +23,7 @@ from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
 from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside, CmdPEmit, CmdSetSpoof
-from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger, CmdShowMyToggles
+from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger, CmdShowMyToggles, CmdCheckWeapons
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal
@@ -91,6 +91,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdShowMyToggles())
         self.add(CmdDesc())
         self.add(CmdMultiDesc())
+        self.add(CmdCheckWeapons())
 
         #cookie commands will be moved to account level at a later time
         self.add(CmdCookie())
