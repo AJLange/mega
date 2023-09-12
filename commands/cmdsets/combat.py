@@ -40,8 +40,8 @@ def swap_armor(caller, armor):
 
         caller.discern = armor.db_discern
         caller.db.aim = armor.db_aim
-        caller.db.athletics =  armor.db_
-        caller.db.force = armor.db_athletics
+        caller.db.athletics =  armor.db_athletics
+        caller.db.force = armor.db_force
         caller.db.mechanics = armor.db_mechanics
         caller.db.medicine = armor.db_medicine
         caller.db.computer = armor.db_computer
@@ -176,19 +176,18 @@ class CmdShowdown(MuxCommand):
     Starts a showdown.
 
     Usage:
-        showdown <name>
-        showdown/boss
+        showdown 
+        showdown/start
+        showdown/boss <#>
         showdown/end
 
-    showdown with a single name challenges that person to a duel.
-    showdown/boss begins a showdown with everyone in the room who is not
-    set as observer.
+    showdown with no switches checks on a combat in the room, if one is 
+    active.
 
-    +showdown/end ends your current combat if you are a boss or duelist.
+    showdown/boss begins a showdown with the number of people specified,
+    and the originator set as a 'boss' with boss HP.
 
-    This is currently not balanced for 2 on 1 or other configurations.
-    A duel in progress can't be third-partied. However, multiple
-    boss fights can be initiated in the same location.
+    +showdown/end ends your current combat.
 
     """
     
@@ -211,13 +210,18 @@ class CmdShowdown(MuxCommand):
         caller= self.caller
         room = caller.location
 
-        if room.db.protector == "Staff" and not caller.check_permstring("builders"):
-            caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
-            return
-        if room.db.protector:
-                caller.msg("This room has a +protector set, so make sure they were consulted about your combat if necessary.")
-
         if self.switches:
+            if "start" in self.switches:
+                if room.db.protector == "Staff" and not caller.check_permstring("builders"):
+                    caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
+                    return
+                if room.db.protector:
+                    caller.msg("This room has a +protector set, so make sure they were consulted about your combat if necessary.")
+
+            # start the rest of the showdown here
+            # make sure one isn't active already
+            # set everyone as in an active combat if they are not set observer
+
             if "boss" in self.switches:
                 caller.msg("You start a boss fight in this location!")
                 caller.location.msg_contents(caller.name + " has begun a Boss Showdown in this location!" )
