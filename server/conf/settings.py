@@ -29,12 +29,12 @@ from evennia.settings_default import *
 
 '''
 # We're looking for the number of seconds representing
-# the date in 2235, since the game is set in the future.
-# When going live, change this to the current date in 2235.
+# the date in 2236, since the game is set in the future.
+
 '''
 from datetime import datetime
 import time
-start = datetime(2235, 8, 12, 20, 53)
+start = datetime(2236, 9, 13, 18, 13)
 epoch_start = time.mktime(start.timetuple())
 
 ######################################################################
