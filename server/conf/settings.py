@@ -87,9 +87,8 @@ TIME_FACTOR = 1
 # start date). This will affect the returns from the utils.gametime
 # module.
 TIME_GAME_EPOCH = epoch_start
-WEBSERVER_PORTS = [(80,4001)]
 
-'''
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -113,7 +112,7 @@ INSTALLED_APPS = [
     "evennia.scripts",
     "evennia.web",
 ]
-'''
+
 
 ######################################################################
 # Django Models for M3
