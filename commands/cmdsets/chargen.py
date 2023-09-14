@@ -1263,6 +1263,7 @@ class CmdFinishChargen(MuxCommand):
         if not char:
             self.caller.cmdset.remove(ChargenCmdset)
             caller.msg("You weren't working on a character.")
+            return
         errmsg = "Some error occured."
         if not char.db.weakness:
             caller.msg("Missing attribute: weakness\n")
