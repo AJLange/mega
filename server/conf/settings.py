@@ -46,8 +46,8 @@ epoch_start = time.mktime(start.timetuple())
 SERVERNAME = "M3"
 GAME_SLOGAN = "Welcome to MegaMan MUSH! Increasingly Capcom MUSH."
 
-DEFAULT_HOME = "#8"
-START_LOCATION = "#8"
+DEFAULT_HOME = "#2"
+START_LOCATION = "#2"
 DISCORD_ENABLED = True
 _TEST_ENVIRONMENT = False
 
