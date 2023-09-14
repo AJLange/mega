@@ -1259,7 +1259,10 @@ class CmdFinishChargen(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        char = caller.db.workingchar 
+        char = caller.db.workingchar
+        if not char:
+            self.caller.cmdset.remove(ChargenCmdset)
+            caller.msg("You weren't working on a character.")
         errmsg = "Some error occured."
         if not char.db.weakness:
             caller.msg("Missing attribute: weakness\n")
