@@ -11,7 +11,7 @@ from evennia import CmdSet
 from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from world.pcgroups.models import Squad, PlayerGroup
-from world.roster.models import Roster
+from world.roster.models import GameRoster
 from evennia.utils import evmenu
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
