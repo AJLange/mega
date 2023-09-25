@@ -297,7 +297,7 @@ class CmdShowGroups(MuxCommand):
                 return
             else:
                 group = get_group(caller, args)
-                text = (f"{group.db_name} \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
+                text = (f"|{group.db_color}{group.db_name}|n \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
                 caller.msg(text)
                 return
         if "me" in switches:

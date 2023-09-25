@@ -652,7 +652,7 @@ class CmdAttack(MuxCommand):
     attack Bass=Mega Buster
     "Rock attacks Bass with Mega Buster!"
 
-    attack Bass=Mega Buster|Charged Shot
+    attack Bass=Mega Buster||Charged Shot
 
     "Rock attacks Bass with Charged Shot (Mega Buster)!"
 
