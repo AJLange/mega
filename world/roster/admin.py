@@ -1,5 +1,5 @@
 from django.contrib import admin
-from world.roster.models import RosterEntry, GameRoster
+from world.roster.models import GameRoster
 
 class GameRosterAdmin(admin.ModelAdmin):
     list_display = ("id","db_name")
