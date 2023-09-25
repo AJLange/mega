@@ -454,12 +454,13 @@ class CmdStatRoll(Command):
             return
 '''
 
-class CmdRollSkill(Command):
+class CmdRollSkill(MuxCommand):
     """
     Roll a Stat + Skill combo.
 
     Usage:
         check <stat> + <skill>
+        check/focus <stat> + <skill>
 
     This allows any combination of rolls. Can be used to check any two stats.
     Useful in one-off confrontations, if trying to do something unusual, or
@@ -478,8 +479,6 @@ class CmdRollSkill(Command):
 
     def func(self):
 
-        #todo: any bonus dice that need added might be added?
-
         caller = self.caller
         errmsg = "Wrong syntax. Please enter a valid stat and skill seperated by +."
         if not self.args:
@@ -495,10 +494,19 @@ class CmdRollSkill(Command):
             return
         
         errmsg = "An error occured. Contact staff to help debug this."
+
+
+            
         
         try:
             stat_check = caller.get_a_stat(stat)
             skill_check = caller.get_a_skill(skill)
+            outputmsg = ""
+
+            if "focus" in self.switches:
+                stat_check = stat_check + 1
+                skill_check = skill_check + 1
+                outputmsg += "Using a Focus: "
 
             # build the string
 
@@ -510,7 +518,7 @@ class CmdRollSkill(Command):
                 result = explode_tens(result)
                 successes = check_successes(result)
                 str_result = roll_to_string(result)
-                outputmsg = (f"{caller.name} rolls {stat} and {skill}: {str_result} \n" )
+                outputmsg += (f"{caller.name} rolls {stat} and {skill}: {str_result} \n" )
                 outputmsg += (f"{successes} successes.")
                 caller.location.msg_contents(outputmsg, from_obj=caller)
             
