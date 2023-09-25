@@ -95,7 +95,7 @@ class CmdStartChargen(MuxCommand):
     +setfocuses <name> (as many times as needed for all focuses)
 
     If there are armor modes, create them by doing
-    +setarmor <name> = type>
+    +setarmor <name> = <type>
 
     +finishchargen when done.
 
