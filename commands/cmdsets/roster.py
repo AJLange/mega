@@ -557,7 +557,7 @@ class CmdCreateGroup(MuxCommand):
             group_name = self.lhs
             group = get_group(caller,group_name)
             if group:
-                group.db_descrption = desc
+                group.db_description = desc
                 caller.msg(f"Description for group {group_name}: \n {desc}")
                 return
             else:
