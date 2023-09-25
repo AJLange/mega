@@ -174,6 +174,8 @@ class CmdUnconnectedCreate(COMMAND_DEFAULT_CLASS):
     arg_regex = r"\s.*?|$"
 
     def func(self):
+
+  
         """Do checks and create account"""
 
         session = self.caller
@@ -183,6 +185,11 @@ class CmdUnconnectedCreate(COMMAND_DEFAULT_CLASS):
 
         # Get account class
         Account = class_from_module(settings.BASE_ACCOUNT_TYPECLASS)
+
+        '''do nothing. this is not allowed today.'''
+
+        session.msg("Sorry, account creation is currently unavailable.")
+        return
 
         # extract double quoted parts
         parts = [part.strip() for part in re.split(r"\"", args) if part.strip()]
