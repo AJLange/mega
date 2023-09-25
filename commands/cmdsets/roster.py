@@ -480,11 +480,12 @@ class CmdFCList(MuxCommand):
                 return
             else:
                 game = GameRoster.objects.filter(db_name__icontains=args)[0]
-                msg = (f"List of FCs from {game.db_name}: \n")
+                msg = "--------------------------------------------------------------------------\n"
+                msg += (f"List of FCs from {game.db_name}: \n")
                 roster = game.db_members.all()
                 for char in roster:
-                    msg += (f"{char.name}: {char.db.appstatus}") 
-
+                    msg += (f"{char.name}: {char.db.appstatus} \n") 
+                msg += "--------------------------------------------------------------------------\n"
                 caller.msg(msg)
                 return
 
