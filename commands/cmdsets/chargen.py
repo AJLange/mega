@@ -473,6 +473,9 @@ class CmdSetPlayer(MuxCommand):
         this_account.db._playable_characters.append(this_char)
         self.msg("|rAssigned character '|w%s|r' to player '|w%s|r'|n" % (char,account))
 
+        #set character status as played
+        this_char.db.appstatus = "Played"
+
         return 
 
 
@@ -531,10 +534,51 @@ class CmdUnPlayer(MuxCommand):
             this_account.db._playable_characters.remove(this_char)
             this_account.db._last_puppet = 0
             self.msg("|rRemoved character '|w%s|r' from player '|w%s|r'|n" % (char,account))
+            #set character status as open
+            this_char.db.appstatus = "Open"
         else:
             self.msg("|rDidn't find '|w%s|r' in '|w%s|r''s account.|n" % (char,account))
 
         return 
+
+
+class CmdFCStatus(MuxCommand):
+    '''
+    Change the apped status of an FC with a text argument, for +fclist.
+
+    Usage:
+        +lockfc <character>=<status>
+        +lockfc Sigma=Closed
+
+    Common arguments used: Dead, Closed, Played.
+    This does take "Open" if you want to open an FC with this method, but try
+    +unplayer first.
+
+    '''
+
+    key = "lockfc"
+    help_category = "Character"
+    locks = "perm(Builder)"
+    aliases = ["+lockfc"]
+
+    
+    def func(self):
+        "This performs the actual command"
+        if not self.args:
+            self.msg("This command requires an argument - see help lock fc.")
+            return
+        char = self.lhs
+        status = self.rhs
+
+        if not ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_key__iexact=char):
+            
+            self.msg("|rA character named '|w%s|r' wasn't found.|n" % char)
+            return
+        else:
+            this_char = ObjectDB.objects.filter(db_key__iexact=char)[0] 
+            this_char.db.appstatus = status
+            self.caller.msg("App status of '|w%s|r' set to '|w%s|r'." % char, status)
+            return
 
 
 
@@ -1347,8 +1391,6 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetProfileAttr())
         self.add(CmdSetTemplate())
         self.add(CmdFinishChargen())
-        self.add(CmdSetPlayer())
-        self.add(CmdUnPlayer())
         self.add(CmdCreateCapability())
         self.add(CmdSetCapability())
         self.add(CmdListCapability())

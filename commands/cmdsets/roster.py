@@ -16,6 +16,7 @@ from evennia.utils import evmenu
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
+from typeclasses.objects import Object
 
 
 def get_group(caller, name):
@@ -454,13 +455,12 @@ class CmdFCList(MuxCommand):
 
     """
     
-    key = "+fclist"
-    aliases = ["fclist","+roster","roster", "cast", "+cast"]
+    key = "fclist"
+    aliases = ["+fclist","+roster","roster", "cast", "+cast"]
     help_category = "Roster"
 
     def func(self):
         
-        self.caller.msg("In the future this will list of available and unavailable characters.")
         switches = self.switches
         caller = self.caller
         args = self.args
