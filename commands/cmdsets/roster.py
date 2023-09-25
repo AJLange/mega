@@ -501,6 +501,7 @@ class CmdCreateGroup(MuxCommand):
       makegroup <name>=<leader>
       makegroup/desc <name>=<desc>
       makegroup/2ic <name>=<character>
+      makegroup/color <name>=<color code>
       
     Makegroup will make a group with the suggested name, assigning the
     selected person as the leader. A leader is required for any new group.
@@ -510,6 +511,8 @@ class CmdCreateGroup(MuxCommand):
 
     makegroup/2ic will select a character to be the second-in-command of the 
     specified group. Having a second in command is optional.
+
+    Group colors will be used for channels, etc. Use a valid color code.
 
     """
     
@@ -558,6 +561,7 @@ class CmdCreateGroup(MuxCommand):
             group = get_group(caller,group_name)
             if group:
                 group.db_description = desc
+                group.save()
                 caller.msg(f"Description for group {group_name}: \n {desc}")
                 return
             else:
@@ -568,6 +572,7 @@ class CmdCreateGroup(MuxCommand):
             group = get_group(caller,group_name)
             if group:
                 group.db_color = color
+                group.save()
                 caller.msg(f"Color for group |{color}{group_name}|n is set.")
                 return
             else:
@@ -587,6 +592,8 @@ class CmdCreateGroup(MuxCommand):
                     return    
                 group_name = self.lhs
                 group = get_group(caller,group_name)
+                group.db_twoic = char
+                group.save()
                 caller.msg(f"Set {char.name} as second in command to the group {group_name}.")
                 return
             except:
