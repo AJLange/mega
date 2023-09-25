@@ -469,6 +469,9 @@ class CmdRollSkill(MuxCommand):
     Currently it is not possible to check just a stat. Always choose
     which skill you want to roll. See news files for combo examples.
 
+    check/focus is used when a skill is within your character's area of 
+    focus and adds +2. Focuses are limited to what is on your sheet.
+
     """
     
     key = "check"
