@@ -296,7 +296,7 @@ class CmdShowGroups(MuxCommand):
                 caller.msg("Get info for which group?")
                 return
             else:
-                group = get_group(args)
+                group = get_group(caller, args)
                 text = (f"{group.db_name} \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
                 caller.msg(text)
                 return
