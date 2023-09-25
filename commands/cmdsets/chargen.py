@@ -356,12 +356,12 @@ class CmdCreatePC(Command):
         name = self.args.lstrip()
         # create in caller's location
         typeclass = settings.BASE_CHARACTER_TYPECLASS
-        start_location = caller.location
+        start_location = caller.search("Dead Reploid Storage", global_search=True)
         default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
         permissions = settings.PERMISSION_ACCOUNT_DEFAULT
         character = create_object(typeclass,
                       key=name,
-                      location=caller.location, home=default_home, permissions=permissions,
+                      location=start_location, home=default_home, permissions=permissions,
                       locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
 
             
