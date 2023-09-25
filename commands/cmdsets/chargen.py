@@ -1157,6 +1157,37 @@ class CmdSetCapability(MuxCommand):
             return
         
 
+class CmdListCapability(MuxCommand):
+    """
+    Setting the capabilities on a character.
+
+    Usage:
+      +listcapability
+      listcap
+
+    Type this to see the current list of all valid capabilities.
+    This is useful for Chargen.
+
+    Capabilities are currently case-sensitive and look for an 
+    exact match.
+
+    """
+    
+    key = "listcapability"
+    help_category = "Character"
+    aliases = ["+listcapability", "listcap", "+listap"]
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        capabilities = Capability.objects.all()
+        list_cap = []
+        for cap in capabilities:
+            list_cap.append(cap.db_name)
+        caller.msg(f"List of capabilities: {list_cap}")
+        
+        return
+        
 
 class CmdSetArmor(MuxCommand):
     """
@@ -1320,3 +1351,4 @@ class ChargenCmdset(CmdSet):
         self.add(CmdUnPlayer())
         self.add(CmdCreateCapability())
         self.add(CmdSetCapability())
+        self.add(CmdListCapability())
