@@ -577,7 +577,7 @@ class CmdFCStatus(MuxCommand):
         else:
             this_char = ObjectDB.objects.filter(db_key__iexact=char)[0] 
             this_char.db.appstatus = status
-            self.caller.msg("App status of '|w%s|r' set to '|w%s|r'." % (char, status))
+            self.caller.msg("App status of '|w%s|n' set to '|w%s|n'." % (char, status))
             return
 
 
