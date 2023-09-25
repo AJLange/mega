@@ -17,6 +17,7 @@ from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 from typeclasses.objects import Object
+from evennia.objects.models import ObjectDB
 
 
 def get_group(caller, name):
@@ -466,16 +467,27 @@ class CmdFCList(MuxCommand):
         args = self.args
         
         if not switches:
-            caller.msg("list all rosters")
-            return
+                #TODO - nicer formatting
+                msg = "List of all games: \n"
+                game_list = GameRoster.objects.all()
+                for game in game_list:
+                    msg = msg + game.db_name + " "
+                caller.msg(msg)
+                return
         elif "game" in switches:
             if not args:
                 caller.msg("From which game? See fclist (no args) for a list.")
                 return
             else:
-                caller.msg(f"This doesn't work yet.")
+                game = GameRoster.objects.filter(db_name__icontains=args)[0]
+                msg = (f"List of FCs from {game.db_name}: \n")
+                roster = game.db_members
+                for char in roster:
+                    msg += (f"{char.name}: {char.db.appstatus}") 
+
+                caller.msg(msg)
                 return
-            return
+
         elif "group" in switches:
             if not args:
                 caller.msg("From which group? See help groups for a list.")
