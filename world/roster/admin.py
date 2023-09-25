@@ -6,10 +6,4 @@ class GameRosterAdmin(admin.ModelAdmin):
     list_display_links  = ("id","db_name")
 
 
-class RosterAdmin(admin.ModelAdmin):
-    list_display = ("id","db_character",)
-    list_display_links  = ("id","db_character")
-
-
 admin.site.register(GameRoster, GameRosterAdmin)
-admin.site.register(RosterEntry, RosterAdmin)
