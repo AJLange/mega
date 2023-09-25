@@ -555,17 +555,15 @@ class CmdCreateGroup(MuxCommand):
                 caller.msg("Sorry, an error occured.")
                 return
         elif "desc" in switches:
-            try:
-                desc = self.rhs
-                group_name = self.lhs
-                group = get_group(caller,group_name)
-                if group:
-                    group.db_descrption = desc
-                    caller.msg(f"Description for group {group_name}: \n {desc}")
+            desc = self.rhs
+            group_name = self.lhs
+            group = get_group(caller,group_name)
+            if group:
+                group.db_descrption = desc
+                caller.msg(f"Description for group {group_name}: \n {desc}")
                 return
-            except:
-                caller.msg(errmsg)
-                return
+            else:
+                caller.msg("Group not found.")
             
         elif "2ic" in switches:
             try:
