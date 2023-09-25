@@ -7,7 +7,7 @@ class GameRosterAdmin(admin.ModelAdmin):
 
 
 class RosterAdmin(admin.ModelAdmin):
-    list_display = ("id","db_chracter",)
+    list_display = ("id","db_character",)
     list_display_links  = ("id","db_character")
 
 
