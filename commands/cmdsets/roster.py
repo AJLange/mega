@@ -562,6 +562,16 @@ class CmdCreateGroup(MuxCommand):
                 return
             else:
                 caller.msg("Group not found.")
+        elif "color" in switches:
+            color = self.rhs
+            group_name = self.lhs
+            group = get_group(caller,group_name)
+            if group:
+                group.db_color = color
+                caller.msg(f"Color for group |{color}{group_name}|n is set.")
+                return
+            else:
+                caller.msg("Group not found.")
             
         elif "2ic" in switches:
             try:
