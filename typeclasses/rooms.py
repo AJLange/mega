@@ -175,9 +175,6 @@ class QuartersRoom(Room):
         "this is called only at first creation"
         
         
-
-
-
 class Cockpit(Room):
     """
     This room type is for driving mobile bases
@@ -201,6 +198,35 @@ class PrivateRoom(Room):
 class PlayRoom(Room):
     """
     Deprecated - wasn't needed, saved for DB reasons
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
+class WaterRoom(Room):
+    """
+    This room type is for rooms that are also underwater
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+class SpaceRoom(Room):
+    """
+    This room type is for rooms that are in space or Zero-G
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+class NexusRoom(Room):
+    """
+    This room type is for rooms that have strong magical resonance
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+class BurrowRoom(Room):
+    """
+    This room type is for rooms that are under open ground
     """
     def at_object_creation(self):
         "this is called only at first creation"
