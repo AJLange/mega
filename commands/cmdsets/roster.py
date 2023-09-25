@@ -23,9 +23,7 @@ def get_group(caller, name):
     if not groups:
         #no group found.
         return 0
-    if len.groups > 1:
-        caller.msg("Multiple matches. Check the group name or contact admin.")
-        return 0
+
     else:
         return groups[0]
     
