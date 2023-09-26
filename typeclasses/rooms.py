@@ -230,3 +230,20 @@ class BurrowRoom(Room):
     """
     def at_object_creation(self):
         "this is called only at first creation"
+
+
+class NetRoom(Room):
+    """
+    This room type is for rooms that are on the internet.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
+class MovieRoom(OOCRoom):
+    """
+    This room type is for OOC style rooms that would allow watching scenes
+    without participating in them. For guests.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
