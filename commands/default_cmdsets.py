@@ -30,7 +30,7 @@ from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, Cmd
 from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
-from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack
+from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack, CmdGenericAtk
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
@@ -139,6 +139,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdPersuade())
         self.add(CmdHPDisplay())
         self.add(CmdAttack())
+        self.add(CmdGenericAtk())
 
         #self.add(CmdWarp())       
         self.add(CmdPortal())

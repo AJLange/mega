@@ -13,7 +13,7 @@ from evennia import Command, InterruptCommand
 from server.battle import roll_attack, check_valid_target, explode_tens, roll_to_string, check_successes, check_capabilities, copy_attack, do_roll
 from evennia.utils.utils import inherits_from
 from django.conf import settings
-from world.combat.models import Weapon
+from world.combat.models import Weapon, GenericAttack
 from world.armor.models import ArmorMode, Capability
 
 '''
@@ -726,9 +726,9 @@ class CmdAttack(MuxCommand):
             target = char
             weapon_check = Weapon.objects.filter(db_name__icontains=attack_name)
             my_weapons = caller.db.weapons
+            weapon_generic = False
             
-            # TODO - if the weapon is a generic attack, pull from that DB first
-            
+           
             # match found. Weapons should have a unique name with no duplicates.
             # this currently will fail on partial matches, so be more clever 
             # about this in the future.
@@ -740,8 +740,16 @@ class CmdAttack(MuxCommand):
                     found_weapon = True
             
             if not found_weapon:
-                caller.msg("That weapon is not in your arsenal.")
-                return
+                # is it a generic weapon?
+                weapon_check = GenericAttack.objects.filter(db_name__icontains=attack_name)
+                if weapon_check:
+                    found_weapon = True
+                    weapon_generic = True
+                    caller.db.active_weapon = weapon_check[0]
+                else:
+                    #no weapon no attack
+                    caller.msg("That weapon is not in your arsenal.")
+                    return
     
             #if I attack I'm not defending
             caller.db.defending = 0
@@ -813,16 +821,18 @@ class CmdAttack(MuxCommand):
             if damage < 0:
                 damage = 0
 
-            weapon_elements = [weapon.db_type_1, weapon.db_type_2, weapon.db_type_3]
-            for element in weapon_elements:
-                if element:
-                    if element == char.db.weakness:
-                        outputmsg += (f"You hit a weakness! \n")
-                        damage = damage * 1.5
-                if element:
-                    if element == char.db.resistance:
-                        outputmsg += (f"You hit a resist! \n")
-                        damage = damage * 0.75
+            #skip element check for generic weapons
+            if not weapon_generic:
+                weapon_elements = [weapon.db_type_1, weapon.db_type_2, weapon.db_type_3]
+                for element in weapon_elements:
+                    if element:
+                        if element == char.db.weakness:
+                            outputmsg += (f"You hit a weakness! \n")
+                            damage = damage * 1.5
+                    if element:
+                        if element == char.db.resistance:
+                            outputmsg += (f"You hit a resist! \n")
+                            damage = damage * 0.75
             
             if damage == 0:
                 outputmsg += (f"The attack misses." )
@@ -843,7 +853,35 @@ class CmdAttack(MuxCommand):
         except ValueError:
             caller.msg(errmsg)
             return
+        
 
+class CmdGenericAtk(MuxCommand):
+    """
+    List available generic weapons
+
+    Usage:
+      generic
+
+    This lists generic weapons available to all players.
+    Generic weapons are untyped and will not hit a weakness
+    or resistance.
+
+    """
+    
+    key = "generic"
+    aliases = ["+generic"]
+    help_category = "Dice"
+    locks = "perm(Player))"
+
+    def func(self):
+
+        caller= self.caller
+        weapons = GenericAttack.objects.all()
+        msg = "Generic Attacks: \n"
+        for weapon in weapons:
+            msg += (f"{weapon.db_name}: {weapon.db_class} \n")
+        caller.msg(msg)
+        return
 
 class CmdTaunt(MuxCommand):
 
