@@ -297,7 +297,7 @@ class CmdShowdown(MuxCommand):
                     return
                 else:
                     caller.incombat = True
-                    #bug check this to make sure it doesn't allow people to reset in the middle
+                    #TODO - bug check this to make sure it doesn't allow people to reset in the middle
                     #of an active fight
                     combat_reset(caller)
 
@@ -542,7 +542,6 @@ class CmdRollSkill(MuxCommand):
     help_category = "Dice"
     locks = "perm(Player))"
 
-
     def func(self):
 
         caller = self.caller
@@ -560,9 +559,6 @@ class CmdRollSkill(MuxCommand):
             return
         
         errmsg = "An error occured. Contact staff to help debug this."
-
-
-            
         
         try:
             stat_check = caller.get_a_stat(stat)
@@ -634,24 +630,34 @@ class CmdAim(Command):
         errmsg = "An error occured."
         
         caller= self.caller
+        sniper = False
 
-        if caller.db.aimdice == 1:
+        #if the Sniper capability is present, stack Aim up to 3x
+
+        attacker_cap = check_capabilities(caller)
+
+        for cap in attacker_cap:
+            if cap == "Sniper":
+                sniper = True
+
+        if caller.db.aimdice == 1 and not sniper:
             caller.msg("You are already aiming!")
-
-        '''
-        future check: if the Sniper capability is present, stack Aim up to 3x
-        '''
-
+            return
+        if caller.db.aimdice >= 3 and sniper:
+            caller.msg("You are using the maximum amount of aim rounds.")
+            return
+        
+        if not caller.db.incombat:
+            caller.msg("You are not in an active action scene.")
+            return
+        
         try:
             caller.db.defending = 0
             caller.location.msg_contents(f"{caller.name} forfeits their turn to Aim.", from_obj=caller)
-            caller.db.aimdice = 1
+            caller.db.aimdice += 1
         except ValueError:
             caller.msg(errmsg)
             return
-        '''
-        todo: remember to clear out aimdice if combat ends
-        '''
 
 
 class CmdCharge(Command):
@@ -765,6 +771,8 @@ class CmdAttack(MuxCommand):
             if not target_ok:
                 caller.msg(msg)
                 return
+            
+            #TODO - after alpha testing, make sure the combat flag is set on any target
 
             if not attack_string:
                 if not caller.db.active_weapon:
@@ -830,9 +838,10 @@ class CmdAttack(MuxCommand):
             else:
                 weapon_string = weapon.db_name
 
-            #to check: is the target in full defense?
+            #is the target in full defense?
             #if so, if target is defender, no damage can be done
             #otherwise, lower the potential to-hit
+
             full_defender = False
             if target.db.defending:
                 for cap in target_cap:
@@ -846,7 +855,7 @@ class CmdAttack(MuxCommand):
                     #right now defending gives 2x tenacity skill, may change
                     target_defense = int(target_defense * 2)
             
-            #to check: is the target being defended by anyone else?
+            #TODO - check - is the target being defended by anyone else?
             #if so, high chance of redirecting this attack.
             #higher if you have bodyguard
 
@@ -974,14 +983,28 @@ class CmdTaunt(MuxCommand):
             caller.msg("Taunt who?")
             return
         
+        '''
+        Commenting this out for now, but this check
+        will be used when the game goes live 
+
+        if not caller.db.incombat:
+            caller.msg("You are not in an active Showdown.")
+            return
+
+        if not target.db.incombat:
+            caller.msg("That target is not in this Showdown.")
+            return
+        '''
+
         #check target is valid
         target = self.args.strip()
         char = self.caller.search(target, global_search=False)
         valid_target = check_valid_target(char)
-        
+   
         if not valid_target:
             caller.msg("Not a valid target.")
             return
+
 
         #calc highest of charisma, aura, tenacity, cunning
         stat = max(caller.db.chr, caller.db.aur, caller.db.ten, caller.db.cun)
@@ -994,7 +1017,7 @@ class CmdTaunt(MuxCommand):
             dodge_roll = do_roll(char.db.cun, char.db.convince)
             outputmsg = (f"{caller.name} rolls to taunt: {str_result} \n" )
 
-#primitive first draft damage calc
+            #primitive first draft damage calc
             damage = 0
             for die in result:
                 damage = damage + int(die)
@@ -1055,6 +1078,19 @@ class CmdIntimidate(MuxCommand):
         if not valid_target:
             caller.msg("Not a valid target.")
             return
+        
+        '''
+        Commenting this out for now, but this check
+        will be used when the game goes live 
+
+        if not caller.db.incombat:
+            caller.msg("You are not in an active Showdown.")
+            return
+
+        if not target.db.incombat:
+            caller.msg("That target is not in this Showdown.")
+            return
+        '''
 
         #calc highest of charisma, aura, power
         stat = max(caller.db.chr, caller.db.aur, caller.db.pow)
@@ -1221,6 +1257,19 @@ class CmdPersuade(Command):
         if not valid_target:
             caller.msg("Not a valid target.")
             return
+        
+        '''
+        Commenting this out for now, but this check
+        will be used when the game goes live 
+
+        if not caller.db.incombat:
+            caller.msg("You are not in an active Showdown.")
+            return
+
+        if not target.db.incombat:
+            caller.msg("That target is not in this Showdown.")
+            return
+        '''
         
         '''
         todo: apply any bonus dice for pose or circumstance
