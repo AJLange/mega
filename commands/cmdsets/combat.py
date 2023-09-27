@@ -15,6 +15,8 @@ from evennia.utils.utils import inherits_from
 from django.conf import settings
 from world.combat.models import Weapon, GenericAttack
 from world.armor.models import ArmorMode, Capability
+#from typeclasses.characters import set_initial_combat
+
 
 '''
 constants set here for testing purposes
@@ -24,66 +26,77 @@ DUEL_HP = 90
 STANDARD_HP = 60
 DUEL_MORALE = 100
 STANDARD_MORALE = 70
+HP_FACTOR = 60
+MORALE_FACTOR = 60
 
+
+def combat_reset(player):
+    player.db.hp = STANDARD_HP
+    player.db.morale = STANDARD_MORALE
+    player.db.aimdice = 0
+    player.db.defending = 0
+    player.db.chargedice = 0
+    player.db.bonusdice = 0
+    player.db.boss = False
 
 
 def swap_armor(caller, armor):    
 
-        #armor was found, so replace my stats with this armor
-        caller.db.pow = armor.db_pow
-        caller.db.dex = armor.db_dex
-        caller.db.ten = armor.db_ten
-        caller.db.cun = armor.db_cun
-        caller.db.edu = armor.db_edu
-        caller.db.chr = armor.db_chr
-        caller.db.aur = armor.db_aur
+    #armor was found, so replace my stats with this armor
+    caller.db.pow = armor.db_pow
+    caller.db.dex = armor.db_dex
+    caller.db.ten = armor.db_ten
+    caller.db.cun = armor.db_cun
+    caller.db.edu = armor.db_edu
+    caller.db.chr = armor.db_chr
+    caller.db.aur = armor.db_aur
 
-        caller.discern = armor.db_discern
-        caller.db.aim = armor.db_aim
-        caller.db.athletics =  armor.db_athletics
-        caller.db.force = armor.db_force
-        caller.db.mechanics = armor.db_mechanics
-        caller.db.medicine = armor.db_medicine
-        caller.db.computer = armor.db_computer
-        caller.db.stealth = armor.db_stealth
-        caller.db.heist = armor.db_heist
-        caller.db.convince =  armor.db_convince
-        caller.db.presence = armor.db_presence
-        caller.db.arcana = armor.db_arcana
+    caller.discern = armor.db_discern
+    caller.db.aim = armor.db_aim
+    caller.db.athletics =  armor.db_athletics
+    caller.db.force = armor.db_force
+    caller.db.mechanics = armor.db_mechanics
+    caller.db.medicine = armor.db_medicine
+    caller.db.computer = armor.db_computer
+    caller.db.stealth = armor.db_stealth
+    caller.db.heist = armor.db_heist
+    caller.db.convince =  armor.db_convince
+    caller.db.presence = armor.db_presence
+    caller.db.arcana = armor.db_arcana
 
-        caller.db.size = armor.db_size
-        caller.db.speed = armor.db_speed
-        caller.db.strength = armor.db_strength
+    caller.db.size = armor.db_size
+    caller.db.speed = armor.db_speed
+    caller.db.strength = armor.db_strength
 
-        #right now, changing armors does not change buster list
-        caller.db.capabilities = armor.db_capabilities
-        caller.db.weapons = armor.db_weapons
-        caller.db.primary = armor.db_primary
-        caller.db.secondary = armor.db_secondary
+    #right now, changing armors does not change buster list
+    caller.db.capabilities = armor.db_capabilities
+    caller.db.weapons = armor.db_weapons
+    caller.db.primary = armor.db_primary
+    caller.db.secondary = armor.db_secondary
 
-        #process the armor message
-        #TODO - better pronoun processing
-        swap_msg = (f"{caller} activates their {armor.db_name} armor!")
-        if armor.db_swap == 1:
-            swap_msg = (f"{caller} has activated their {armor.db_name} mode!")
-        elif armor.db_swap == 2:   
-            swap_msg = (f"{caller} has swapped to their {armor.db_name} stance!")
-        elif armor.db_swap == 3:
-            swap_msg = (f"{caller} focuses their efforts, becoming {armor.db_name} !")
-        elif armor.db_swap == 4:
-            swap_msg = (f"{caller} changes forms, becoming their {armor.db_name}!")
-        elif armor.db_swap == 5:
-            swap_msg = (f"{caller} jacks in, activating {armor.db_name}!")
-        elif armor.db_swap == 6:
-            swap_msg = (f"{caller} summons {armor.db_name} to assist!")
-        elif armor.db_swap == 7:
-            swap_msg = (f"{caller} is playing as squadron {armor.db_name}.")
-        elif armor.db_swap == 8:
-            swap_msg = (f"{caller} activates their {armor.db_name} system!")
+    #process the armor message
+    #TODO - better pronoun processing
+    swap_msg = (f"{caller} activates their {armor.db_name} armor!")
+    if armor.db_swap == 1:
+        swap_msg = (f"{caller} has activated their {armor.db_name} mode!")
+    elif armor.db_swap == 2:   
+        swap_msg = (f"{caller} has swapped to their {armor.db_name} stance!")
+    elif armor.db_swap == 3:
+        swap_msg = (f"{caller} focuses their efforts, becoming {armor.db_name} !")
+    elif armor.db_swap == 4:
+        swap_msg = (f"{caller} changes forms, becoming their {armor.db_name}!")
+    elif armor.db_swap == 5:
+        swap_msg = (f"{caller} jacks in, activating {armor.db_name}!")
+    elif armor.db_swap == 6:
+        swap_msg = (f"{caller} summons {armor.db_name} to assist!")
+    elif armor.db_swap == 7:
+        swap_msg = (f"{caller} is playing as squadron {armor.db_name}.")
+    elif armor.db_swap == 8:
+        swap_msg = (f"{caller} activates their {armor.db_name} system!")
 
-        # the generic '9' is currently a catch-all
-        caller.location.msg_contents(swap_msg, from_obj=caller)
-        return
+    # the generic '9' is currently a catch-all
+    caller.location.msg_contents(swap_msg, from_obj=caller)
+    return
 
 
 class ModeSwap(MuxCommand):
@@ -178,14 +191,22 @@ class CmdShowdown(MuxCommand):
     Usage:
         showdown 
         showdown/start
+        showdown/boss
         showdown/boss <#>
+        showdown/join
         showdown/end
 
     showdown with no switches checks on a combat in the room, if one is 
     active.
 
+    showdown/join is if you came in late, and wish to be added to the active
+    combat in progress. Please check with any bosses or DMs before adding yourself
+    as they may have to adjust numbers.
+
     showdown/boss begins a showdown with the number of people specified,
-    and the originator set as a 'boss' with boss HP.
+    and the originator set as a 'boss' with boss HP. If no number is specified,
+    the boss showdown will calculate on all players in the room not set as 
+    an observer.
 
     +showdown/end ends your current combat.
 
@@ -197,16 +218,10 @@ class CmdShowdown(MuxCommand):
     locks = "perm(Player))"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-
-        to-do: test balance for other configurations.
-        occupied check needs to sync with db in case of reset.
-
-        '''
-        errmsg = "You must supply a target, or choose +showdown/boss to attack everyone."
         
-        occupied = False
+        
+        #this isn't final, attack commands need to check for an active combat.
+        
         caller= self.caller
         room = caller.location
 
@@ -221,56 +236,104 @@ class CmdShowdown(MuxCommand):
             # start the rest of the showdown here
             # make sure one isn't active already
             # set everyone as in an active combat if they are not set observer
-
+            room.db.combat = True
+            char_list = room.contents_get(exclude=caller.location.exits)                
+            for player in char_list:
+                #make sure it's a player and not some other object
+                if inherits_from(player, settings.BASE_CHARACTER_TYPECLASS):
+                    if not player.db.observer:
+                        #remove all flags and bonus dice
+                        player.db.incombat = True
+                        combat_reset(player)
             if "boss" in self.switches:
                 caller.msg("You start a boss fight in this location!")
                 caller.location.msg_contents(caller.name + " has begun a Boss Showdown in this location!" )
 
+                #check for override number supplied, if not, continue
+
+                if self.args:
+                    try:
+                        override= int(self.args)
+                    except:
+                        caller.msg("Number must be an integer.")
+                        return
+                    if override > 20:
+                        caller.msg("That is too many players.")
+                        return
+                
                 '''
-                what needs to happen:
                 Set HP based on the involved number of attackers
+                start at -1 since a boss is not counted as themselves.
                 '''
+                    
+                caller.db.incobmat = True
+                caller.db.boss = True
+                room.db.combat = True
+                override = 0
+                
+                playercount = -1
+                
+                char_list = room.contents_get(exclude=caller.location.exits)
+                
+                for player in char_list:
+                #make sure it's a player and not some other object
+                    if inherits_from(player, settings.BASE_CHARACTER_TYPECLASS):
+                        if not player.db.observer:
+                            playercount += 1
+                            # we have to check all players, to be sure this flag is set
+                            player.db.incombat = True
+
+                #boss HP takes the count, unless a hard number was specified
+                if override:
+                    playercount = override
+
+                caller.db.hp = playercount * HP_FACTOR
+                caller.db.morale = playercount * MORALE_FACTOR
+                
+                return
+            if "join" in self.switches:
+                if caller.incombat:
+                    caller.msg("You are already in an active Showdown.")
+                    return
+                else:
+                    caller.incombat = True
+                    #bug check this to make sure it doesn't allow people to reset in the middle
+                    #of an active fight
+                    combat_reset(caller)
+
             if "end" in self.switches:
-                caller.db.hp = STANDARD_HP
-                ''' 
-                remove everyone's aimdice and bonus dice
-                '''
+                #rooms don't have this flag by default
+                #if it's there, a combat did happen, but ended
+                room.db.combat = False          
+                char_list = room.contents_get(exclude=caller.location.exits)                
+                for player in char_list:
+                #make sure it's a player and not some other object
+                    if inherits_from(player, settings.BASE_CHARACTER_TYPECLASS):
+                        #might not need this check, but leave it for now
+                        if not player.db.observer:
+                            #remove all flags and bonus dice
+                            combat_reset(player)
+
             else:
                 caller.msg("Invalid switch. See help showdown.")
                 return
-
-        if not self.args:
-            caller.msg(errmsg)
-            return
-        try:
-            '''
-            do-to: error check - is target a character? are they in the room?
-            '''
-            target = self.args.strip()
-
-            char = self.caller.search(target, global_search=False)
-
-            if not check_valid_target(char):
-                caller.msg("Not a valid target to attack.")
+        else:
+            #no switches, get status
+            if not room.db.combat:
+                caller.msg("No active Showdown is happening here.")
                 return
 
+            message = "Players in this Showdown: \n"
+            char_list = room.contents_get(exclude=caller.location.exits)                
+            for player in char_list:
+                #make sure it's a player and not some other object
+                if inherits_from(player, settings.BASE_CHARACTER_TYPECLASS):
+                    if player.db.incombat:
+                        # this is too much info for live, but now, for debugging, keep it.
+                        message += (f"{player.name}: HP: {player.db.hp} Morale: {player.db.morale} \n")
+            caller.msg(message)
 
-            caller.msg(f"You start a showdown with {char.name}.")
-            target.msg(f"{caller.name} has challenged you a duel!")
-            ''' 
-            set duel HP
-            '''
-            target.db.hp = DUEL_HP
-            caller.db.hp = DUEL_HP
-
-            if not (occupied):
-                occupied = True
-                return
-            else:
-                caller.msg("That person is already in a duel.")
-        except ValueError:
-            caller.msg(errmsg)
-            return
+        
 
 
 class CmdGMRoll(Command):

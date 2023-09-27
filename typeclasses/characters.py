@@ -210,6 +210,7 @@ class Character(DefaultCharacter):
         return self.db.pcgroups
 
     def set_initial_combat(self):
+        self.db.incombat = False
         self.db.aimdice = 0
         self.db.chargedice = 0
         self.db.bonusdice = 0
