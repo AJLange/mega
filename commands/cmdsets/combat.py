@@ -10,7 +10,7 @@ from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from random import randint
 from evennia import Command, InterruptCommand
-from server.battle import roll_attack, check_valid_target, explode_tens, roll_to_string, check_successes, check_capabilities, copy_attack, do_roll
+from server.battle import roll_attack, check_valid_target, explode_tens, roll_to_string, check_successes, check_capabilities, copy_attack, do_roll, check_morale, check_not_ko
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 from world.combat.models import Weapon, GenericAttack
@@ -651,6 +651,11 @@ class CmdAim(Command):
             caller.msg("You are not in an active action scene.")
             return
         
+        alive = check_not_ko(caller)
+        if not alive:
+            caller.msg("You are KOed!")
+            return
+        
         try:
             caller.db.defending = 0
             caller.location.msg_contents(f"{caller.name} forfeits their turn to Aim.", from_obj=caller)
@@ -764,12 +769,24 @@ class CmdAttack(MuxCommand):
             msg = "Target not found."
             if not target:
                 target = self.args.strip()
+
+            alive = check_not_ko(caller)
+            if not alive:
+                caller.msg("You are KOed!")
+                return
+
     
             char = self.caller.search(target, global_search=False)
+
 
             target_ok = check_valid_target(char)
             if not target_ok:
                 caller.msg(msg)
+                return
+            
+            target_alive = check_not_ko(char)
+            if not target_alive:
+                caller.msg("That target is already knocked out!")
                 return
             
             #TODO - after alpha testing, make sure the combat flag is set on any target
@@ -979,6 +996,10 @@ class CmdTaunt(MuxCommand):
         errmsg = "An error occured."
         caller= self.caller
 
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
+
         if not self.args:
             caller.msg("Taunt who?")
             return
@@ -1003,6 +1024,16 @@ class CmdTaunt(MuxCommand):
    
         if not valid_target:
             caller.msg("Not a valid target.")
+            return
+                  
+        target_alive = check_not_ko(char)
+        if not target_alive:
+            caller.msg("That target is already knocked out!")
+            return
+        
+        target_morale = check_morale(char)
+        if not target_morale:
+            caller.msg("That target has no morale.")
             return
 
 
@@ -1066,6 +1097,10 @@ class CmdIntimidate(MuxCommand):
         errmsg = "An error occured."        
         caller= self.caller
         
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
+
         if not self.args:
             caller.msg("Intimidate who?")
             return
@@ -1078,7 +1113,17 @@ class CmdIntimidate(MuxCommand):
         if not valid_target:
             caller.msg("Not a valid target.")
             return
+
+        target_alive = check_not_ko(char)
+        if not target_alive:
+            caller.msg("That target is already knocked out!")
+            return
         
+        target_morale = check_morale(char)
+        if not target_morale:
+            caller.msg("That target has no morale.")
+            return
+
         '''
         Commenting this out for now, but this check
         will be used when the game goes live 
@@ -1162,6 +1207,10 @@ class CmdGuard(MuxCommand):
         errmsg = "An error occured."
         caller= self.caller
 
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
+
         if not self.args:
             outputmsg = (f"{caller.name} goes into full defense." )
             caller.location.msg_contents(outputmsg, from_obj=caller)
@@ -1172,6 +1221,19 @@ class CmdGuard(MuxCommand):
         except ValueError:
             caller.msg(errmsg)
             return
+        
+        # there were args, so guard someone
+        # check target is valid
+        target = self.args.strip()
+        char = self.caller.search(target, global_search=False)
+        valid_target = check_valid_target(char)
+        
+        if not valid_target:
+            caller.msg("Not a valid target.")
+            return
+
+        #you can guard someone who is knocked out if you really want to
+
 
 class CmdHeal(Command):
 
@@ -1196,9 +1258,9 @@ class CmdHeal(Command):
         errmsg = "An error occured."
         caller= self.caller
 
-        
-        errmsg = "An error occured."        
-        caller= self.caller
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
         
         if not self.args:
             caller.msg("Heal who?")
@@ -1212,6 +1274,7 @@ class CmdHeal(Command):
         if not valid_target:
             caller.msg("Not a valid target.")
             return
+        # no check for KO, it's Ok to heal someone who is KOed
         
         if not self.args:
             caller.msg("Roll how many dice?")
@@ -1244,6 +1307,10 @@ class CmdPersuade(Command):
 
         errmsg = "An error occured."        
         caller= self.caller
+
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
         
         if not self.args:
             caller.msg("Persuade who?")
@@ -1256,6 +1323,17 @@ class CmdPersuade(Command):
 
         if not valid_target:
             caller.msg("Not a valid target.")
+            return
+        
+
+        target_alive = check_not_ko(char)
+        if not target_alive:
+            caller.msg("You can't persuade someone who is KOed.")
+            return
+        
+        target_morale = check_morale(char)
+        if not target_morale:
+            caller.msg("That target has no morale.")
             return
         
         '''
@@ -1409,6 +1487,11 @@ class CmdWeaponCopy(MuxCommand):
         if not args:
             caller.msg("Copy whose weapon?")
             return
+        
+        if not check_not_ko(caller):
+            caller.msg("You are KOed!")
+            return
+        
         try:
             
             char = caller.search(char, global_search=False)

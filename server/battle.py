@@ -61,7 +61,6 @@ def check_valid_target(char):
     code this check to make sure a target of any possible showdown is:
     in the room with me X
     a valid character X
-    that is not KOed
     """
     
     if not char:
@@ -70,6 +69,18 @@ def check_valid_target(char):
         return False
     else:
         return True
+    
+def check_not_ko(char):
+    if (char.db.hp > 0):
+        return True
+    else:  
+        return False
+    
+def check_morale(char):
+    if (char.db.morale > 0):
+        return True
+    else:
+        return False
 
 #check success of a normal roll.
 
