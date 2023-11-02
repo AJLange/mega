@@ -510,10 +510,10 @@ class CmdWho(COMMAND_DEFAULT_CLASS):
         if show_session_data:
             # privileged info
             table = self.styled_table(
-                "|wAccount Name",
+                "|wName",
                 "|wOn for",
                 "|wIdle",
-                "|wPuppeting",
+                "|wPlayer",
                 "|wRoom",
                 "|wCmds",
                 "|wProtocol",
@@ -526,12 +526,13 @@ class CmdWho(COMMAND_DEFAULT_CLASS):
                 delta_conn = time.time() - session.conn_time
                 session_account = session.get_account()
                 puppet = session.get_puppet()
-                location = puppet.location.key if puppet and puppet.location else "None"
+                location = puppet.location.key if puppet and puppet.location else "OOC-Idle"
                 table.add_row(
+                    utils.crop(puppet.get_display_name(account) if puppet else "OOC-Idle", width=25),
                     utils.crop(session_account.get_display_name(account), width=25),
                     utils.time_format(delta_conn, 0),
                     utils.time_format(delta_cmd, 1),
-                    utils.crop(puppet.get_display_name(account) if puppet else "None", width=25),
+                    utils.crop(session_account.get_display_name(account), width=25),
                     utils.crop(location, width=25),
                     session.cmd_total,
                     session.protocol_key,
@@ -539,14 +540,16 @@ class CmdWho(COMMAND_DEFAULT_CLASS):
                 )
         else:
             # unprivileged
-            table = self.styled_table("|wAccount name", "|wOn for", "|wIdle")
+            table = self.styled_table("|wName, |wPlayer", "|wOn for", "|wIdle")
             for session in session_list:
                 if not session.logged_in:
                     continue
                 delta_cmd = time.time() - session.cmd_last_visible
                 delta_conn = time.time() - session.conn_time
                 session_account = session.get_account()
+                puppet = session.get_puppet()
                 table.add_row(
+                    utils.crop(puppet.get_display_name(account) if puppet else "OOC-Idle", width=25),
                     utils.crop(session_account.get_display_name(account), width=25),
                     utils.time_format(delta_conn, 0),
                     utils.time_format(delta_cmd, 1),

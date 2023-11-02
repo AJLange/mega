@@ -41,7 +41,7 @@ from commands.cmdsets.scenes import CmdSequenceStart, CmdAutolog, CmdObserve, Cm
 
 
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
-from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight
+from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight, CmdAWho
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 # from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
@@ -184,6 +184,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdSetPlayer())
         self.add(CmdUnPlayer())
         self.add(CmdFCStatus())
+        self.add(CmdAWho())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
