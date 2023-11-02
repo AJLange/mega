@@ -66,6 +66,8 @@ class Character(DefaultCharacter):
         self.db.secondary = 0
         self.db.currentmode = "Base"
         self.db.focuses = []
+        self.db.was_born = False
+        self.db.was_created = False
 
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
@@ -92,7 +94,6 @@ class Character(DefaultCharacter):
         self.db.pose_time = 0.0
 
         self.db.appstatus = "Open"
-
 
 
     def get_stats(self):
@@ -173,6 +174,12 @@ class Character(DefaultCharacter):
 
     def get_ocfinger(self):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
+    
+    def get_efinger(self):
+        return self.db.alias, self.db.icemail, self.db.s_num, self.db.birthplace, self.db.notes
+    
+    def get_creators(self):
+        return self.db.parents, self.db.birthday, self.db.creator, self.db.builddate
 
     def get_statobjs(self):
         return self.db.type, self.db.size, self.db.speed, self.db.strength

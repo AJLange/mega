@@ -91,13 +91,26 @@ class CmdEFinger(MuxCommand):
       efinger <character>
       info <character>
 
+      efinger/<category> <info>
+      Ex:
+        efinger/email mega@mush.com
+
+      efinger/born
+      efinger/created
+      efinger/both
+
     To get basic IC information about a character. Usually set to what is publically 
     known or can be looked up about a character from an IC standpoint, including their 
     reputation and known abilities.
 
     Players can fill these out themselves, but staff has a right to double-check this 
     information for accuracy. You may fill out as much or as little of your +efinger as 
-    you like, depending on what can be ICly known or interesting to share.
+    you like, depending on what can be ICly known or interesting to share. Use the 
+    command with switches to do this, as above: efinger/email <myICemail> etc.
+
+    The final command toggles if your character was 'born,' 'built,' or both. 
+    Use this to change the born-on date line to a created-on date line,
+    or, to add both fields if you feel those are necessary.
     
     """
     key = "efinger"
@@ -107,47 +120,33 @@ class CmdEFinger(MuxCommand):
 
     def func(self):
         "This performs the actual command"
-        if not self.args:
-            self.caller.msg("EFinger who?")
-            return
 
         caller = self.caller
-        char_string = self.args.strip()
-        char = self.caller.search(char_string, global_search=True)
-        if not char:
-            self.caller.msg("Character not found.")
-            return
-        if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
-            self.caller.msg("Character not found.")
-            return
-        
-        
+
         # setting attributes switches
-        # first pass
         
         if "email" in self.switches or "Email" in self.switches:
             if self.args:
                 caller.db.prefemail = sub_old_ansi(self.args)
-                self.msg("Email set to: %s" % self.args)
+                self.msg("IC Email set to: %s" % self.args)
             else:
                 caller.attributes.remove("prefemail")
                 self.msg("Email address cleared.")
             return
-        if "discord" in self.switches or "Discord" in self.switches:
-            if self.args:
-                caller.db.discord = sub_old_ansi(self.args)
-                self.msg("Discord set to: %s" % self.args)
-            else:
-                caller.attributes.remove("discord")
-                self.msg("Discord cleared.")
+        if "born" in self.switches or "Born" in self.switches:
+            self.msg("Character given the Birthday field.")
+            caller.db.was_born = True
+            caller.db.was_created = False
             return
-        if "altchars" in self.switches or "Altchars" in self.switches or "alts" in self.switches or "Alts" in self.switches in self.switches:
-            if self.args:
-                caller.db.altchars = sub_old_ansi(self.args)
-                self.msg("AltChars set to: %s" % self.args)
-            else:
-                caller.attributes.remove("altchars")
-                self.msg("Alts cleared.")
+        if "created" in self.switches or "Created" in self.switches:
+            self.msg("Character given the Created On field.")
+            caller.db.was_created = True
+            caller.db.was_born = False
+            return
+        if "both" in self.switches or "Both" in self.switches:
+            self.msg("Character given the Birthday and Created On fields.")
+            caller.db.was_born = True
+            caller.db.was_created = True
             return
         if "rptimes" in self.switches or "RPtimes" in self.switches or "Rptimes" in self.switches:
             if self.args:
@@ -196,19 +195,31 @@ class CmdEFinger(MuxCommand):
             return
         try:
             # build the string for efinger
-
+            
             name = char.name
-            alias, prefemail, discord, rptimes, voice, altchars, info = char.get_ocfinger()
+            alias, icemail, s_num, birthplace, notes = char.get_efinger()
+            parents, birthday, creator, builddate = char.get_creators()
             gender = char.db.gender
-
             border = "------------------------------------------------------------------------------"
-            line1 = "Name: %s Alias: %s"  % (name, alias)               
-            line2= "Email: %s  Discord: %s"  % (prefemail, discord)
-            line3 = "RP Times: %s Voice: %s"  % (rptimes, voice)
-            line4 = "Alts: %s" % (altchars)
-            line6 = "Info: %s" % (info)
+            line1 = "Name: %s Alias: %s"  % (name, alias)          
+            line2= "Email: %s  Gender: %s"  % (icemail, gender)
 
-            fingermsg = (border + "\n\n" + line1 + "\n\n" + line2 + "\n" + line3 + "\n\n" + line4  +  "\n\n" + line6 +  "\n\n" + border + "\n")
+            #TODO: doesn't work yet, debug this string creation later
+            
+            if char.db.was_created == True:
+                if not char.db.was_born:
+                    line3 = "Creator: %s Created On: %s" % (creator, builddate)
+                    line4 = "Serial Number: %s" % (s_num)
+            if char.db.was_born and char.db.was_created:
+                line3 = "Parents: %s Birthday: %s \nCreator: %s Created On: %s" % (parents, birthday, creator, builddate)
+                line4 = "Birthplace: %s Serial Number: %s" % (birthplace, s_num)
+            else:
+                line3 = "Parents: %s Birthday: %s" % (parents, birthday)
+                line4 = "Birthplace: %s" % (birthplace)
+            line5 = "Groups: "
+            line6 = "Notes: %s" % (notes)
+
+            fingermsg = (border + "\n\n" + line1 + "\n\n" + line2 + "\n" + line3 + "\n\n" + line4  +  "\n\n" + line5 + "\n\n" + line6 +  "\n\n" + border + "\n")
             
             caller.msg(fingermsg)
         except ValueError:
