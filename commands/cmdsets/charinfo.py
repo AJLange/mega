@@ -203,19 +203,21 @@ class CmdEFinger(MuxCommand):
             border = "------------------------------------------------------------------------------"
             line1 = "Name: %s Alias: %s"  % (name, alias)          
             line2= "Email: %s  Gender: %s"  % (icemail, gender)
-
-            #TODO: doesn't work yet, debug this string creation later
             
-            if char.db.was_created == True:
-                if not char.db.was_born:
-                    line3 = "Creator: %s Created On: %s" % (creator, builddate)
-                    line4 = "Serial Number: %s" % (s_num)
-            if char.db.was_born and char.db.was_created:
+            if char.db.was_created and not char.db.was_born:
+                line3 = "Creator: %s Created On: %s" % (creator, builddate)
+                line4 = "Serial Number: %s" % (s_num)
+            elif char.db.was_born and char.db.was_created:
                 line3 = "Parents: %s Birthday: %s \nCreator: %s Created On: %s" % (parents, birthday, creator, builddate)
                 line4 = "Birthplace: %s Serial Number: %s" % (birthplace, s_num)
-            else:
+            elif char.db.was_born and not char.db.was_created:
                 line3 = "Parents: %s Birthday: %s" % (parents, birthday)
                 line4 = "Birthplace: %s" % (birthplace)
+            elif not char.db.was_born and not char.db.was_created:
+                #default if nothing set
+                char.db.was_created = True
+                line3 = "Creator: %s Created On: %s" % (creator, builddate)
+                line4 = "Serial Number: %s" % (s_num)
             line5 = "Groups: "
             line6 = "Notes: %s" % (notes)
 
