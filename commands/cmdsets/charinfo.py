@@ -122,10 +122,12 @@ class CmdEFinger(MuxCommand):
         "This performs the actual command"
 
         caller = self.caller
+        switch = self.switches
 
         # setting attributes switches
+
         
-        if "email" in self.switches or "Email" in self.switches:
+        if "email" in switch:
             if self.args:
                 caller.db.prefemail = sub_old_ansi(self.args)
                 self.msg("IC Email set to: %s" % self.args)
@@ -133,22 +135,22 @@ class CmdEFinger(MuxCommand):
                 caller.attributes.remove("prefemail")
                 self.msg("Email address cleared.")
             return
-        if "born" in self.switches or "Born" in self.switches:
+        if "born" in switch:
             self.msg("Character given the Birthday field.")
             caller.db.was_born = True
             caller.db.was_created = False
             return
-        if "created" in self.switches or "Created" in self.switches:
+        if "created" in switch:
             self.msg("Character given the Created On field.")
             caller.db.was_created = True
             caller.db.was_born = False
             return
-        if "both" in self.switches or "Both" in self.switches:
+        if "both" in switch:
             self.msg("Character given the Birthday and Created On fields.")
             caller.db.was_born = True
             caller.db.was_created = True
             return
-        if "rptimes" in self.switches or "RPtimes" in self.switches or "Rptimes" in self.switches:
+        if "adddate" in switch:
             if self.args:
                 caller.db.rptimes = sub_old_ansi(self.args)
                 self.msg("RP Times set to: %s" % self.args)
@@ -156,7 +158,7 @@ class CmdEFinger(MuxCommand):
                 caller.attributes.remove("rptimes")
                 self.msg("RP Times cleared.")
             return
-        if "voice" in self.switches or "Voice" in self.switches:
+        if "cleardate" in switch:
             if self.args:
                 caller.db.voice = sub_old_ansi(self.args)
                 self.msg("Voice set to: %s" % self.args)
