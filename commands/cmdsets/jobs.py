@@ -89,7 +89,7 @@ def find_file(self, value):
     except ValueError:
         caller.msg("Please use a number for a file.")
         return 0
-    my_files = File.objects.filter(db_submitter=caller)
+    my_files = caller.db.files
     for file in my_files:
         if file.id == value:
             return file
@@ -348,7 +348,8 @@ class CmdCheckFiles(MuxCommand):
             if not file:
                 caller.msg(f"Didn't see a file {num} in your possession.")
                 return
-            # to do - do the sending
+            # TODO - do the sending
+            # TODO - accept a comma seperated list
             caller.msg(f"Sent file {num} to {person}.")
             return
         
@@ -362,13 +363,14 @@ class CmdCheckFiles(MuxCommand):
             if not file:
                 caller.msg(f"Didn't see a file {num} in your possession.")
                 return
-            #to do - do the posting
+            # TODO - do the posting
             caller.msg(f"Shared file {num} to {group}.")
             return
         
         if not switches:
             if not self.args:
                 caller.msg("List all files known:")
+                # TODO - actually get them
             else:
                 file = self.args
                 try:
@@ -380,6 +382,8 @@ class CmdCheckFiles(MuxCommand):
                 if not file:
                     caller.msg(f"No file {file_num} found in your possession.")
                     return
+                caller.msg("This would be the text of the file:")
+                return
 
         else:
             caller.msg(errmsg)
@@ -462,6 +466,8 @@ class CmdCreateFile(MuxCommand):
                 caller.msg(errmsg)
                 return
             
+            # TODO - make sure word is a string, and lowercase it
+
             #find this file
             file = search_all_files(num)
             if not file:
