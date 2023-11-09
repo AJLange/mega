@@ -37,7 +37,7 @@ from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterio
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
 from commands.cmdsets.places import CmdClearStage, CmdListStages, CmdMakeStage, CmdSetStage, CmdStageMute, CmdDepart, CmdStageSelect
 from commands.cmdsets.scenes import CmdSequenceStart, CmdAutolog, CmdObserve, CmdPot
-#from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
+from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
 
 
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
@@ -169,6 +169,10 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         #GM and autologger
         self.add(CmdSequenceStart())
+
+        #request
+        self.add(CmdRequest())
+        self.add(CmdCheckJobs())
 
         # any command below this line is only available to staff.
 

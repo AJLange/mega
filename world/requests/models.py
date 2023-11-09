@@ -10,7 +10,7 @@ from evennia.utils.idmapper.models import SharedMemoryModel
 class Request(models.Model):
 
     db_title = models.CharField('Title', max_length=200)
-    db_submitter = models.ForeignKey("objects.ObjectDB", related_name="Submitter", blank=True, null=True, on_delete=models.PROTECT)
+    db_submitter = models.CharField('Submitter', max_length=200, default="Player")
     db_message_body = models.TextField('Message Body')
     db_assigned_to = models.ForeignKey("objects.ObjectDB", related_name="Assigned_to", blank=True, null=True, on_delete=models.PROTECT)
     db_copied_to = models.ManyToManyField("objects.ObjectDB", related_name="Copied_to", blank=True)

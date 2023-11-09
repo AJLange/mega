@@ -26,10 +26,13 @@ from evennia.commands.default.muxcommand import MuxCommand
 from world.requests.models import Request,RequestResponse,File,Topic
 
 
-def list_tickets(self):
+def list_tickets(caller):
     """List tickets for the caller"""
-    caller = self.caller
-    my_requests = Request.objects.filter(db_submitter=caller)
+    try:
+        my_requests = Request.objects.filter(db_submitter=caller)
+    except:
+        caller.msg("No requests were found.")
+        return
     msg = "\n|wMy Requests:|n\n\n"
     for request in my_requests:
         msg += "ID: %s  " % str(request.id)
@@ -39,13 +42,16 @@ def list_tickets(self):
             msg += "Status: |rClosed|n \n"
         msg += "Subject: %s\n\n" % request.db_title
     msg += "Use |w+request <#>|n to view an individual ticket. "
-    self.msg(msg)
+    caller.msg(msg)
     return
 
-def list_active_tickets(self):
+def list_active_tickets(caller):
     """List tickets for staff side"""
-    caller = self.caller
-    my_requests = Request.objects.filter(db_submitter=caller)
+    try:
+        my_requests = Request.objects.filter(db_submitter=caller)
+    except:
+        caller.msg("No requests were found.")
+        return
     msg = "\n|wMy Requests:|n\n\n"
     for request in my_requests:
         msg += "ID: %s  " % str(request.id)
@@ -55,22 +61,22 @@ def list_active_tickets(self):
             msg += "Status: |rClosed|n \n"
         msg += "Subject: %s\n\n" % request.db_title
     msg += "Use |w+request <#>|n to view an individual ticket. "
-    self.msg(msg)
+    caller.msg(msg)
     return
 
-def get_ticket_from_args(self, args):
+def get_ticket_from_args(caller, args):
     """Retrieve ticket or display valid choices if not found"""
-    caller = self.caller
+
     try:
         my_requests = Request.objects.filter(db_submitter=caller)
         ticket = my_requests.get(id=args)
         return ticket
     except (Request.DoesNotExist, ValueError):
-        self.msg("No request found by that number.")
-        self.list_tickets()
+        caller.msg("No request found by that number.")
+        caller.list_tickets()
         return
 
-def display_ticket(self, ticket):
+def display_ticket(caller, ticket):
     msg = "\n|wRequest " + str(ticket.id) + "|n \n"
     if ticket.db_is_open:
         msg += "Status: |gOpen|n"
@@ -78,12 +84,11 @@ def display_ticket(self, ticket):
         msg += "Status: |rClosed|n"
     msg += "\nSubject: " + ticket.db_title + "\n\n" + ticket.db_message_body + "\n"
 
-    self.caller.msg(msg)
+    caller.msg(msg)
     return
 
-def find_file(self, value):
+def find_file(caller, value):
     #placeholder to see if a file is found matching check
-    caller = self.caller
     try:
         int(value)
     except ValueError:
@@ -96,8 +101,7 @@ def find_file(self, value):
     caller.msg("404: file not found.")
     return 0
 
-def search_all_files(self, value):
-    caller = self.caller
+def search_all_files(caller, value):
     try:
         int(value)
     except ValueError:
@@ -123,8 +127,6 @@ class CmdRequest(MuxCommand):
        +request/char <title>=<description>
        +request/news <title>=<description>
     
-       
-
     This command requests <title> and <description> from staff. The request is    
     added to the jobs list and will be tended to as soon as possible. There is a  
     standard three to four day turnaround time on +requests.                      
@@ -151,7 +153,7 @@ class CmdRequest(MuxCommand):
         switches = self.switches
 
         if not args:
-            list_tickets()
+            list_tickets(caller)
             return
 
         if self.lhs.isdigit():
