@@ -45,6 +45,8 @@ def list_tickets(caller):
     caller.msg(msg)
     return
 
+# TODO - this should list tickets assigned to me or unassigned?
+
 def list_active_tickets(caller):
     """List tickets for staff side"""
     try:
@@ -73,7 +75,7 @@ def get_ticket_from_args(caller, args):
         return ticket
     except (Request.DoesNotExist, ValueError):
         caller.msg("No request found by that number.")
-        caller.list_tickets()
+        list_tickets(caller)
         return
 
 def display_ticket(caller, ticket):
@@ -157,13 +159,16 @@ class CmdRequest(MuxCommand):
             return
 
         if self.lhs.isdigit():
-            ticket = get_ticket_from_args(self.lhs)
+            ticket = get_ticket_from_args(caller, self.lhs)
             if not ticket:
-                caller.msg("No such request was found.")
                 return
 
-            display_ticket(ticket)
+            display_ticket(caller, ticket)
             return
+        elif not self.lhs.isdigit:
+            caller.msg("Please enter a number for the request you want to view.")
+            return
+
         category = 1
 
         if switches:
@@ -300,7 +305,7 @@ class CmdCheckJobs(MuxCommand):
         switches = self.switches
 
         if not args:
-            list_active_tickets()
+            list_active_tickets(caller)
             return
 
 

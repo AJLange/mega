@@ -172,7 +172,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         #request
         self.add(CmdRequest())
-        self.add(CmdCheckJobs())
+
 
         # any command below this line is only available to staff.
 
@@ -189,6 +189,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdUnPlayer())
         self.add(CmdFCStatus())
         self.add(CmdAWho())
+        self.add(CmdCheckJobs())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
