@@ -125,17 +125,11 @@ INSTALLED_APPS +=  ["world.roster",
                     "world.pcgroups",
                     "world.msgs",
                     "world.scenes",
+                    "world.requests"
                     ]
 
 
 
-'''
-
-INSTALLED_APPS +=  [
-                    "world.requests",
-                    ]
-
-'''
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.

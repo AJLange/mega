@@ -10,10 +10,10 @@ from evennia.utils.idmapper.models import SharedMemoryModel
 class Request(models.Model):
 
     db_title = models.CharField('Title', max_length=200)
-    db_submitter = models.ManyToManyField("Submitter","objects.ObjectDB", blank=True)
+    db_submitter = models.ForeignKey("objects.ObjectDB", related_name="Submitter", blank=True, null=True, on_delete=models.PROTECT)
     db_message_body = models.TextField('Message Body')
-    db_assigned_to = models.ManyToManyField("Assigned to","objects.ObjectDB", blank=True)
-    db_copied_to = models.ManyToManyField("Copied to","objects.ObjectDB", blank=True)
+    db_assigned_to = models.ForeignKey("objects.ObjectDB", related_name="Assigned_to", blank=True, null=True, on_delete=models.PROTECT)
+    db_copied_to = models.ManyToManyField("objects.ObjectDB", related_name="Copied_to", blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
     class RequestCategory(models.IntegerField):
@@ -52,8 +52,8 @@ class Request(models.Model):
 # response to a request. Request can have multiple responses/back and forth
 class RequestResponse(models.Model):
     db_text = models.TextField('Response',blank=True)
-    db_submitter = models.ManyToManyField("Submitter","objects.ObjectDB", blank=True)
-    db_request = models.ForeignKey(Request, blank=True, null=True, on_delete=models.CASCADE)
+    db_author = models.ForeignKey("objects.ObjectDB", related_name="author", blank=True, null=True, on_delete=models.PROTECT)
+    db_request = models.ForeignKey(Request, related_name="Request",blank=True, null=True, on_delete=models.PROTECT)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
     db_was_read = models.BooleanField("Read", default=False)
@@ -70,7 +70,7 @@ class File(SharedMemoryModel):
                                             auto_now_add=True, db_index=True)
     db_author = models.CharField('Author',max_length=200)
     up_to_date = models.BooleanField('Up to date?', default=True)
-    db_topic = models.ForeignKey(Topic,blank=True, null=True, on_delete=models.CASCADE)
+    db_topic = models.ForeignKey(Topic,blank=True, null=True, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.db_title

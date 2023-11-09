@@ -98,8 +98,8 @@ class ArmorMode(SharedMemoryModel):
     db_weapons = models.ManyToManyField(Weapon, blank=True)
     db_busterlist = models.ManyToManyField(BusterList, blank=True)
 
-    db_primary = models.ForeignKey(Weapon, on_delete=models.CASCADE, blank=True, related_name='primary_weapon')
-    db_secondary = models.ForeignKey(Weapon, on_delete=models.CASCADE, blank=True, related_name='secondary_weapon')
+    db_primary = models.ForeignKey(Weapon, on_delete=models.PROTECT, blank=True, related_name='primary_weapon')
+    db_secondary = models.ForeignKey(Weapon, on_delete=models.PROTECT, blank=True, related_name='secondary_weapon')
 
 
     def __str__(self):
