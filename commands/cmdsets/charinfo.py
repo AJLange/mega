@@ -591,12 +591,17 @@ class CmdCheckWeapons(MuxCommand):
             sheetmsg = ("Weapons: \n")
             for weapon in weapon_list:
                 w_name = weapon.db_name
+                w_class = weapon.get_db_class_display()
+                w_type1 = weapon.get_db_type_1_display()
+                '''
                 w_class = get_class_text(weapon.db_class)
                 w_type1 = get_element_text(weapon.db_type_1)
+                '''
                 w_type2 = ""
                 w_type3 = ""
                 w_flag1 = ""
                 w_flag2 = ""
+                # TODO - you can use get_type_display and not a function, just check all instances
                 if weapon.db_type_2:
                     w_type2 = get_element_text(weapon.db_type_2)
                 if weapon.db_type_3:

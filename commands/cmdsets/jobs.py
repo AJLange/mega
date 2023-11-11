@@ -71,7 +71,7 @@ def list_open_tickets(caller):
             else:
                 msg += "Assigned To: Pending\n"
             msg += "\n"
-    msg += "\nUse |w+request <#>|n to view an individual ticket. "
+    msg += "\nUse |w+request <#>|n to view an individual ticket."
     caller.msg(msg)
     return
 
@@ -91,7 +91,9 @@ def list_active_tickets(caller):
             msg += "Status: |gOpen|n \n"
         else:
             msg += "Status: |rClosed|n \n"
-        msg += "Subject: %s\n\n" % request.db_title
+        msg += "Subject: %s\n" % request.db_title
+        msg += "Request Type: %s" % request.get_type_display()
+        msg += "\n"
     msg += "Use |w+request <#>|n to view an individual ticket. "
     caller.msg(msg)
     return
@@ -115,7 +117,7 @@ def display_ticket(caller, ticket):
     else:
         msg += "Status: |rClosed|n"
     submit_time = ticket.db_date_created.strftime("%b %d %Y")
-    msg += "Sent on: %s\n" % submit_time
+    msg += "\nSent on: %s\n" % submit_time
     msg += "\nSubject: " + ticket.db_title + "\n\n" + ticket.db_message_body + "\n"
 
     caller.msg(msg)
