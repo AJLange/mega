@@ -40,8 +40,38 @@ def list_tickets(caller):
             msg += "Status: |gOpen|n \n"
         else:
             msg += "Status: |rClosed|n \n"
-        msg += "Subject: %s\n\n" % request.db_title
-    msg += "Use |w+request <#>|n to view an individual ticket. "
+        msg += "Subject: %s\n" % request.db_title
+        submit_time = request.db_date_created.strftime("%b %d, %Y")
+        msg += "Sent on: %s\n" % submit_time
+        if request.db_assigned_to:
+            msg += "Assigned To: %s\n" % request.db_assigned_to
+        else:
+            msg += "Assigned To: Pending\n"
+        msg += "\n"
+    msg += "\nUse |w+request <#>|n to view an individual ticket. "
+    caller.msg(msg)
+    return
+
+def list_open_tickets(caller):
+    """List tickets for the caller"""
+    try:
+        my_requests = Request.objects.filter(db_submitter=caller)
+    except:
+        caller.msg("No requests were found.")
+        return
+    msg = "\n|wMy Requests:|n\n\n"
+    for request in my_requests:
+        if request.db_is_open:
+            msg += "ID: %s  " % str(request.id)
+            msg += "Subject: %s\n" % request.db_title
+            submit_time = request.db_date_created.strftime("%b %d, %Y")
+            msg += "Sent on: %s\n" % submit_time
+            if request.db_assigned_to:
+                msg += "Assigned To: %s\n" % request.db_assigned_to
+            else:
+                msg += "Assigned To: Pending\n"
+            msg += "\n"
+    msg += "\nUse |w+request <#>|n to view an individual ticket. "
     caller.msg(msg)
     return
 
@@ -84,6 +114,8 @@ def display_ticket(caller, ticket):
         msg += "Status: |gOpen|n"
     else:
         msg += "Status: |rClosed|n"
+    submit_time = ticket.db_date_created.strftime("%b %d %Y")
+    msg += "Sent on: %s\n" % submit_time
     msg += "\nSubject: " + ticket.db_title + "\n\n" + ticket.db_message_body + "\n"
 
     caller.msg(msg)
@@ -123,6 +155,7 @@ class CmdRequest(MuxCommand):
     Usage:
        +request
        +request <#>
+       +request/old
 
        +request <title>=<description>
        +request/bug <title>=<description>
@@ -139,8 +172,18 @@ class CmdRequest(MuxCommand):
     for various OOC purposes.
 
     Typing just +request with no arguments gives you back your list of active
-    +requests. +request <#> to view the text of that request.
+    +requests. This lists your active submissions to +request, showing title, admin 
+    assigned if any, and the date of submission.
     
+    +request <#> to view the text of that request and any response chain.
+
+    By default, +request only lists active requests which have not been answered,
+    but +request/old will show you requests staff has archived (but not deleted).
+    Keep in mind that some requests such as bug reports may be deleted by staff
+    after they are handled.
+
+    If an old request is answered with a file, the file should be mentioned
+    in your request response. See help +files.    
     """
 
     key = "request"
@@ -155,8 +198,13 @@ class CmdRequest(MuxCommand):
         switches = self.switches
 
         if not args:
-            list_tickets(caller)
-            return
+            if "old" in switches:
+                list_tickets(caller)
+                return
+            else:
+                list_open_tickets(caller)
+                return
+        
 
         if self.lhs.isdigit():
             ticket = get_ticket_from_args(caller, self.lhs)
@@ -253,6 +301,7 @@ class CmdCheckJobs(MuxCommand):
        +job/respond <#>=<description>
        +job/add <#>=<description>
        +job/close <#>
+       +job/kill <#>
 
        +jobs/old 
 
@@ -273,6 +322,10 @@ class CmdCheckJobs(MuxCommand):
     This also puts it in an archive for the player (they can read with
     +myjobs/old.)
 
+    +job/kill deletes a job entirely. This is for jobs that are resolved
+    and do not need to be archived. (They can still be un-deleted from the
+    database if you kill a job in error.)
+
     If you want to read all archived jobs, use +jobs/old. This is probably
     very spammy.
 
@@ -290,8 +343,7 @@ class CmdCheckJobs(MuxCommand):
         if not ticket:
             return
 
-        if ticket:
-            
+        if ticket:            
             caller.msg(f"You have successfully closed ticket #{ticket.id}.")
         else:
             caller.msg(f"Failed to close ticket #{ticket.id}.")
