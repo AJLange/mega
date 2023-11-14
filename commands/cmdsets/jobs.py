@@ -23,7 +23,7 @@ from evennia import ObjectDB, AccountDB
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from evennia.comms.models import Msg
 from evennia.commands.default.muxcommand import MuxCommand
-from world.requests.models import Request,RequestResponse,File,Topic
+from world.requests.models import Request,RequestResponse,File,Topic,Keyword
 
 
 def list_tickets(caller):
@@ -143,12 +143,12 @@ def search_all_files(caller, value):
     except ValueError:
         caller.msg("Please use a number for a file.")
         return 0
-    my_files = File.objects.all()
-    for file in my_files:
-        if file.id == value:
-            return file
-    caller.msg("404: file not found.")
-    return 0
+    try:
+        file = File.objects.get(pk=value)
+        return file
+    except:
+        caller.msg("404: file not found.")
+        return 0
 
 class CmdRequest(MuxCommand):
     """
@@ -485,12 +485,18 @@ class CmdCreateFile(MuxCommand):
 
     # write these searches
     def find_keyword(self, word):
-        keyword = word
-        return keyword
+        try:
+            keyword = Keyword.objects.get(db_keyword=word)
+            return keyword
+        except:
+            return 0
 
     def find_topic(self, word):
-        topic = word
-        return topic
+        try:
+            topic = Topic.objects.get(db_name=word)
+            return topic
+        except:
+            return 0
 
     def func(self):
         """Implement the command"""
@@ -506,8 +512,13 @@ class CmdCreateFile(MuxCommand):
                 caller.msg(errmsg)
                 return
             
+            # make sure topic is a string, and lowercase it
+
+            topic = str(topic)
+            topic = topic.lower()
+            
             #find this file
-            file = search_all_files(num)
+            file = search_all_files(caller, num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return
@@ -515,10 +526,15 @@ class CmdCreateFile(MuxCommand):
             file_topic = self.find_topic(topic)
             # if no matching topic, create it, warn caller
             if not file_topic:
-                caller.msg(f"No topic was found, so created new topic: {topic}")
-
+                new_topic = Topic.objects.create(db_name = topic)  
+                file.db_topic = new_topic      
+                caller.msg(f"No topic was found, so created new topic: {new_topic} and added file {num}")
+                return
             # file the file in the topic.
-            caller.msg(f"Added file {num} to {topic}.")
+            else:
+                file.db_topic = file_topic
+                caller.msg(f"Added file {num} to the topic: {topic}.")
+            return
 
         if "keyword" in switches:
             num = self.lhs
@@ -527,10 +543,13 @@ class CmdCreateFile(MuxCommand):
                 caller.msg(errmsg)
                 return
             
-            # TODO - make sure word is a string, and lowercase it
+            # make sure word is a string, and lowercase it
 
+            word = str(word)
+            word = word.lower()
+            
             #find this file
-            file = search_all_files(num)
+            file = search_all_files(caller, num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return
@@ -538,10 +557,15 @@ class CmdCreateFile(MuxCommand):
             keyword = self.find_keyword(word)
             #if keyword not found, create new keyword, warn caller
             if not keyword:
-                caller.msg(f"No keyword was found, so created new keyword: {word}")
-
-            # file the file in the topic.
-            caller.msg(f"Added keyword {word} to file {num}.")
+                new_keyword = Keyword.objects.create(db_keyword = word)
+                caller.msg(f"No keyword was found, so created new keyword: {new_keyword}")
+                file.db_keywords.add(new_keyword)
+                return
+            else:
+                # file the file in the topic.
+                file.db_keywords.add(keyword)
+                caller.msg(f"Added the keyword {keyword} to file number {num}.")
+            return
 
         if "archive" in switches:
             num = self.args
@@ -549,7 +573,7 @@ class CmdCreateFile(MuxCommand):
                 caller.msg(errmsg)
                 return
             #do archival
-            file = search_all_files(num)
+            file = search_all_files(caller, num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return

@@ -41,8 +41,8 @@ class TopicAdmin(admin.ModelAdmin):
     list_select_related = True
 
 class KeywordAdmin(admin.ModelAdmin):
-    list_display = ("db_key",)
-    list_display_links  = ("db_key",)
+    list_display = ("db_keyword",)
+    list_display_links  = ("db_keyword",)
     
     search_fields = ["db_key",]
     save_as = True
