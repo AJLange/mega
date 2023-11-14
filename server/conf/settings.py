@@ -125,7 +125,8 @@ INSTALLED_APPS +=  ["world.roster",
                     "world.pcgroups",
                     "world.msgs",
                     "world.scenes",
-                    "world.requests"
+                    "world.requests",
+                    "world.files"
                     ]
 
 
