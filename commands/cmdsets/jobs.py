@@ -125,7 +125,7 @@ def display_ticket(caller, ticket):
     return
 
 def find_file(caller, value):
-    #placeholder to see if a file is found matching check
+    #see if a file is found matching check
     try:
         int(value)
     except ValueError:
@@ -150,6 +150,18 @@ def search_all_files(caller, value):
     except:
         caller.msg("404: file not found.")
         return 0
+    
+
+def list_files(caller):
+    if caller.check_permstring("builders"):
+        #staff can send or read any file
+        file_list = File.objects.all()
+        caller.msg("Staff - for now list all files")
+        return file_list             
+    else:
+        caller.msg("List all files known:")
+        file_list = caller.db.files
+        return file_list
 
 class CmdRequest(MuxCommand):
     """
@@ -247,49 +259,6 @@ class CmdRequest(MuxCommand):
                 "Request submission has failed for unknown reason. Please inform the administrators."
             )
 
-
-class CmdMyPlayerJobs(MuxCommand):
-    """
-    Command for players to check their old requests.
-
-    Usage:
-       +myjobs
-       +myjob <#>
-       +myjobs/old
-    
-    +myjobs lists your active submissions to +request, showing title, admin 
-    assigned if any, and the date of submission.
-
-    +myjob <#> will show you the text of the job submitted by you, and any 
-    response chain there might be.
-
-    By default, +myjobs only lists active requests which have not been answered,
-    but +myjobs/old will show you all old +requests in a list for you to
-    review.
-
-    This command is only to review and read. To submit, see +request.
-    
-    If an old request is answered with a file, that file name will be 
-    in your request response. See help +files.
-
-    """
-
-    key = "myjobs"
-    aliases = ["+myjobs", "myjob", "+myjob"]
-    help_category = "Requests"
-    locks = "perm(Player))"
-
-    def func(self):
-        """Implement the command"""
-        caller = self.caller
-        args = self.args
-        switches = self.switches
-
-        if not args:
-            self.list_tickets()
-            return
-
-
 class CmdCheckJobs(MuxCommand):
     """
     Command for admin to check request queue.
@@ -365,6 +334,7 @@ class CmdCheckJobs(MuxCommand):
 
 
 class CmdCheckFiles(MuxCommand):
+
     """
     Command to read files sent to you about story.
 
@@ -373,14 +343,13 @@ class CmdCheckFiles(MuxCommand):
        +file <#>
 
        +file/send <#>=<person>
-       +file/share <#>=<group>
 
+       +file/topic <topic>
+       +file/search <keyword>
           
     This command is to share files among players.
 
-    It's just outlined.
     +file/send to send along a file to another player.
-    +file/share to share a file to an entire group.
 
     Files contain lore which is ICly known. It is usually the subject of a research
     +request.
@@ -392,47 +361,87 @@ class CmdCheckFiles(MuxCommand):
     help_category = "Requests"
     locks = "perm(Player))"
 
-
-
     def func(self):
-        """Implement the command"""
+        
         caller = self.caller
         switches = self.switches
         errmsg= "Syntax error. Check +help +file."
 
         if "send" in switches:
             num = self.lhs
-            person = self.rhs
-            if not person:
-                caller.msg(errmsg)
-                return
-            file = find_file(num)
+            receive = self.rhs
+
+            if caller.check_permstring("builders"):
+                #staff can send or read any file
+                file = search_all_files(caller,num)
+            else:
+                file = find_file(caller, num)
+
             if not file:
                 caller.msg(f"Didn't see a file {num} in your possession.")
                 return
-            # TODO - do the sending
-            # TODO - accept a comma seperated list
-            caller.msg(f"Sent file {num} to {person}.")
-            return
-        
+            
+            if not receive:
+                caller.msg(errmsg)
+                return
+            receive_list = receive.split(",")
+            for name in receive_list:
+                person = caller.search(name, global_search=True) 
+                if not inherits_from(person, settings.BASE_CHARACTER_TYPECLASS):
+                    caller.msg("The recipient was not found. Check the names again.")
+                    return
+                person.db.files.append(file)
+                caller.msg(f"Sent file {num} to {person}.\n")
+                person.msg(f"{caller} sent you file number {num}. Use +files to read.")
+                return           
+
+                
+        '''
+
+        Group share functionality. Postponed, we may not need this. 
+        If we do, not in Alpha.
+
         if "share" in switches:
             num = self.lhs
             group = self.rhs
             if not group:
                 caller.msg(errmsg)
                 return
-            file = find_file(num)
+            file = find_file(caller, num)
             if not file:
                 caller.msg(f"Didn't see a file {num} in your possession.")
                 return
             # TODO - do the posting
             caller.msg(f"Shared file {num} to {group}.")
             return
-        
+        '''
+        if "topic" in switches:
+            caller.msg("File search by topic:")
+            # TODO
+            caller.msg("Not here yet, listing all files")
+            file_list = list_files(caller)
+            for file in file_list:
+                caller.msg(f"{file.id}: {file.db_title}\n")
+
+        if "search" in switches:
+            
+            caller.msg("File search by keyword: TBD")
+            # TODO
+            '''
+            message = (
+                Q(clue__desc__icontains=self.args)
+                | Q(clue__name__icontains=self.args)
+                | Q(clue__search_tags__name__iexact=self.args)
+            )
+            '''
         if not switches:
+
             if not self.args:
-                caller.msg("List all files known:")
-                # TODO - actually get them
+                file_list = list_files(caller)
+                for file in file_list:
+                    caller.msg(f"{file.id}: {file.db_title}\n")
+                return
+
             else:
                 file = self.args
                 try:
@@ -440,11 +449,19 @@ class CmdCheckFiles(MuxCommand):
                 except ValueError:
                     caller.msg(errmsg)
                     return
-                file = find_file(file_num)
+                if caller.check_permstring("builders"):
+                #staff can send or read any file
+                    file = search_all_files(caller,file_num)
+                else:
+                    file = find_file(caller, file_num)
                 if not file:
                     caller.msg(f"No file {file_num} found in your possession.")
                     return
-                caller.msg("This would be the text of the file:")
+                keyword_list = []
+                if file.db_keywords:                    
+                    for word in file.db_keywords.all():
+                        keyword_list.append(word.db_keyword)
+                caller.msg(f"|wFile: {file.db_title}|n\nUp to date?: {file.up_to_date} Topic: {file.db_topic}\nKeywords: {keyword_list}\n{file.db_text}")
                 return
 
         else:
