@@ -324,8 +324,7 @@ class CmdCheckJobs(MuxCommand):
     +myjobs/old.)
 
     +job/kill deletes a job entirely. This is for jobs that are resolved
-    and do not need to be archived. Be sure you want to do this. If not sure,
-    just use close.
+    and do not need to be archived. Be sure you want to do this.
 
     If you want to read all archived jobs, use +jobs/old. This is probably
     very spammy.
