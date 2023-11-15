@@ -19,12 +19,14 @@ from server.utils import sub_old_ansi
 from evennia.server.sessionhandler import SESSIONS
 import time
 import re
+from django.db.models import Q
 from evennia import ObjectDB, AccountDB
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from evennia.comms.models import Msg
 from evennia.commands.default.muxcommand import MuxCommand
 from world.requests.models import Request,RequestResponse
 from world.files.models import File,Topic,Keyword
+
 
 
 def list_tickets(caller):
@@ -57,6 +59,8 @@ def list_open_tickets(caller):
     """List tickets for the caller"""
     try:
         my_requests = Request.objects.filter(db_submitter=caller)
+        
+        #TODO - requests I've been added to
     except:
         caller.msg("No requests were found.")
         return
@@ -101,6 +105,11 @@ def list_active_tickets(caller):
 
 def get_ticket_from_args(caller, args):
     """Retrieve ticket or display valid choices if not found"""
+    try:
+        args = int(args)
+    except ValueError:
+        caller.msg("Request must be a number.")
+        return
 
     try:
         my_requests = Request.objects.filter(db_submitter=caller)
@@ -122,6 +131,17 @@ def display_ticket(caller, ticket):
     msg += "\nSubject: " + ticket.db_title + "\n\n" + ticket.db_message_body + "\n"
 
     caller.msg(msg)
+    # display responses if any
+    msg = ""
+    response_list = RequestResponse.objects.filter(db_request=ticket)
+    for response in response_list:
+        submit_time = response.db_date_created.strftime("%b %d %Y")
+        msg += "Sent by: %s\n" % response.db_author
+        msg += "\nSent on: %s\n" % submit_time
+        msg += response.db_text
+        response.db_was_read = True
+        response.save()
+        caller.msg(msg)
     return
 
 def find_file(caller, value):
@@ -171,6 +191,7 @@ class CmdRequest(MuxCommand):
        +request
        +request <#>
        +request/old
+       +request/comment <#>=<Text>
 
        +request <title>=<description>
        +request/bug <title>=<description>
@@ -191,6 +212,8 @@ class CmdRequest(MuxCommand):
     assigned if any, and the date of submission.
     
     +request <#> to view the text of that request and any response chain.
+    +request/comment <#>=<text> to add a reply or additional clarification to 
+    a request you can view.
 
     By default, +request only lists active requests which have not been answered,
     but +request/old will show you requests staff has archived (but not deleted).
@@ -241,6 +264,13 @@ class CmdRequest(MuxCommand):
                 category = 3
             if "news" in switches:
                 category = 4
+
+            if "comment" in switches:
+                comment = self.rhs
+                if not self.rhs:
+                    caller.msg("Add what comment?")
+                    return
+                new_comment = RequestResponse.objects.create(db_text=comment, db_request=ticket, db_author=caller)
         
         title = self.lhs
         message = sub_old_ansi(self.rhs)
@@ -266,15 +296,13 @@ class CmdCheckJobs(MuxCommand):
     Usage:
        +jobs
        +job <#>
-
        +job/assign <#>=<person>
        +job/category <#>=<category>
        +job/file <#>=<file>
        +job/respond <#>=<description>
-       +job/add <#>=<description>
+       +job/add <#>=<person>
        +job/close <#>
        +job/kill <#>
-
        +jobs/old 
 
     This command is for staff to answer requests.
@@ -288,15 +316,16 @@ class CmdCheckJobs(MuxCommand):
     +job/respond creates a one-off response and sends it out.
     Be careful not to create one-off off responses that should be files.
 
-    +job/add will allow you to tag in other people to a job.
+    +job/add will allow you to tag in other people to a job. This 
+    accepts a comma separated list of players.
 
     +job/close to archive a job, removing it from active job list.
     This also puts it in an archive for the player (they can read with
     +myjobs/old.)
 
     +job/kill deletes a job entirely. This is for jobs that are resolved
-    and do not need to be archived. (They can still be un-deleted from the
-    database if you kill a job in error.)
+    and do not need to be archived. Be sure you want to do this. If not sure,
+    just use close.
 
     If you want to read all archived jobs, use +jobs/old. This is probably
     very spammy.
@@ -308,7 +337,7 @@ class CmdCheckJobs(MuxCommand):
     help_category = "Requests"
     locks = "perm(Builder))"
     
-    def close_ticket(self, number, reason):
+    def close_ticket(self, number):
         caller = self.caller
 
         ticket = get_ticket_from_args(number)
@@ -328,9 +357,158 @@ class CmdCheckJobs(MuxCommand):
         args = self.args
         switches = self.switches
 
-        if not args:
-            list_active_tickets(caller)
+        if "assign" in switches:
+            num = self.lhs
+            name = self.rhs
+            person = caller.search(name, global_search=True) 
+            if not inherits_from(person, settings.BASE_CHARACTER_TYPECLASS):
+                caller.msg("Can't assign, not a player.")
+                return
+            if not person.check_permstring("builders"):
+                caller.msg("Please only assign tickets to staffers.")
+                return
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            # all checks passed, assign:
+            ticket.db_assigned_to = person
+            ticket.save()
+            caller.msg(f"Assigned this request to {person}")
+
+        if "category" in switches:
+            num = self.lhs
+            category = self.rhs
+            catlist = "Valid choices for category: General, Bugfix, Character, Build, Auto, News, Research, Activity, HelpFile"
+
+            try:
+                category = category.upper()
+            except:
+                caller.msg(catlist)
+                return
+
+            if not category:
+                caller.msg(catlist)
+                return
+            value = 1 #default
+            if category == "BUGFIX":
+                value = 2
+            elif category == "CHARACTER":
+                value = 3
+            elif category == "NEWS":
+                value = 4
+            elif category == "BUILD":
+                value = 5
+            elif category == "AUTO": #shouldn't be needed
+                value = 6
+            elif category == "RESEARCH":
+                value = 7
+            elif category == "ACTIVITY":
+                value = 8
+            elif category == "HELPFILE":
+                value = 9
+            else:
+                value = 1
+                caller.msg(catlist)
+                caller.msg("Flagged request as General.")
+                return
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            # all checks passed, assign:
+            ticket.type = value
+            ticket.save()
+            caller.msg(f"Flagged this request as {category}")
             return
+        
+        if "file" in switches:
+            num = self.lhs
+            file_num = self.rhs
+            file_err = "Error occured sending file. Use +file/send."
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            file = search_all_files(caller, file_num)
+            if not file:
+                caller.msg(file_err)
+                return
+            person = caller.search(ticket.db_submitter, global_search=True) 
+            if not inherits_from(person, settings.BASE_CHARACTER_TYPECLASS):
+                caller.msg(file_err)
+                return
+            person.db.files.append(file)
+            caller.msg(f"Request answered with file number {file_num}.")
+            response = RequestResponse.objects.create(db_text=f"Request answered with file number {file_num}. Use +files to view.", db_request=ticket)
+            return
+
+        if "respond" in switches:
+            num = self.lhs
+            text = self.rhs
+            
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            new_response = RequestResponse.objects.create(db_text=text, db_request=ticket, db_author=caller)
+            caller.msg(f"Created a request response to ticket {ticket}")
+            return
+        
+        if "kill" in switches:
+            num = args
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            ticket.db_is_open = False
+            caller.msg(f"Deleted the request number {num}")
+            ticket.delete()
+            return
+        
+        if "close" in switches:
+            num = args
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            ticket.db_is_open = False
+            ticket.save()
+            caller.msg(f"Archived the request number {num}")
+            return
+        
+        if "add" in switches:
+            num = self.lhs
+            receive = self.rhs
+            ticket = get_ticket_from_args(caller, num)
+            if not ticket:
+                return
+            receive_list = receive.split(",")
+            for name in receive_list:
+                person = caller.search(name, global_search=True) 
+                if not inherits_from(person, settings.BASE_CHARACTER_TYPECLASS):
+                    caller.msg("The recipient was not found. Check the names again.")
+                    return
+                ticket.db_copied_to.add(person)
+                caller.msg(f"Sent request chain {num} to {person}.\n")
+                person.msg(f"{caller} gave you access to the request chain {num}.")
+                return       
+
+
+        if not switches:
+            if not args:
+                list_active_tickets(caller)
+                return
+            else:
+                try: 
+                    int(args)
+                except ValueError:
+                    caller.msg("Use an integer for a request number.")
+                    return
+                ticket = get_ticket_from_args(caller, args)
+                if not ticket:
+                    return
+
+                display_ticket(caller, ticket)
+                return
+                
+
+
+
 
 
 class CmdCheckFiles(MuxCommand):
