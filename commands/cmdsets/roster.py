@@ -520,12 +520,13 @@ class CmdFCList(MuxCommand):
                 return
             else:
                 try:
+                    # maybe this should be iexact, check it later
                     game = GameRoster.objects.filter(db_name__icontains=args)[0]
                 except:
                     caller.msg("Game roster missing. Contact an admin.")
                     return
                 msg = "--------------------------------------------------------------------------\n"
-                msg += (f"List of FCs from {game.db_name}: \n")
+                msg += (f"List of FCs from {game.db_name}: \n\n")
                 roster = game.db_members.all()
                 for char in roster:
                     msg += (f"{char.name}: {char.db.appstatus} \n") 
@@ -542,8 +543,15 @@ class CmdFCList(MuxCommand):
                 if not group:
                     caller.msg("That group was not found.")
                     return
-                caller.msg(f"Roster of group {group.db_name}:\n")
+                msg = "--------------------------------------------------------------------------\n"
+                msg += (f"List of FCs from {group.db_name}: \n\n")
+                roster = group.db_members.all()
+                for char in roster:
+                    msg += (f"{char.name}: {char.db.appstatus} \n") 
+                msg += "--------------------------------------------------------------------------\n"
+                caller.msg(msg)
                 return
+
         else: 
             caller.msg("Invalid switch. See help +fclist.")
             return
@@ -655,6 +663,74 @@ class CmdCreateGroup(MuxCommand):
                 return
             except:
                 caller.msg(errmsg)
+                return
+
+        else:
+            caller.msg("Invalid switch. See help makegroup.")
+            return
+
+class CmdCreateGameRoster(MuxCommand):
+
+    """
+    Admin side command to create a new "Game" which will hold FCs in the 
+    roster.
+
+    Usage:
+      makegame <name>
+      makegame/add <game>=<character>
+      
+    Should be self-explanitory. This is only for FCs. This does not 
+    necessarily match data on the FC's +finger, which will contain
+    the most obvious game. 
+    
+    It is possible to add an FC to multiple games.
+
+    """
+    
+    key = "makegame"
+    aliases = ["+makegame"]
+    help_category = "Roster"
+    locks = "perm(Builder)"
+
+
+    def func(self):
+
+        caller = self.caller
+        switches = self.switches
+        args = self.args
+        errmsg = "Syntax error. Please check help makegame."
+
+        if not switches:
+            name = args
+            try:
+                game_roster = GameRoster.objects.create(db_name = name)
+                if game_roster:
+                    caller.msg(f"Game roster {name} was created.")
+                else:
+                    caller.msg("Some error occured. No roster created.")
+            except:
+                caller.msg(errmsg)
+                return
+
+        elif "add" in switches:
+            char_string = self.rhs
+            game_string = self.lhs
+            if not char_string:
+                caller.msg(errmsg)
+                return
+            char = caller.search(char_string, global_search=True) 
+            if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                caller.msg("Character not found.")
+                return
+            #many games are similiar, require exact match.
+            gamelist = GameRoster.objects.filter(db_name__iexact=game_string)
+            game = gamelist[0]
+            if game:
+                game.db_members.add(char)
+                caller.msg(f"Added {char} to game roster {game.db_name}")
+                return
+            else:
+                caller.msg("Game not found.")
                 return
 
         else:

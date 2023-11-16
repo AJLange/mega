@@ -31,7 +31,7 @@ from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack, CmdGenericAtk, CmdShowdown
-from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad
+from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad, CmdCreateGameRoster
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
@@ -193,6 +193,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdAWho())
         self.add(CmdCheckJobs())
         self.add(CmdCreateFile())
+        self.add(CmdCreateGameRoster())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
