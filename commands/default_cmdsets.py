@@ -111,6 +111,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdSetGroups())
         self.add(CmdShowGroups())
         self.add(CmdFCList())
+        self.add(CmdCreateSquad())
 
         self.add(CmdMailCharacter())
         self.add(CmdHighlight())

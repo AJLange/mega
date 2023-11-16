@@ -84,6 +84,11 @@ class CmdSetGroups(MuxCommand):
         
         caller = self.caller
         errmsg = "Syntax error - check help addgroup"
+        args = self.args
+
+        if not args:
+            caller.msg(errmsg)
+            return
 
         try:
             group = self.rhs
@@ -94,7 +99,6 @@ class CmdSetGroups(MuxCommand):
         char = caller.search(char_string, global_search=True)
         char = check_char_valid(caller,char)
         if not char:
-            caller.msg("Character not found.")
             return
             
         my_group = get_group(caller,group)
@@ -123,11 +127,8 @@ class CmdCreateSquad(MuxCommand):
     Adds a squad to a group of which you are a leader. This is only available
     to admin and to characters who have a leadership position in a group. 
 
-    If there are no squads in your group, this command will add every character
-    in your group to the new squad.
-    
-    If there is at least one squad, this command will not add any characters
-    to the new squad.
+    Squads are created empty. To add a character to a squad, use the +rank
+    command.
 
     """
     
@@ -135,29 +136,64 @@ class CmdCreateSquad(MuxCommand):
     aliases = ["addsquad"]
     help_category = "Roster"
 
+
     def func(self):
         "This performs the actual command"
-        errmsg = "What text?"
+        errmsg = "Syntax error. Check help +addsquad."
+        caller = self.caller
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-            #todo - parse with the equals
+
         try:
-            text = self.args
+            group_name = self.lhs
+            squad = self.rhs
+            group = get_group(caller,group_name)
+            if not group:
+                caller.msg("Error, group not found.")
+                return
             # am I admin?
+            if caller.check_permstring("builders"):
+                if squad:
+                    if squad == group_name:
+                        caller.msg("Please choose a unique name.")
+                        return
+                    try:
+                        # TODO - make sure squad name isn't duplicate.
+                        new_squad = Squad.objects.create(db_name = squad, db_group=group)  
+                        caller.msg(f"Added the new squad {new_squad.db_name} to the group {group}")
+                        return
+                    except:
+                        caller.msg("Syntax error occured.")
+                        return
+                else:
+                    caller.msg("No squad specified.")
+                    return
+            # am I in that group?
+            else:
+                for member in group.db_members:
+                    if member == caller:
+                        # TODO - Check for leadership
+                        if squad == group_name:
+                            caller.msg("Please choose a unique name.")
+                            return
+                        try:
+                            # TODO - make sure squad name isn't duplicate.
+                            new_squad = Squad.objects.create(db_name = squad, db_group=group)  
+                            caller.msg(f"Added the new squad {new_squad.db_name} to the group {group}")
+                            return
+                        except:
+                            caller.msg("Syntax error occured.")
+                            return
+                else:
+                    caller.msg(f"You aren't a member of the group {group}.")
+                    return
 
-            # am I a leader? 
-            
-            # ...of the group I specified?
-
-            # you can't name a squad the same thing as a group, or bad things happen
+        
         except ValueError:
             self.caller.msg(errmsg)
             return
-        self.caller.db.quote = text
-        self.caller.msg("Add the squad to the group: %s" % text)
-
-# to do above, make it a proper list you can add to
+        
 
 class CmdSetRank(MuxCommand):
     """
@@ -170,9 +206,14 @@ class CmdSetRank(MuxCommand):
       +rank Metal Man=Beta/5
 
     This command is only used in groups which have a rank and squad setup.
+    If the character is not already in that squad, it will move them to 
+    that squad. 
 
     At this time, groups that are too small to have squads do not have ranks.
     Setting ranks is entirely optional.
+
+    Since Squads are not mutually exclusive, use +rank/remove to take a 
+    character out of a squad.
 
     """
     
@@ -281,7 +322,7 @@ class CmdShowGroups(MuxCommand):
         if not switches:
             if not self.args:
                 groups = PlayerGroup.objects.all()
-                msg = "List of all Groups:"
+                msg = "List of all Groups:\n"
                 for group in groups:
                     msg = msg + group.db_name + " "
                 caller.msg(msg)
@@ -451,8 +492,7 @@ class CmdFCList(MuxCommand):
     group.    
     (Ex. +fclist/game Megaman X4, +fclist/group Repliforce)
 
-    +cast and +roster are aliases for +fclist.  
-      
+    +cast and +roster are aliases for +fclist.
 
     """
     
@@ -479,7 +519,11 @@ class CmdFCList(MuxCommand):
                 caller.msg("From which game? See fclist (no args) for a list.")
                 return
             else:
-                game = GameRoster.objects.filter(db_name__icontains=args)[0]
+                try:
+                    game = GameRoster.objects.filter(db_name__icontains=args)[0]
+                except:
+                    caller.msg("Game roster missing. Contact an admin.")
+                    return
                 msg = "--------------------------------------------------------------------------\n"
                 msg += (f"List of FCs from {game.db_name}: \n")
                 roster = game.db_members.all()
@@ -498,7 +542,7 @@ class CmdFCList(MuxCommand):
                 if not group:
                     caller.msg("That group was not found.")
                     return
-                caller.msg(f"list roster of group {group.db_name}")
+                caller.msg(f"Roster of group {group.db_name}:\n")
                 return
         else: 
             caller.msg("Invalid switch. See help +fclist.")
