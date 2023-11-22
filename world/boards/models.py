@@ -26,6 +26,7 @@ class BoardPost(models.Model):
     posted_by = models.CharField('Author',max_length=120)
     body_text = models.TextField('Post')
     read_by = models.ManyToManyField("objects.ObjectDB", blank=True)
+    is_pinned = models.BooleanField('Is Pinned?', default=False)
 
     def __str__(self):
         return self.db_title
