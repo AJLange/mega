@@ -485,8 +485,28 @@ class CmdCheckJobs(MuxCommand):
                 ticket.db_copied_to.add(person)
                 caller.msg(f"Sent request chain {num} to {person}.\n")
                 person.msg(f"{caller} gave you access to the request chain {num}.")
-                return       
-
+                return
+        
+        if "old" in switches:             
+            try:
+                #all the requests ever, sorry
+                all_requests = Request.objects.filter()
+            except:
+                caller.msg("No requests were found.")
+                return
+            msg = "\n|wMy Requests:|n\n\n"
+            for request in all_requests:
+                msg += "ID: %s  " % str(request.id)
+                if request.db_is_open:
+                    msg += "Status: |gOpen|n \n"
+                else:
+                    msg += "Status: |rClosed|n \n"
+                msg += "Subject: %s\n" % request.db_title
+                msg += "Request Type: %s" % request.get_type_display()
+                msg += "\n"
+            msg += "Use |w+request <#>|n to view an individual ticket. "
+            caller.msg(msg)
+            return
 
         if not switches:
             if not args:
@@ -505,10 +525,6 @@ class CmdCheckJobs(MuxCommand):
                 display_ticket(caller, ticket)
                 return
                 
-
-
-
-
 
 class CmdCheckFiles(MuxCommand):
 
