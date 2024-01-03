@@ -150,8 +150,11 @@ class CmdPot(MuxCommand):
       +pot
       +pot/last 
       +pot/last <name>
-      +pot/since
+      +pot/since <name>
       +pot/scene
+      +pot/scene <sceneset>
+      +pot/privacy
+      +pot/observer
     
     The pose tracker displays the name, time connected, time idle, and 
     time since last posed of every character in the room, ordered starting 
@@ -163,8 +166,6 @@ class CmdPot(MuxCommand):
 
     +pot will display the last combat action a player was involved in along with 
     their LE condition. 
-    At the very bottom of +pot, a Scene Pose might be listed that can be pulled up 
-    with +pot/scene. 
 
     The +pot/last <Name> command displays the given person's last pose    
     unless they have +pot/privacy toggled on.                                     
@@ -172,10 +173,19 @@ class CmdPot(MuxCommand):
     the poses currently stored in the room.                                       
     The +pot/since <Name> command will display, in order of oldest to     
     newest, the pose of the given person and everyone who has posed since they    
-    did.         
+    did.
 
-    TODO: except for listing names and idle times, the rest of the functionality
-    doesn't work yet, but details are above.
+    +pot/scene is used to pull up a scene set pose for late arrivals. It can be
+    set by a scene runner using +pot/scene.
+
+    +pot/privacy and +pot/observer means your poses will not be stored. Use 
+    +pot/privacy if you are in a private scene you do not want autologged. 
+    Use +pot/observer to indicate you are just observing and not participating
+    in the scene. 
+
+    See also help +observer and help +toggles.
+
+    TODO: Not sure if any of this functionality actually works.
 
     """
 
@@ -187,6 +197,42 @@ class CmdPot(MuxCommand):
     account_caller = True
 
     def func(self):
+
+        switches = self.switches
+        args = self.args
+        caller = self.caller
+
+        if "privacy" in switches:
+            if caller.db.potprivate:
+                caller.db.potprivate = False
+            else:
+                caller.db.potprivate = True
+                caller.db.lastpose = ""
+
+        if "observer" in switches:
+            if caller.db.observer:
+                caller.location.msg_contents(
+                "|y<SCENE>|n {0} is no longer an observer.".format(self.caller.name))
+                caller.db.observer = False
+                return
+            else:
+                caller.set_pose_time(0.0)
+                caller.db.observer = True
+                caller.msg("Entering observer mode.")
+                caller.location.msg_contents(
+                "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
+                return
+
+        if "scene" in switches:
+            if args:
+                caller.location.scenepose = args
+                caller.location.sceneset = caller
+            else:
+                if not caller.location.scenepose:
+                    caller.msg("No Scene pose set")
+                    return
+                caller.msg(f"Scenepose set by: {caller.location.sceneset}/n{caller.location.scenepose}")
+        
         """
         Get all connected accounts by polling session.
         """
@@ -195,6 +241,24 @@ class CmdPot(MuxCommand):
 
         all_sessions = sorted(all_sessions, key=lambda o: o.account.character[0].get_pose_time()) # sort by last posed time
         pruned_sessions = prune_sessions(all_sessions)
+
+        if "last" in switches:
+            #get all poses
+            
+            if args: 
+                #is this a real present person?
+                if not inherits_from(args, settings.BASE_CHARACTER_TYPECLASS):
+                    caller.msg("Character not found.")
+                caller.msg(f"{args}'s last pose: \n")
+            else:
+                #list all the poses
+                pose_list = []
+                poses = ""
+                for session in all_sessions:
+                    pose_list.append(session.db.lastpose)
+                    poses += (f"{session.db.name}'s last pose: \n{session.db.lastpose}\n")
+
+                caller.msg(poses)
 
         table = self.styled_table(
             "|wCharacter",
@@ -249,8 +313,9 @@ class CmdPot(MuxCommand):
                                   utils.time_format(delta_conn, 0),
                                   utils.time_format(delta_cmd, 1),
                                   "-")
-
-        self.caller.msg(table)
+    
+        # no valid switches, just return table
+        caller.msg(table)
 
 class CmdObserve(MuxCommand):
     """

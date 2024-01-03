@@ -188,6 +188,10 @@ class CmdEmit(MuxCommand):
             message = sub_old_ansi(message)
             location = caller.location
             in_stage = caller.db.stage
+            private = caller.db.potprivate
+            #storing lastpose for pot
+            if not private:
+                caller.db.lastpose = message
             if in_stage:
                 message = append_stage(caller, message)
             target_list = see_players(location)

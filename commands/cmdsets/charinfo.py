@@ -812,6 +812,8 @@ class CmdShowMyToggles(MuxCommand):
 
     * nospoof
     * stagemute
+    * observer
+    * privacy
     * radio stuff TBD
 
 
