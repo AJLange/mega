@@ -49,7 +49,7 @@ def process_pose(viewer, poser, pose):
         return False
     #if a pose is coming in, process it first.
     if viewer.db.nospoof:
-        pose = (f"{poser} poses: \n") + pose
+        pose = (f"|c{poser} poses: |n\n") + pose
     if viewer.db.highlightlist:
         pose = highlight_words(pose, viewer)
     if viewer.db.stagemute:
@@ -345,17 +345,30 @@ class CmdPose(BaseCommand):
         "This performs the actual command"
         errmsg = "Pose what?"
         caller = self.caller
+        private = caller.db.potprivate
+        location = caller.location
+        
         if not self.args:
             self.caller.msg(errmsg)
             return
         try:
             message = self.args
             message = sub_old_ansi(message)
+            message = (f"{caller.name}{message}")
             in_stage = caller.db.stage
+            target_list = see_players(location)
+            for player in target_list:
+                message = process_pose(player, caller, message)
+                player.msg(f"\n{message}\n")
+                
+            
+            #storing lastpose for pot
+            if not private:
+                caller.db.lastpose = message
             # this won't work actually, but fix later
             if in_stage:
                 message = append_stage(caller, message)
-            caller.location.msg_action(caller, message)
+            #caller.location.msg_action(caller, message)
         except ValueError:
             self.caller.msg(errmsg)
             return
@@ -401,10 +414,12 @@ class CmdSay(MuxCommand):
         if not message:
             return
 
+        
         # Call the at_after_say hook on the character
         in_stage = caller.db.stage
         if in_stage:
             message = append_stage(caller, message)
+
         caller.at_say(message, msg_self=True)
 
         # If an event is running in the current room, then write to event log
