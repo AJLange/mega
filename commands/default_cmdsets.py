@@ -26,7 +26,7 @@ from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOC
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger, CmdShowMyToggles, CmdCheckWeapons
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
-from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal
+from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal, CmdTidyUp
 from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
@@ -106,6 +106,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdEnterCity())
         #self.add(CmdLeaveCity())
         self.add(CmdPortal())
+        self.add(CmdTidyUp())
 
         #roster commands
         self.add(CmdSetGroups())

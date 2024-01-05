@@ -198,8 +198,33 @@ class CmdMakePrivateRoom(MuxCommand):
        construct <name of room>
 
     This creates an object, and a room inside that object.
-    The room object is owned by you and can be picked up and moved
-    around only by the original creator.
+    The room object is owned by you. 
+    
+    Room objects are tied to a specific location and will create a new exit 
+    to that location.
+
+    Room related commands:
+
+    odesc - To describe the outside object that represents the room
+    idesc - To describe the interior of the room you are standing in.
+    demolish - To destroy the room (also used if you want to re-create
+    this room somewhere else.)
+
+    A typical private room building workflow would be:
+
+      construct Metal Man's Quarters
+      odesc Metal Man's Quarters=The door on the outside says "Metal Man."
+      enter Metal Man's Quarters
+      idesc Metal Man's Quarters=A basic interior desc goes here.
+
+    You are automatically set as the protector of your own private room and
+    can lock and unlock your room.
+
+    See also
+        help lock
+        help unlock
+        help myrooms
+        help tidy
 
     """
 
@@ -241,6 +266,7 @@ class CmdMakePrivateRoom(MuxCommand):
         '''
         # Create the new room
 
+        p_room.db.owner = caller
         new_room = create.create_object(PrivateRoom, roomname, report_to=caller)
         lockstring = self.new_room_lockstring.format(id=caller.id)
         new_room.locks.add(lockstring)

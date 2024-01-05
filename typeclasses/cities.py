@@ -79,7 +79,9 @@ class PersonalRoom(Object):
     Entering a personal room teleports the player to
     a single room on the grid which is their dedicated
     personal quarters room. 
-    Personal Rooms can be picked up, moved, and re-desced.
+    
+    Personal Rooms can be redesced but not moved,
+    since their exit is tied to the room they were created in.
 
     '''
 

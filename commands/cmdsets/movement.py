@@ -13,6 +13,7 @@ from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import Room, PrivateRoom
 from typeclasses.cities import City, PersonalRoom, get_portal_tags
 from evennia.utils.search import search_tag, search_object
+from evennia.utils.utils import inherits_from
 
 class CmdSummon(MuxCommand):
     """
@@ -261,9 +262,8 @@ class CmdTidyUp(MuxCommand):
     Usage:
         tidy
 
-    This removes any character who has been idle for at least
-    one hour in your current room, provided that the room is
-    public or a room you own.
+    This removes any character who has been idle for at least 4 hours in your 
+    current room, provided that the room is public or a room you own.
     """
 
     key = "tidy"
@@ -275,32 +275,29 @@ class CmdTidyUp(MuxCommand):
         """Executes tidy command"""
         caller = self.caller
         loc = caller.location
-        if "private" in loc.tags.all() and not caller.check_permstring("builders"):
+        if inherits_from(loc,PersonalRoom) and not caller.check_permstring("builders"):
             owners = loc.db.owners or []
             if caller not in owners:
-                self.msg("This is a private room.")
+                self.msg("This is a private room that is not yours.")
                 return
         from typeclasses.characters import Character
 
         # can only boot Player Characters
-        chars = Character.objects.filter(db_location=loc, roster__roster__name="Active")
+        chars = Character.objects.filter(db_location=loc)
         found = []
         for char in chars:
             time = char.idle_time
-            player = char.player
-            # no sessions connected, character that somehow became headless, such as server crash
-            if not player or not player.is_connected or not player.sessions.all():
-                char.at_post_unpuppet(player)
-                found.append(char)
-                continue
-            if time > 3600:
-                player.unpuppet_all()
+            
+            if time > 14400:                
                 found.append(char)
         if not found:
             self.msg("No characters were found to be idle.")
         else:
+            for char in found:
+                mapping = {"secret": True}
+                char.move_to(char.home, mapping=mapping)
             self.msg(
-                "The following characters were removed: %s"
+                "The following characters were sent home: %s"
                 % ", ".join(ob.name for ob in found)
             )
 

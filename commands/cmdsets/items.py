@@ -1,5 +1,5 @@
 from evennia.commands.default.muxcommand import MuxCommand
-from evennia import default_cmds, create_object
+from evennia import default_cmds, create_object, search_object
 from evennia.utils import utils, create
 from server.utils import sub_old_ansi
 from typeclasses.objects import MObject
@@ -98,20 +98,28 @@ class CmdDescCraft(MuxCommand):
         caller = self.caller
         args = self.args
         # this isn't a foolproof lock check, but works OK
-        if not self.args:
+        if not args:
             caller.msg("What do you want to desc?")
             return
-        obj_desc = args.split("=")
-        if len(obj_desc) < 1:
+        obj_desc = self.rhs
+        obj_name = self.lhs
+        if not obj_desc:
             caller.msg("Syntax error: use craftdesc <obj>=<desc>")
             return
         else:
-            description = sub_old_ansi(obj_desc[1])
-            obj = ObjectDB.objects.object_search(obj_desc[0], typeclass=Item)
+            description = sub_old_ansi(obj_desc)
+            obj = Item.objects.filter(db_key__icontains=obj_name)
+
             if not obj:
-                obj = ObjectDB.objects.object_search(obj_desc[0], typeclass=PersonalRoom)
-                if not obj:
+                # no object found, was it a room instead?
+                caller.msg("I hit this search, did it work?")
+                room_obj = PersonalRoom.objects.filter(db_key__icontains=obj_name)
+                if not room_obj:
                     caller.msg("No object by that name was found.")
+                    return
+                obj = room_obj
+            if len(obj) > 1:
+                caller.msg("Multiple matches, type a more specific name.")
                 return
             if not obj[0].db.owner == caller:
                 caller.msg("That object is not yours.")
