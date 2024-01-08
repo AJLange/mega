@@ -94,7 +94,8 @@ class Character(DefaultCharacter):
         self.db.pose_time = 0.0
 
         self.db.appstatus = "Open"
-
+        self.db.pcgroups = []
+        self.db.squads = []
 
     def get_stats(self):
         """

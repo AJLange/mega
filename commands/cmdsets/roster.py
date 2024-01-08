@@ -73,6 +73,7 @@ class CmdSetGroups(MuxCommand):
                 return
             
             group.db_members.add(char)
+            char.db.pcgroups.append(group.db_name)
             caller.msg(f"Added {char.name} to the group {group.db_name}.")
             char.msg(f"You were added to the group {group.db_name}.")
             return
@@ -205,15 +206,21 @@ class CmdSetRank(MuxCommand):
       +rank Metal Man=Robot Masters/5
       +rank Metal Man=Beta/5
 
+      +rank/remove <character>=<squad>
+
     This command is only used in groups which have a rank and squad setup.
     If the character is not already in that squad, it will move them to 
-    that squad. 
+    that squad. If the character is already in that squad, it will just
+    adjust their rank in that squad.
 
-    At this time, groups that are too small to have squads do not have ranks.
     Setting ranks is entirely optional.
 
-    Since Squads are not mutually exclusive, use +rank/remove to take a 
-    character out of a squad.
+    Squads are not mutually exclusive, allowing for nuanced setting of 
+    ranks or use for temporary assignments. Use +rank/remove to take a 
+    character out of a squad, which will also delete their rank in 
+    that squad.
+
+    Squads that are empty will no longer appear on the group roster.
 
     """
     
@@ -221,35 +228,110 @@ class CmdSetRank(MuxCommand):
     aliases = ["rank", "setrank","+setrank"]
     help_category = "Roster"
 
+    def find_squad(caller, squad_name):
+        squad = Squad.objects.filter(db_key__icontains=squad_name)
+        # right now I'm not handling duplicate squad names very well
+        if len(squad) > 1:
+            caller.msg("Similarly named squads. Type a more precise squad search. If you think this is a bug, contact admin.")
+            return squad
+        if not squad:
+            caller.msg("That squad was not found in your group.")
+            return 0
+
     def func(self):
         caller= self.caller
+        errmsg = "Syntax Error - check help +rank."
+
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+
         try:
             set_string = self.rhs
             char_string = self.lhs
         except ValueError:
             caller.msg(errmsg)
             return
+        
         char = caller.search(char_string, global_search=True)
         char = check_char_valid(caller,char)
         if not char:
             caller.msg("Character not found.")
             return
-        errmsg = "What text?"
-        if not self.args:
-            self.caller.msg(errmsg)
-            return
-        try:
-            #parse the split variable
-            text = self.args
-            # am I admin?
+        
 
-            # am I a leader? 
-            
-            # ...of the group I specified?
+
+        if "remove" in self.switches:
+            # is this character in that squad? Assume only a squad was provided.
+            squad = self.find_squad(caller,set_string)
+            if not squad:
+                caller.msg("No Squad found")
+                return
+            # remove them
+            for sq in char.db.squads:
+                if sq == squad.db_name:
+                    #squad found, remove squad and rank
+                    squad.db_members.remove(char)
+                    my_squads = char.db.squads()
+                    for s in my_squads:
+                        if s == squad_name:
+                            i = my_squads.index(s)
+                            del char.db.squads[i]
+                            del char.db.squads[i+1]
+                    caller.msg(f"Removed {char} from Squad {squad.db_name}.")
+                    return
+
+            #nothing worked, so there was an error
+            caller.msg("That character does not appear to be in that squad.")
+            return        
+
+        try:
+            #parse the split variable            
+            text = set_string.split("/")
+            squad_name = text[0]
+            rank_num = int(text[1])
         except ValueError:
             self.caller.msg(errmsg)
             return
-        self.caller.msg("Add the rank: %s" % text)
+        
+        # did i specify a group or a squad?
+        is_group = PlayerGroup.objects.filter(db_key__icontains=squad_name)
+        all_groups = PlayerGroup.objects.all()
+        can_add = False
+
+        # this might cause bugs if a squad is named similiarly to a group. TODO
+        if not is_group:
+            squad = Squad.objects.filter(db_key__icontains=squad_name)
+        else:
+            squad = is_group
+        # am I admin?
+        if caller.check_permstring("builders"):
+            can_add = True
+        else:
+            # do I have authority?
+            for group in caller.db.pcgroups:
+                if group.db_leader == caller or group.db_twoic == caller:
+                    if is_group and group == squad_name:
+                    # adjusting rank in a group I lead                    
+                        can_add = True
+                    else: 
+                        # maybe it's a squad
+                        if squad.db_group == group:
+                            can_add = True
+
+        if can_add:
+            squad = self.find_squad(caller, squad_name)
+            if not squad:
+                caller.msg("Squad not found in your group.")
+                return
+            char.db.squads.append(squad_name)
+            char.db.squads.append(rank_num)
+            squad.db_members.append(char)
+            caller.msg(f"Added character {char} to squad {squad_name} with rank {rank_num}.")
+            return
+        else:
+            caller.msg("You don't have the right permissions to do this.")
+            return
 
 
 class CmdXWho(Command):
@@ -344,7 +426,7 @@ class CmdShowGroups(MuxCommand):
                 caller.msg(text)
                 return
         if "me" in switches:
-            text = (f"My groups: {caller.db.groups}")
+            text = (f"My groups: {caller.db.pcgroups}")
             caller.msg(text)
             return
         if "squad" in switches:

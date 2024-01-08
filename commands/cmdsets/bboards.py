@@ -187,7 +187,7 @@ def get_unread_posts(caller):
 
 def check_access(caller, board):
     # boards = get_boards()
-    player_groups = caller.db.groups()
+    player_groups = caller.db.pcgroups()
     board_groups = board.db_groups.all()
     if not board_groups:
         # assume all access

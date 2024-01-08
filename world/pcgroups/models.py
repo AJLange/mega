@@ -17,10 +17,8 @@ class PlayerGroup(models.Model):
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 
-
     def __str__(self):
         return self.db_name
-
 
 class Squad(models.Model):
 
