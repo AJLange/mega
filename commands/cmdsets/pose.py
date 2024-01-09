@@ -17,6 +17,8 @@ from evennia.server.sessionhandler import SESSIONS
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 from typeclasses.cities import Stage
+from datetime import datetime
+import time
 
     
 
@@ -192,13 +194,14 @@ class CmdEmit(MuxCommand):
             #storing lastpose for pot
             if not private:
                 caller.db.lastpose = message
+                caller.set_pose_time(float(time.time()))
             if in_stage:
                 message = append_stage(caller, message)
             target_list = see_players(location)
             for player in target_list:
                 message = process_pose(player, caller, message)
                 player.msg(f"\n{message}\n")
-                
+     
                 #self.caller.location.msg_contents(message, from_obj=caller)
         
         #todo - also emit to the auto logger
@@ -365,6 +368,7 @@ class CmdPose(BaseCommand):
             #storing lastpose for pot
             if not private:
                 caller.db.lastpose = message
+                caller.set_pose_time(float(time.time()))
             # this won't work actually, but fix later
             if in_stage:
                 message = append_stage(caller, message)
@@ -373,61 +377,6 @@ class CmdPose(BaseCommand):
             self.caller.msg(errmsg)
             return
         
-
-class CmdSay(MuxCommand):
-    """
-    speak as your character
-    Usage:
-      say <message>
-    Talk to those in your current location.
-    """
-
-    key = "say"
-    aliases = ['"', "'"]
-    locks = "cmd:all()"
-
-    # Here we overwrite the default "say" command so that it updates the pose timer for +pot,
-    # as well as for LogEntry, etc.
-    def func(self):
-        """Run the say command"""
-
-        caller = self.caller
-
-        # Update the pose timer if outside of OOC room
-        # This assumes that the character's home is the OOC room, which it is by default
-        if caller.location != caller.home:
-            #caller.set_pose_time(time.time())
-            caller.set_obs_mode(False)
-
-        if not self.args:
-            caller.msg("Say what?")
-            return
-
-        message = self.args
-
-        # Calling the at_before_say hook on the character
-        message = caller.at_before_say(message)
-        # tailored_msg(caller, message)
-        # TODO: Apply tailored_msg to the first person/third person distinction in say display.
-
-        # If speech is empty, stop here
-        if not message:
-            return
-
-        
-        # Call the at_after_say hook on the character
-        in_stage = caller.db.stage
-        if in_stage:
-            message = append_stage(caller, message)
-
-        caller.at_say(message, msg_self=True)
-
-        # If an event is running in the current room, then write to event log
-        #if caller.location.db.active_event:
-            #scene = Scene.objects.get(pk=self.caller.location.db.event_id)
-            #scene.addLogEntry(LogEntry.EntryType.SAY, self.args, self.caller)
-            #add_participant_to_scene(self.caller, scene)
-
 
 class CmdMegaSay(CmdSay):
     """
@@ -450,26 +399,83 @@ class CmdMegaSay(CmdSay):
             self.args = " %s" % self.args.lstrip()
 
     def func(self):
+
+        caller = self.caller
         """Replacement for CmdSay's func"""
         if not self.raw:
             self.msg("Say what?")
             return
-        options = {"is_pose": True}
+
         speech = self.raw.lstrip(" ")
         # calling the speech hook on the location
         speech = self.caller.location.at_say(speech)
         # Feedback for the object doing the talking.
-        langstring = ""
         
         speech = sub_old_ansi(speech)
         # Build the string to emit to neighbors.
-        pre_name_emit_string = ' says%s, "%s"' % (langstring, speech)
+        pre_name_emit_string = ' says, "%s"' % (speech)
+
+        '''
         self.caller.location.msg_action(
             self.caller, pre_name_emit_string, options=options
         )
+        '''
+
+        caller = self.caller
+
+        if not self.args:
+            caller.msg("Say what? (this is updated say)")
+            return
+
+        message = self.args
+
+        # Calling the at_before_say hook on the character
+        # message = caller.at_before_say(message)
+        # tailored_msg(caller, message)
+        # TODO: Apply tailored_msg to the first person/third person distinction in say display.
+
+        # If speech is empty, stop here
+        if not message:
+            return
+       
+        # Call the at_after_say hook on the character
+        #caller.at_say(message, msg_self=True)
+
+        in_stage = caller.db.stage
+        if in_stage:
+            message = append_stage(caller, message)
+
+        try:
+            message = self.args
+            message = sub_old_ansi(message)
+            message = (f"{caller.name}{pre_name_emit_string}")
+            in_stage = caller.db.stage
+            target_list = see_players(caller.location)
+            for player in target_list:
+                message = process_pose(player, caller, message)
+                player.msg(f"\n{message}\n")
+
+            #storing lastpose for pot
+            private = caller.db.potprivate
+            if not private:
+                caller.db.lastpose = message
+                caller.set_pose_time(float(time.time()))
+            # this won't work actually, but fix later
+            if in_stage:
+                message = append_stage(caller, message)
+            #caller.location.msg_action(caller, message)
+        except ValueError:
+            self.caller.msg("Some error occured.")
+            return
+        
+        # If an event is running in the current room, then write to event log
+        #if caller.location.db.active_event:
+            #scene = Scene.objects.get(pk=self.caller.location.db.event_id)
+            #scene.addLogEntry(LogEntry.EntryType.SAY, self.args, self.caller)
+            #add_participant_to_scene(self.caller, scene)
 
 
-class CmdPage(BaseCommand):
+class CmdPage(MuxCommand):
     """
     page - send private message
 
@@ -822,6 +828,8 @@ class CmdPoseColors(MuxCommand):
                 caller.msg("Unknown switch/argument!")
                 return
 
+
+'''
 class CmdPage(MuxCommand):
     """
     send a private message to another account
@@ -999,7 +1007,7 @@ class CmdPage(MuxCommand):
         if rstrings:
             self.msg("\n".join(rstrings))
         self.msg("You paged %s with: '%s'." % (", ".join(received), message))
-
+'''
 
 class CmdAside(MuxCommand):
     """

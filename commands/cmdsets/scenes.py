@@ -194,7 +194,7 @@ class CmdPot(MuxCommand):
     locks = "cmd:all()"
 
     # this is used by the parent
-    account_caller = True
+    #account_caller = True
 
     def func(self):
 
@@ -205,9 +205,13 @@ class CmdPot(MuxCommand):
         if "privacy" in switches:
             if caller.db.potprivate:
                 caller.db.potprivate = False
+                caller.msg("Privacy Off: You are now saving your poses in +pot.")
+                return
             else:
                 caller.db.potprivate = True
                 caller.db.lastpose = ""
+                caller.msg("Privacy On: +pot will not track your poses.")
+                return
 
         if "observer" in switches:
             if caller.db.observer:
@@ -218,6 +222,7 @@ class CmdPot(MuxCommand):
             else:
                 caller.set_pose_time(0.0)
                 caller.db.observer = True
+                caller.db.lastpose = ""
                 caller.msg("Entering observer mode.")
                 caller.location.msg_contents(
                 "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
@@ -232,6 +237,7 @@ class CmdPot(MuxCommand):
                     caller.msg("No Scene pose set")
                     return
                 caller.msg(f"Scenepose set by: {caller.location.sceneset}/n{caller.location.scenepose}")
+                return
         
         """
         Get all connected accounts by polling session.
@@ -247,9 +253,12 @@ class CmdPot(MuxCommand):
             
             if args: 
                 #is this a real present person?
-                if not inherits_from(args, settings.BASE_CHARACTER_TYPECLASS):
+                char = caller.search(args, global_search=False)
+                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
                     caller.msg("Character not found.")
-                caller.msg(f"{args}'s last pose: \n")
+                    return
+                caller.msg(f"{char.name}'s last pose: \n{char.db.lastpose}\n")
+                return
             else:
                 #list all the poses
                 pose_list = []
@@ -259,12 +268,36 @@ class CmdPot(MuxCommand):
                     poses += (f"{session.db.name}'s last pose: \n{session.db.lastpose}\n")
 
                 caller.msg(poses)
+                return
+
+        if "since" in switches:
+
+            #get all poses            
+            if args: 
+                #is this a real present person?
+                char = caller.search(args, global_search=False)
+                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                    caller.msg("Character not found.")
+                    return
+                
+                #list all the poses since that person
+                pose_list = []
+                poses = ""
+                
+                for session in all_sessions:
+                    if session.get_pose_time() < args.get_pose_time():
+                        pose_list.append(session.db.lastpose)
+                        poses += (f"{session.db.name}'s last pose: \n{session.db.lastpose}\n")
+
+                caller.msg(poses)
+                return
 
         table = self.styled_table(
             "|wCharacter",
-            "|wOn for",
             "|wIdle",
-            "|wLast posed"
+            "|wLast posed",
+            "|wLast action",
+            "|wCondition"
         )
 
         old_session_list = []
@@ -275,7 +308,6 @@ class CmdPot(MuxCommand):
 
             puppet = session.get_puppet()
             delta_cmd = time.time() - session.cmd_last_visible
-            delta_conn = time.time() - session.conn_time
             delta_pose_time = time.time() - puppet.get_pose_time()
 
 
@@ -291,7 +323,6 @@ class CmdPot(MuxCommand):
             if puppet.location == self.caller.location:
                 # logic for setting up pose table
                 table.add_row(puppet.key,
-                              utils.time_format(delta_conn, 0),
                               utils.time_format(delta_cmd, 1),
                               utils.time_format(delta_pose_time, 1))
 
@@ -302,20 +333,19 @@ class CmdPot(MuxCommand):
 
 
             # Changes display depending on if someone has set themselves as an observer or not.
-            if puppet.location == self.caller.character[0].location:
+            if puppet.location == self.caller.location:
                 if puppet.db.observer == True:
                     table.add_row("|y" + puppet.key + " (O)",
-                                  utils.time_format(delta_conn, 0),
                                   utils.time_format(delta_cmd, 1),
                                   "-")
                 else:
                     table.add_row(puppet.key,
-                                  utils.time_format(delta_conn, 0),
                                   utils.time_format(delta_cmd, 1),
-                                  "-")
+                                  utils.time_format(delta_pose_time, 1))
     
         # no valid switches, just return table
         caller.msg(table)
+        return
 
 class CmdObserve(MuxCommand):
     """
@@ -351,6 +381,7 @@ class CmdObserve(MuxCommand):
             caller.set_pose_time(0.0)
             caller.db.observer = True
             caller.msg("Entering observer mode.")
+            caller.db.lastpose = ""
             caller.location.msg_contents(
                 "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
             return
