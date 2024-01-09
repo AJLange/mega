@@ -156,11 +156,6 @@ class ModeSwap(MuxCommand):
                         caller.db.currentmode = my_armor.db_name
                         return
                         
-            #TODO: change my desc based on the armor mode
-
-"""
-Combat is a type of scene called a Showdown which can be initiated via a showdown command
-"""  
 
 class CmdHPDisplay(MuxCommand):
     """
