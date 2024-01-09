@@ -134,20 +134,28 @@ class ModeSwap(MuxCommand):
             if not armor_list:
                 caller.msg(errmsg)
                 return
-            #handle multiple matches
             my_armors = caller.db.armor
-            for my_armor in my_armors:
+            #handle multiple matches
+            if len(armor_list > 1):
                 for armor in armor_list:
-                    if my_armor.id == armor.id:
-                        #match found, do the swap
+                    for my_armor in my_armors:        
+                        if my_armor.id == armor.id:
+                            #match found, do the swap
+                            swap_armor(caller,my_armor)
+                            caller.msg(f"Swapped to {my_armor}.")
+                            #set the name of the armor, for the sheet
+                            caller.db.currentmode = my_armor.db_name
+                            return
+            else:
+                # only one match so it's faster not to loop
+                for my_armor in my_armors:
+                    if my_armor.id == armor[0].id:
                         swap_armor(caller,my_armor)
-                        caller.msg("Swapped.")
+                        caller.msg(f"Swapped to {my_armor}.")
                         #set the name of the armor, for the sheet
                         caller.db.currentmode = my_armor.db_name
                         return
-                    else:
-                        caller.msg(errmsg)
-                        return
+                        
             #TODO: change my desc based on the armor mode
 
 """
