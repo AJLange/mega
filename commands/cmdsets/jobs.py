@@ -33,6 +33,8 @@ def list_tickets(caller):
     """List tickets for the caller"""
     try:
         my_requests = Request.objects.filter(db_submitter=caller)
+        #not sure this actually works
+        my_requests += Request.objects.filter(db_copied_to__icontains=caller.name)
     except:
         caller.msg("No requests were found.")
         return
@@ -61,6 +63,8 @@ def list_open_tickets(caller):
         my_requests = Request.objects.filter(db_submitter=caller)
         
         #TODO - requests I've been added to
+        #not sure this actually works
+        my_requests += Request.objects.filter(db_copied_to__icontains=caller.name)
     except:
         caller.msg("No requests were found.")
         return
