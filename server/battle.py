@@ -441,26 +441,34 @@ def add_weapon_to_db(name,wpn_class,wpn_types,wpn_effects):
 
 def num_to_line(val):
     #returns a pretty string that shows the value of a number
+       
     string = ""
     l = 0
     color = 1
-    bar_length = 10
+    bar_length = 11
     string += str(val)
-    string += " ["
+    if val < 10:
+        string += "  ["
+    elif val == 10:
+        string += " ["
     while l < val:
         if l < 5:
             color_string = "00" + str(color + l)
-        elif l < 7:
-            color_string = "0" + str(color + 14)
-        elif l < 10:
-            color_string = "0" + str(color + 23)
-        elif l == 10:
+        elif l == 5:
+            color_string = "014"
+        elif l == 6:
+            color_string = "015"
+        elif l <= 8:
+            color_string = "024"
+        else:
             color_string = "035"
-        l = l+1
+        
         string += (f"|[{color_string}|{color_string}...")
+        l = l + 1
         bar_length = bar_length -1
-    while bar_length:
-        string += "|n:::"
+    while bar_length:        
         bar_length = bar_length -1
+        string += "|n:::"           
+   
     string += "]"
     return string
