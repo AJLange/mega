@@ -39,7 +39,10 @@ def do_roll(stat, skill):
 def explode_tens(roll):
     for value in roll:
         if value == 10:
-            roll.append(randint(1,10))
+            new_roll = randint(1,10)
+            roll.append(new_roll)
+            if new_roll == 10:
+                explode_tens(new_roll)
     return roll
 
 def roll_to_string(roll):
