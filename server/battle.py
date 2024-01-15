@@ -58,6 +58,17 @@ def roll_to_string(roll):
             die_string = die_string + "|R" + str(value)+ "|n "
     return die_string
 
+def listcap_to_string(list):
+    if len(list) == 0:
+        return "None"
+    string = ""
+    for i, item in enumerate(list):
+        if i < len(list)-1:
+            string += (f"{item}, ")
+        else:
+            string += (f"{item}")
+    return string
+
 def check_valid_target(char):
     
     """
@@ -428,3 +439,28 @@ def add_weapon_to_db(name,wpn_class,wpn_types,wpn_effects):
     return weapon
 
 
+def num_to_line(val):
+    #returns a pretty string that shows the value of a number
+    string = ""
+    l = 0
+    color = 1
+    bar_length = 10
+    string += str(val)
+    string += " ["
+    while l < val:
+        if l < 5:
+            color_string = "00" + str(color + l)
+        elif l < 7:
+            color_string = "0" + str(color + 14)
+        elif l < 10:
+            color_string = "0" + str(color + 23)
+        elif l == 10:
+            color_string = "035"
+        l = l+1
+        string += (f"|[{color_string}|{color_string}...")
+        bar_length = bar_length -1
+    while bar_length:
+        string += "|n:::"
+        bar_length = bar_length -1
+    string += "]"
+    return string
