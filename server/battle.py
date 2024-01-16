@@ -472,3 +472,31 @@ def num_to_line(val):
    
     string += "]"
     return string
+
+
+def num_to_skill(val):
+    #returns a pretty string that shows the value of a number,
+    # but in green.
+       
+    string = ""
+    l = 0
+    color = 40
+    bar_length = 6
+    string += str(val)
+    string += " ["
+
+    while l < val:
+        if l <= 4:
+            color_string = "0" + str(color + l)
+        else:
+            color_string = "050"
+        
+        string += (f"|[{color_string}|{color_string}...")
+        l = l + 1
+        bar_length = bar_length -1
+    while bar_length:        
+        bar_length = bar_length -1
+        string += "|n:::"           
+   
+    string += "]"
+    return string

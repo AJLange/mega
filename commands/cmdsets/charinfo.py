@@ -19,7 +19,7 @@ from math import floor
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
-from server.battle import process_elements, process_attack_class, process_effects, get_element_text, get_class_text, get_effect_text, num_to_line, listcap_to_string
+from server.battle import process_elements, process_attack_class, process_effects, get_element_text, get_class_text, get_effect_text, num_to_line, listcap_to_string, num_to_skill
 
 class CmdFinger(BaseCommand):
     """
@@ -537,13 +537,14 @@ class CmdSheet(BaseCommand):
             line35 = "Available Armors: %s" % str(all_armors_names)
             line4= (f" POW: {num_to_line(pow)}\n DEX: {num_to_line(dex)}\n TEN: {num_to_line(ten)}\n CUN: {num_to_line(cun)}\n EDU: {num_to_line(edu)}\n CHR: {num_to_line(chr)}\n AUR: {num_to_line(aur)}")
             #line5 = "Skills go here"
-            line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s, Heist: %s, Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
-            line6 = "Capabilities: %s" % (cap)
+            line5 = (f"\n Discern:   {num_to_skill(discern)}         Size: {size}\n Aim:       {num_to_skill(aim)}         Speed: {speed}\n Athletics: {num_to_skill(athletics)}         Strength: {strength} \n Force:     {num_to_skill(force)} \n Mechanics: {num_to_skill(mechanics)}         Weakness: {weakness}\n Medicine:  {num_to_skill(medicine)}         Resistance: {resistance}\n Computer:  {num_to_skill(computer)}\n Stealth:   {num_to_skill(stealth)}\n Heist:     {num_to_skill(heist)}\n Convince:  {num_to_skill(convince)}\n Presence:  {num_to_skill(presence)}\n Arcana:    {num_to_skill(arcana)}")
+            
+            line6 = "\nCapabilities: %s" % (cap)
             line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
             line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
             line9 = "Focuses: %s" % (focuses)
 
-            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n" + line9 + "\n\n" + border + "\n")
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line9 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
 
