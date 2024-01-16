@@ -445,7 +445,7 @@ def num_to_line(val):
     string = ""
     l = 0
     color = 1
-    bar_length = 11
+    bar_length = 10
     string += str(val)
     if val < 10:
         string += "  ["
@@ -466,11 +466,14 @@ def num_to_line(val):
         string += (f"|[{color_string}|{color_string}...")
         l = l + 1
         bar_length = bar_length -1
+    if bar_length <= 0:
+        string += "|n]"
+        return string
     while bar_length:        
         bar_length = bar_length -1
         string += "|n:::"           
    
-    string += "]"
+    string += "|n]"
     return string
 
 
@@ -481,7 +484,7 @@ def num_to_skill(val):
     string = ""
     l = 0
     color = 40
-    bar_length = 6
+    bar_length = 5
     string += str(val)
     string += " ["
 
@@ -494,9 +497,12 @@ def num_to_skill(val):
         string += (f"|[{color_string}|{color_string}...")
         l = l + 1
         bar_length = bar_length -1
+    if bar_length <= 0:
+        string += "|n]"
+        return string
     while bar_length:        
         bar_length = bar_length -1
         string += "|n:::"           
    
-    string += "]"
+    string += "|n]"
     return string
