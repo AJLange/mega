@@ -482,6 +482,9 @@ class CmdTightbeam(MuxCommand):
             return
 
         # We are sending. Build a list of targets
+
+        #TODO - 2way needs to make sure a player's radio is on.
+
         lhs = self.lhs
         rhs = self.rhs
         lhslist = self.lhslist
@@ -690,10 +693,10 @@ class CmdSaraband(MuxCommand):
             arglist = self.args.lstrip().split(" ", 1)
             if len(arglist) < 2:
                 caller.msg(
-                    "The MMO-style whisper format requires both a name and a message."
+                    "Saraband requires both a name and a message."
                 )
                 caller.msg(
-                    "To send a message to your last whispered character, use {wwhisper =<message>"
+                    "To send a message to your last whispered character, use {saraband =<message>"
                 )
                 return
             lhs = arglist[0]
@@ -706,7 +709,7 @@ class CmdSaraband(MuxCommand):
             if pages_we_sent:
                 receivers = pages_we_sent[-1].receivers
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to contact?")
                 return
         else:
             receivers = lhslist
@@ -721,7 +724,7 @@ class CmdSaraband(MuxCommand):
             elif hasattr(receiver, "player"):
                 pobj = receiver
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to contact?")
                 return
             if pobj:
                 if hasattr(pobj, "has_account") and not pobj.has_account:
@@ -1063,3 +1066,49 @@ class CmdTelepath(MuxCommand):
                     )
                     self.mark_command_used()
         caller.posecount += 1
+
+
+class CmdRadio(MuxCommand):
+
+    """
+    Stubbing out radio commands
+
+    Usage:
+      Radio
+    """
+
+    key = "radio"
+    aliases = ["+radio"]
+    locks = "cmd:not pperm(page_banned)"
+    help_category = "Radio"
+
+    def func(self):
+        """Implement function using the Msg methods"""
+
+        # this is a MuxCommand, which means caller will be a Character.
+        caller = self.caller
+        return
+    
+
+class CmdFrequency(MuxCommand):
+
+    """
+    Stubbing out radio commands
+
+    Factional leaders and second in commands can set factional radio frequencies.
+
+    Usage:
+      freq
+    """
+
+    key = "freq"
+    aliases = ["+freq"]
+    locks = "cmd:not pperm(page_banned)"
+    help_category = "Radio"
+
+    def func(self):
+        """Implement function using the Msg methods"""
+
+        # this is a MuxCommand, which means caller will be a Character.
+        caller = self.caller
+        return
