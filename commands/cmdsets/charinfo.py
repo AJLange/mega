@@ -19,6 +19,7 @@ from math import floor
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
+from world.combat.models import Weapon
 from server.battle import process_elements, process_attack_class, process_effects, get_element_text, get_class_text, get_effect_text, num_to_line, listcap_to_string, num_to_skill
 
 class CmdFinger(BaseCommand):
@@ -475,9 +476,6 @@ class CmdSoundtrack(BaseCommand):
         self.caller.msg("Not yet added.")
         return
 
-
-
-
 class CmdSheet(BaseCommand):
         """
         List my stats
@@ -556,18 +554,27 @@ class CmdCheckWeapons(MuxCommand):
 
         Usage:
           weapons
+          weapons/verbose
 
         Displays a list of your current weapons.
+
+        If you choose weapons/verbose, it will show the weapons
+        plus any short description of each that is set. Otherwise,
+        it shows just a short list telling you the names and 
+        types of weapons you have available.
+
+        See help wdesc for how to set short descs onto your weapons.
         """
 
         key = "weapons"
-        aliases = ["+weapons"]
+        aliases = ["+weapons", "weapon", "+weapon"]
         locks = "perm(Player))"
         help_category = "General"
 
         def func(self):
             """implements the actual functionality"""
             caller = self.caller
+            switches = self.switches
 
             # if I'm staff, I can look at other character's arsenal
 
@@ -614,10 +621,83 @@ class CmdCheckWeapons(MuxCommand):
                     w_flag2 = get_effect_text(weapon.db_flag_2)
 
                 sheetmsg = (sheetmsg + w_name + ": " + w_class + " " + w_type1 + " " + w_type2 + " " + w_type3 + " " + w_flag1 + " " + w_flag2 + "\n")
+                
+                if "verbose" in switches:
+                    weapon_desc = weapon.db_description
+                    sheetmsg += (f" Desc: {weapon_desc}\n")
 
             #sheetmsg = (weapon_list)
             caller.msg(sheetmsg)
             return
+
+class CmdWeaponDesc(MuxCommand):
+        
+    """
+    Set an optional description for your weapons.
+
+    Usage:
+        weapondesc <weapon name>=<desc>
+
+    weapondesc with a name and desc sets a short desc on each weapon.
+
+    This is entirely optional, but can be useful for people who are grabbing
+    your weapon via weapon copy, or someone picking up an FC after you.
+
+    Example:
+        weapondesc Magnet Missle=A magnet shaped missile that homes on the target.
+
+    An alias for weapondesc is wdesc.
+
+    """
+
+    key = "weapondesc"
+    aliases = ["+weapondesc", "wdesc", "+wdesc"]
+    locks = "perm(Player))"
+    help_category = "General"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("Describe which weapon?")
+            return
+
+        w_name = self.lhs 
+        w_desc = self.rhs
+        
+        if not w_desc:
+            caller.msg("Syntax error. Please see help wdesc.")
+            return
+        
+        weapon_check = Weapon.objects.filter(db_name__icontains=w_name)
+        my_weapons = caller.db.weapons
+            
+        # match found. Weapons should have a unique name with no duplicates.
+        # this will let anybody who has that weapon redesc the weapon...
+        # is that a problem? 
+        if not weapon_check:
+            caller.msg("That weapon is not in your arsenal.")
+            return
+
+        for w in my_weapons:
+            if weapon_check[0].id == w.id:                    
+                weapon = w
+            
+        if not weapon:
+                #no weapon no attack
+                caller.msg("That weapon is not in your arsenal.")
+                return
+        else:
+            weapon.db_description = w_desc
+            weapon.save()
+            caller.msg(f"Added description to weapon {weapon.db_name}")
+
+                
+
+        return
+
 
 class CmdCookie(MuxCommand):
 

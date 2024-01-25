@@ -193,6 +193,8 @@ class Weapon(SharedMemoryModel):
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
     
+    db_description = models.TextField('Description',blank=True, null=True)
+    
     def __str__(self):
         return self.db_name
 
@@ -234,6 +236,7 @@ class BusterList(SharedMemoryModel):
     )
 
     #additional fields
+    db_description = models.TextField('Description',blank=True, null=True)
 
     db_thief = models.CharField("Stolen By",max_length=100)
     db_date_created = models.DateTimeField('date swiped', editable=False,
