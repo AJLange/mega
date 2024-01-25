@@ -118,9 +118,10 @@ class ModeSwap(MuxCommand):
 
     def func(self):
         
-        #stubbed only
         errmsg = "Error, check help armor."
         caller= self.caller
+
+        # TODO - emit to room and logs
 
         if not self.args:
             caller.msg("Swap to which armor?")

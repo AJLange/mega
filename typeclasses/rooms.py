@@ -46,6 +46,7 @@ class Room(DefaultRoom):
     """
     def at_object_creation(self):
         self.db.protector = []
+        self.db.sequence_beats = 0
 
     def at_say(
         self,

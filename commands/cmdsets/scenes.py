@@ -22,8 +22,8 @@ from django.conf import settings
 
 from datetime import datetime
 
-
-
+#default beats for sequences, may change this later
+BEATS_MULTI = 3
 
 # from evennia import default_cmds
 
@@ -580,6 +580,7 @@ class CmdSequenceStart(MuxCommand):
             +sequence/gm <name>
             +sequence/stepdown
             +sequence/status or +sequence
+            +sequence/set <number>
 
     When you initiate a Sequence, you're setting yourself as a GM 
     in that scene. You can appoint a co-GM by using +sequence/gm <name>
@@ -591,9 +592,9 @@ class CmdSequenceStart(MuxCommand):
     in the scene (people you're up against). A beat is essentially the HP of 
     the challenge at hand, however it is resolved.  The default number of
     beats is 3 times the amount of adversarial players involved. Players set 
-    +observer or appointed GM wil not be added to this calculation.  If you 
-    set another player as co-GM their beats will be removed. If you want to set 
-    this to a different value, you can choose that number when you start a sequence. 
+    +observer or appointed GM wil not be added to this calculation. If you want 
+    to set this to a different value, you can choose that number when you start 
+    a sequence. 
 
     +sequence/status or +sequence views the players, GM list, amount of beats and 
     remaining beats. 
@@ -601,13 +602,29 @@ class CmdSequenceStart(MuxCommand):
     +sequence/stop ends the sequence for all participants.
     Only a GM in the sequence can do this.
 
-    For information on how to GM in a Sequence see other help files.
-    This command is only to set the flags (for now).
+    If you are GMing you can set the active remaining beats on a sequence with 
+    +sequence/set. This is at your descretion of the players' success in the 
+    sequence, and for now, is set manually.
+
+    For information on how to GM in a Sequence see 'help GMing' (TBD).
+ 
     """
 
     key = "+sequence"
     aliases = ["sequence", "sq","+sq"]
     locks = "cmd:all()"
+
+
+    def count_players(self,room):
+            # find all players here
+            charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_location=room )
+            playerlist = []
+            for char in charlist:
+                if not char.db.gm: 
+                    if not char.db.observer:
+                        playerlist.append(char)            
+            return len(playerlist)
+
 
     def func(self):
         caller = self.caller
@@ -616,7 +633,6 @@ class CmdSequenceStart(MuxCommand):
         args = self.args
 
         # if the room has a protector, remind the player to check that.
-
         if room.db.protector== "Staff" and not not caller.check_permstring("builders"):
             caller.msg("You can't start a sequence event here - it's protected by staff. Ask staff about using this room.")
             return
@@ -625,20 +641,34 @@ class CmdSequenceStart(MuxCommand):
             if room.db.protector:
                 caller.msg("This room has a protector set, so make sure they were alerted to your scene happening here (+protector).")
             # Make sure the current room doesn't already have an active event, and otherwise mark it
-            if caller.location.db.active_event:
+            if room.db.sequence_beats:
                 caller.msg("There is currently an active event running in this room already.")
                 return
             caller.location.db.active_event = True
             caller.db.gm = True
-            caller.msg("You start a sequence in this location.")
-            # todo - create scene model for sequence
-            # give HP to the sequence
+
+            # give HP to the sequence by setting it on the room
+            if args:
+                try:
+                    room_beats = int(args)
+                except ValueError:
+                    caller.msg("Beats should be a single number.")
+                    return
+            else:
+                room_beats = self.count_players(room) * BEATS_MULTI
             
+            if not room_beats:
+                caller.msg("You can't have a sequence with no players or challenge. Nothing started.")
+                return
+
+            room.sequence_beats = room_beats
+
+            room.msg_contents(f"{caller.name} has begun a sequence in this location! The sequence has {room_beats} beats remaining." )       
             return
 
         if "stop" in switches:
             # Make sure the current room's event hasn't already been stopped
-            if not caller.location.db.active_event:
+            if not room.db.active_event:
                 caller.msg("There is no active event running in this room.")
                 return
 
@@ -647,6 +677,9 @@ class CmdSequenceStart(MuxCommand):
             for char in charlist:
                 char.db.gm = False
             caller.msg("You stop the sequence in this location.")
+            room.msg_contents("The sequence event in this location has ended.")       
+            
+            room.sequence_beats = 0
             return
         
         if "gm" in switches:
@@ -675,9 +708,34 @@ class CmdSequenceStart(MuxCommand):
                 caller.db.gm = False
                 caller.msg("You step down from being GM of this sequence.")
                 return
+            
+        if "set" in switches:
+            if not caller.db.gm:
+                caller.msg("You are not an active GM right now.")
+                return
+
+            if not args:
+                caller.msg("Set sequence beats to what number?")
+            else:
+                try: 
+                    beats = int(args)
+                except ValueError:
+                    caller.msg("Set beats as a whole number.")
+                    return
+                room.db.sequence_beats = beats
+                caller.location.msg_contents(f"{caller.name} advances the sequence! The sequence has {beats} beats remaining." )       
+                if (beats <= 0):
+                    room.db.sequence_beats = 0
+                    caller.location.msg_contents(f"The sequence is resolved!" )
+                    caller.msg("If you are active GM, remember to run +sequence/stop to clean up.")
+                return
 
         if not switches or "status" in switches:
             # if no switch provided, assume I'm looking for status and process this
+            if not room.db.sequence_beats:
+                caller.msg("No active sequence is happening here.")
+                return
+            
             text = ("Sequence Status: \n")
             text += ("GM:")
             # find all players here
@@ -688,14 +746,14 @@ class CmdSequenceStart(MuxCommand):
                 if char.db.gm: 
                     text += (f" {char}")
                 else:
-                    playerlist.append(char) 
+                    if not char.db.observer:
+                        playerlist.append(char) 
             text += ("\nPlayers:")
             for char in playerlist:
-                #all gms were removed above, this is everyone else.
+                #all gms and observers were removed above, this is everyone else.
                 text += (f" {char}")
  
-            #to add - beats remaining - may have to make django model for this
-            #to do - make sure observer status is honored
+            text += (f"\nBeats Remaining: {str(room.db.sequence_beats)}")
 
             caller.msg(text)
             return
