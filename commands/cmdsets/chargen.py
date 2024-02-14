@@ -86,9 +86,9 @@ class CmdStartChargen(MuxCommand):
     +chargen
     +createpc <name>
     +workchar <name>
-    +setstat/<namestat> <1-10> (for all 7 stats)
-    +setskill/<nameskill> <1-5> (for all 12 skills)
-    +setprofile/<attribute> <value> (for all 7 text attributes)
+    +setstat <namestat>=<1-10> (for all 7 stats)
+    +setskill <nameskill>=<1-5> (for all 12 skills)
+    +setprofile <attribute>=<value> (for all 7 text attributes)
     +setweapon <name> (for all weapons, including /primary and /secondary)
     +settemplate <name> (for the character's templates (not structured data))
     +setcapability <name> (for each capability to add)
@@ -750,97 +750,52 @@ class CmdSetProfileAttr(MuxCommand):
     For now just put all the skills in one list.
 
     Usage:
-      +setprofile/<attribute> <value>
+      +setprofile <attribute>=<value>
 
     """
     
     key = "setprofile"
     help_category = "Character"
     locks = "perm(Builder)"
-    alias = "+setprofile]"
-
-    '''
-    This works, but it's pretty sloppy and could really use a refactor.
-    '''
+    alias = "+setprofile"
 
     def func(self):
         "This performs the actual command"
-        errmsg = "Set value to what?"
         caller = self.caller
         character = caller.db.workingchar 
         if not character:
             caller.msg("You aren't working on an active character.")
             return
-        if "gender" in self.switches or "Gender" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.gender = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "type" in self.switches or "Type" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.type = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "quote" in self.switches or "Quote" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.quote = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "profile" in self.switches or "Profile" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.profile = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "game" in self.switches or "Game" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.game = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "function" in self.switches or "Function" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.function = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return
-        if "specialties" in self.switches or "Specialties" in self.switches:
-            if self.args:
-                text = self.args
-                character.db.specialties = self.args
-                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
-            else:
-                caller.msg(errmsg)
-            return 
-        if not self.args:
-            self.caller.msg("Not a valid attribute.")
-            return
-        else:
-            self.caller.msg("Not a valid attribute.")
-            return
-
-'''
         try:
-            text = self.args
-        except ValueError:
-            self.caller.msg("Not a valid attribute.")
+            attr = self.lhs.str.lower()
+            value = self.rhs
+        except:
+            caller.msg("Syntax error. See help setprofile.")
             return
-'''
+        if not value:
+            caller.msg("No value set. Please see help setprofile.")
+            return
+        
+        if attr == "gender":
+            character.db.gender = value 
+        if attr == "type":
+            character.db.type = value
+        if attr == "quote":
+            character.db.quote = value            
+        if attr == "profile":
+            character.db.profile = value            
+        if attr == "game":
+            character.db.game = value            
+        if attr == "function":
+            character.db.function = value             
+        if attr == "specialties":
+            character.db.specialties = value            
+        else:
+            caller.msg("Not a valid choice. See help setprofile.")
+            return 
+        #all checks passed
+        caller.msg(f"Profile Attribute {attr} was set to: {value}.")
+        return
         
 
 
@@ -1337,8 +1292,9 @@ class CmdFinishChargen(MuxCommand):
 
     """
     
-    key = "+finishchargen"
+    key = "finishchargen"
     help_category = "Character"
+    alias = "+finishchargen"
 
     def func(self):
         "This performs the actual command"
@@ -1379,6 +1335,71 @@ class CmdFinishChargen(MuxCommand):
             caller.msg("Char Creation Done. Make sure your character has stats and abilities set.")
         except ValueError:
             caller.msg(errmsg)
+            return
+        
+
+class AllWeaponSearch(MuxCommand):
+    """
+    This command allows you to see all weapons in the database.
+    You can search by name or type or view all.
+
+    This is only stubbed out! doesn't work yet.
+
+    Usage:
+      weaponlist
+      weaponlist/search
+      weaponlist/class <weapon class>
+      weaponlist/type <element>
+      weaponlist/all
+
+    The first command, weaponlist, will tell you how many weapons are in 
+    the database.
+
+    weaponlist/search searches to see if a weapon by a particular name
+    exists in the DB. It accepts partial matches. It will return all 
+    information about the weapon.
+
+    weaponlist/class and weaponlist/type will seach for weapons of the
+    specified class (ranged, melee, etc) or element type if searching
+    for type.
+
+    weaponlist/all returns the names of all weapons. It's spammy!
+
+    """
+    
+    key = ""
+    help_category = "Character"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        switches = self.switches
+
+        if not switches:
+            caller.msg("Number of weapons in DB:")
+            all_weapons = Weapon.objects.all()
+            return
+
+        if "all" in switches:
+            all_weapons = Weapon.objects.all()
+            return
+
+        #db weapon classes/elements are titlecase
+        #doesn't work, needs to ref the search function for integers. but stubbed out.
+        if "class" in switches:
+            text = self.args.str.title()
+            if not text:
+                caller.msg("Search for which class of weapon?")
+                return
+            weapons_of_class = Weapon.objects.filter(db_class__iexact=text)
+            return
+
+        if "type" in switches:
+            text = self.args.str.title()
+            if not text:
+                caller.msg("Search for which type of weapon?")
+                return
+            weapons_of_type = Weapon.objects.filter(db_type__iexact=text)
             return
 
 
