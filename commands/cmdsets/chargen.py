@@ -617,36 +617,49 @@ class CmdSetStat(MuxCommand):
             return
         try:
             stat = int(self.rhs)
-            stat_name = self.lhs.str.lower()
+            stat_name = self.lhs.lower()
         except ValueError:
             caller.msg(errmsg)
             return
         if not (1 <= stat <= 10):
             caller.msg(errmsg)
-            return
-        
+            return        
 
         # at this point the argument is tested as valid. Let's set it.
+
+        success = (f"The PC's {stat_name} was set to {stat}.")
         if stat_name == "power" or stat_name == "pow":
             character.db.pow = stat
+            caller.msg(success)
+            return
         if stat_name == "dexterity" or stat_name == "dex":
             character.db.dex = stat
+            caller.msg(success)
+            return
         if stat_name == "tenacity" or stat_name == "ten":
             character.db.ten = stat
+            caller.msg(success)
+            return
         if stat_name == "cunning" or stat_name == "cun":
             character.db.cun = stat
+            caller.msg(success)
+            return
         if stat_name == "education" or stat_name == "edu":
             character.db.edu = stat
+            caller.msg(success)
+            return
         if stat_name == "charisma" or stat_name == "chr":
             character.db.chr = stat
+            caller.msg(success)
+            return
         if stat_name == "aura" or stat_name == "aur":
             character.db.aur = stat
+            caller.msg(success)
+            return
         else:
             caller.msg("Not a valid entry for the stat.")
             return
 
-        caller.msg(f"The PC's {stat_name} was set to {stat}.")
-        return
 
 
 
@@ -674,7 +687,6 @@ class CmdSetSkills(MuxCommand):
     Presence
     Arcana
 
-
     """
     
     key = "setskill"
@@ -696,7 +708,8 @@ class CmdSetSkills(MuxCommand):
             return
         try:
             stat = int(self.rhs)
-            skill_name = self.lhs.str.lower()
+            skill_name = self.lhs.lower()
+            caller.msg(skill_name)
         except ValueError:
             caller.msg(errmsg)
             return
@@ -704,38 +717,59 @@ class CmdSetSkills(MuxCommand):
             caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
+        success = (f"The PC's {skill_name} was set to {stat}.")
         if skill_name == "discern":
             character.db.discern = stat
+            caller.msg(success)
+            return
         if skill_name == "aim":
             character.db.aim = stat
+            caller.msg(success)
+            return
         if skill_name == "athletics":
             character.db.althetics = stat
+            caller.msg(success)
+            return
         if skill_name == "force":
             character.db.force = stat
+            caller.msg(success)
+            return
         if skill_name == "mechanics":
             character.db.mechanics = stat
+            caller.msg(success)
+            return
         if skill_name == "medicine":
             character.db.medicine = stat
+            caller.msg(success)
+            return
         if skill_name == "computer":
             character.db.computer = stat
+            caller.msg(success)
+            return
         if skill_name == "stealth":
             character.db.stealth = stat
+            caller.msg(success)
+            return
         if skill_name == "heist":
             character.db.heist = stat
+            caller.msg(success)
+            return
         if skill_name == "convince":
             character.db.convince = stat
+            caller.msg(success)
+            return
         if skill_name == "presence":
             character.db.presence = stat
+            caller.msg(success)
+            return
         if skill_name == "arcana":
             character.db.arcana = stat
+            caller.msg(success)
+            return            
         else: 
             caller.msg("Not a valid skill entry.")
             return
         
-        caller.msg(f"The PC's {skill_name} was set to {stat}.")
-        return
-
-
 
 class CmdSetProfileAttr(MuxCommand):
     """
@@ -767,7 +801,7 @@ class CmdSetProfileAttr(MuxCommand):
             caller.msg("You aren't working on an active character.")
             return
         try:
-            attr = self.lhs.str.lower()
+            attr = self.lhs.lower()
             value = self.rhs
         except:
             caller.msg("Syntax error. See help setprofile.")
@@ -775,26 +809,40 @@ class CmdSetProfileAttr(MuxCommand):
         if not value:
             caller.msg("No value set. Please see help setprofile.")
             return
-        
+        success = (f"Profile Attribute {attr} was set to: {value}.")
         if attr == "gender":
-            character.db.gender = value 
+            character.db.gender = value
+            caller.msg(success)
+            return 
         if attr == "type":
             character.db.type = value
+            caller.msg(success)
+            return 
         if attr == "quote":
-            character.db.quote = value            
+            character.db.quote = value
+            caller.msg(success)
+            return    
         if attr == "profile":
-            character.db.profile = value            
+            character.db.profile = value
+            caller.msg(success)
+            return           
         if attr == "game":
-            character.db.game = value            
+            character.db.game = value
+            caller.msg(success)
+            return    
         if attr == "function":
-            character.db.function = value             
+            character.db.function = value
+            caller.msg(success)
+            return         
         if attr == "specialties":
-            character.db.specialties = value            
+            character.db.specialties = value
+            caller.msg(success)
+            return
         else:
             caller.msg("Not a valid choice. See help setprofile.")
             return 
         #all checks passed
-        caller.msg(f"Profile Attribute {attr} was set to: {value}.")
+        
         return
         
 
