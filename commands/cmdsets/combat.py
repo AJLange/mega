@@ -28,6 +28,8 @@ DUEL_MORALE = 100
 STANDARD_MORALE = 70
 HP_FACTOR = 60
 MORALE_FACTOR = 60
+CRIT_FACTOR = 1.5
+RESIST_FACTOR = 0.75
 
 
 def combat_reset(player):
@@ -921,11 +923,11 @@ class CmdAttack(MuxCommand):
                     if element:
                         if element == char.db.weakness:
                             outputmsg += (f"You hit a weakness! \n")
-                            damage = damage * 1.5
+                            damage = damage * CRIT_FACTOR
                     if element:
                         if element == char.db.resistance:
                             outputmsg += (f"You hit a resist! \n")
-                            damage = damage * 0.75
+                            damage = damage * RESIST_FACTOR
             
             if damage == 0:
                 outputmsg += (f"The attack misses." )
