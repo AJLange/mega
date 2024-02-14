@@ -102,9 +102,6 @@ class CmdStartChargen(MuxCommand):
     +player <character> = <player>
     to assign this character to a player account.
 
-    Armor modes, and characters with multiple power sets, are not working
-    in the pre-alpha build.
-
     Please note that if the database is reset, your working character is not
     reset, but you will lose access to +chargen commands.
 
