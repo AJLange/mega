@@ -588,8 +588,8 @@ class CmdSetStat(MuxCommand):
     Staff creating characters only.
 
     Usage:
-      +setstat/power <1-10>
-      +setstat/<namestat> <1-10> 
+      +setstat power=<1-10>
+      +setstat <namestat>=<1-10> 
 
 
     Stats in this system are 
@@ -611,37 +611,42 @@ class CmdSetStat(MuxCommand):
             caller.msg("You aren't working on an active character.")
             return
         errmsg = "You must supply a number between 1 and 10."
-        if not self.switches:
-            caller.msg("Set which stat?")
-            return
+
         if not self.args:
             caller.msg(errmsg)
             return
         try:
-            stat = int(self.args)
+            stat = int(self.rhs)
+            stat_name = self.lhs.str.lower()
         except ValueError:
             caller.msg(errmsg)
             return
         if not (1 <= stat <= 10):
             caller.msg(errmsg)
             return
-        # at this point the argument is tested as valid. Let's set it.
-        if "power" in self.switches:
-            character.db.pow = stat
-        if "dexterity" in self.switches:
-            character.db.dex = stat
-        if "tenacity" in self.switches:
-            character.db.ten = stat
-        if "cunning" in self.switches:
-            character.db.cun = stat
-        if "education" in self.switches:
-            character.db.edu = stat
-        if "charisma" in self.switches:
-            character.db.chr = stat
-        if "aura" in self.switches:
-            character.db.aur = stat
+        
 
-        caller.msg(f"The PC's {self.switches} was set to %i." % stat)
+        # at this point the argument is tested as valid. Let's set it.
+        if stat_name == "power" or stat_name == "pow":
+            character.db.pow = stat
+        if stat_name == "dexterity" or stat_name == "dex":
+            character.db.dex = stat
+        if stat_name == "tenacity" or stat_name == "ten":
+            character.db.ten = stat
+        if stat_name == "cunning" or stat_name == "cun":
+            character.db.cun = stat
+        if stat_name == "education" or stat_name == "edu":
+            character.db.edu = stat
+        if stat_name == "charisma" or stat_name == "chr":
+            character.db.chr = stat
+        if stat_name == "aura" or stat_name == "aur":
+            character.db.aur = stat
+        else:
+            caller.msg("Not a valid entry for the stat.")
+            return
+
+        caller.msg(f"The PC's {stat_name} was set to {stat}.")
+        return
 
 
 
@@ -651,8 +656,8 @@ class CmdSetSkills(MuxCommand):
     Staff creating characters only.
 
     Usage:
-      +setskill/Discern <1-5>
-      +setskill/<nameskill> <1-5> 
+      +setskill Discern=<1-5>
+      +setskill <nameskill>=<1-5> 
 
 
     Valid skills in this version are
@@ -684,47 +689,51 @@ class CmdSetSkills(MuxCommand):
         if not character:
             caller.msg("You aren't working on an active character.")
             return
-        errmsg = "You must supply a number between 1 and 10."
-        if not self.switches:
-            caller.msg("Set which skill?")
-            return
+        errmsg = "You must supply a number between 1 and 5."
+
         if not self.args:
             caller.msg(errmsg)
             return
         try:
-            stat = int(self.args)
+            stat = int(self.rhs)
+            skill_name = self.lhs.str.lower()
         except ValueError:
             caller.msg(errmsg)
             return
-        if not (1 <= stat <= 10):
+        if not (1 <= stat <= 5):
             caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
-        if "discern" in self.switches:
+        if skill_name == "discern":
             character.db.discern = stat
-        if "aim" in self.switches:
+        if skill_name == "aim":
             character.db.aim = stat
-        if "athletics" in self.switches:
+        if skill_name == "athletics":
             character.db.althetics = stat
-        if "force" in self.switches:
+        if skill_name == "force":
             character.db.force = stat
-        if "mechanics" in self.switches:
+        if skill_name == "mechanics":
             character.db.mechanics = stat
-        if "medicine" in self.switches:
+        if skill_name == "medicine":
             character.db.medicine = stat
-        if "computer" in self.switches:
+        if skill_name == "computer":
             character.db.computer = stat
-        if "stealth" in self.switches:
+        if skill_name == "stealth":
             character.db.stealth = stat
-        if "heist" in self.switches:
+        if skill_name == "heist":
             character.db.heist = stat
-        if "convince" in self.switches:
+        if skill_name == "convince":
             character.db.convince = stat
-        if "presence" in self.switches:
+        if skill_name == "presence":
             character.db.presence = stat
-        if "arcana" in self.switches:
+        if skill_name == "arcana":
             character.db.arcana = stat
-        caller.msg(f"The PC's {self.switches} was set to %i." % stat)
+        else: 
+            caller.msg("Not a valid skill entry.")
+            return
+        
+        caller.msg(f"The PC's {skill_name} was set to {stat}.")
+        return
 
 
 
