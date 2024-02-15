@@ -1320,7 +1320,62 @@ class CmdSetArmor(MuxCommand):
             caller.msg("Added an armor named: %s" % name)
         except:
             caller.msg("Sorry, some error occured.")
+
+
+class CmdWorkArmor(MuxCommand):
+    """
+    Use this command to adjust the stats on an existing armor mode.
+
+    Usage:
+      +workarmor <name of character>=<name of armor>
+
+    This will set your working character to the character specified
+    and adjust the stats on the armor specified. Use the existing 
+    character creation commands to do the stat adjustments.
+
+    """
+    
+    key = "workarmor"
+    help_category = "Character"
+    locks = "perm(Builder)"
+    alias = "+workarmor"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
         
+        errmsg = "Syntax error. See help +workarmor."
+
+        if not self.args:
+            caller.msg(errmsg)
+            return
+        armor = self.rhs
+        name = self.lhs
+
+        #TODO - split this into a function not copypasta
+        character = self.caller.search(name, global_search=True)
+        if not character:
+            caller.msg("Sorry, couldn't find that PC.")
+            return
+        if not inherits_from(character, settings.BASE_CHARACTER_TYPECLASS):
+            self.caller.msg("Sorry, couldn't find that PC.")
+            return    
+        
+        # announce
+        caller.db.workingchar = character
+        
+        message = "%s now working on the PC '%s'."
+        caller.msg(message % ("You're", name))
+        caller.location.msg_contents(message % (caller.key, name),
+                                                exclude=caller)
+
+        if not armor:
+            caller.msg(errmsg)
+            return
+        
+        working_armor = ArmorMode.objects.filter(db_name__iexact=armor)
+        # doesn't do anything yet, but working on it.
+        return
         
         
 
