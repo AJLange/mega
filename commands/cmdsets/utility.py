@@ -148,6 +148,108 @@ class CmdAWho(MuxCommand):
 
 #who from SCS. for now, this also is aliased to 'where', but that will change later.
 
+'''
+class CmdWho(COMMAND_DEFAULT_CLASS):
+    """
+    Syntax: 
+        who, +who                                                             
+        who <Name, Letters>                                    
+        who <Group>
+        doing                                                   
+
+
+        The 'who' command lists everyone online, their alias, location, idle time, 
+        connect time, and function. 
+        The who <Letters> will display only those online with the letters      
+        given; such as 'who t' would display everyone whose name starts with T.
+
+        The who <group> command will list only those on within that group.
+        (Ex. who R, who W)        
+
+        This allows you to see the location of online players. To see players 
+        sorted by location, use 'where'.
+
+    """
+
+    key = "who"
+    aliases = ["doing", "+who"]
+    locks = "cmd:all()"
+
+    # this is used by the parent
+    account_caller = True
+
+    def func(self):
+        """
+        Get all connected accounts by polling session.
+        """
+
+        account = self.account
+        session_list = SESSIONS.get_sessions()
+
+        session_list = sorted(session_list, key=lambda o: o.account.key)
+
+        if self.cmdstring == "doing":
+            show_session_data = False
+        else:
+            show_session_data = account.check_permstring("Developer") or account.check_permstring(
+                "Admins"
+            )
+
+        naccounts = SESSIONS.account_count()
+        if show_session_data:
+            # privileged info
+            table = self.styled_table(
+                "|wName",
+                "|wOn for",
+                "|wIdle",
+                "|wPlayer",
+                "|wRoom",
+                "|wCmds",
+                "|wProtocol",
+                "|wHost",
+            )
+            for session in session_list:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                location = puppet.location.key if puppet and puppet.location else "OOC-Idle"
+                table.add_row(
+                    utils.crop(puppet.get_display_name(account) if puppet else "OOC-Idle", width=25),
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.crop(location, width=25),
+                    session.cmd_total,
+                    session.protocol_key,
+                    isinstance(session.address, tuple) and session.address[0] or session.address,
+                )
+        else:
+            # unprivileged
+            table = self.styled_table("|wName, |wPlayer", "|wOn for", "|wIdle")
+            for session in session_list:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                table.add_row(
+                    utils.crop(puppet.get_display_name(account) if puppet else "OOC-Idle", width=25),
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                )
+        is_one = naccounts == 1
+        self.msg(
+            "|wAccounts:|n\n%s\n%s unique account%s logged in."
+            % (table, "One" if is_one else naccounts, "" if is_one else "s")
+        )
+'''
+
 class CmdWho(MuxCommand):
     """
     list who is currently online
@@ -158,12 +260,11 @@ class CmdWho(MuxCommand):
       where
       
     Shows who is currently online. Doing is an alias that limits info
-    also for those with all permissions. Modified to allow players to see
-    the locations of other players and add a "where" alias.
+    also for those with all permissions. Is this what is this
     """
 
     key = "who"
-    aliases = ["doing", "where"]
+    aliases = ["doing",]
     locks = "cmd:all()"
 
     # this is used by the parent
@@ -245,6 +346,100 @@ class CmdWho(MuxCommand):
             % (table, "One" if is_one else naccounts, "" if is_one else "s")
         )
 
+
+class CmdWhere(MuxCommand):
+    """
+    list locations of players online.
+
+    Usage:
+      where
+
+    Where allows you to see locations where players are currently on the game.
+    Public locations and hangouts that are teleport-OK will be highlighted in 
+    blue to make it easy to see.
+
+    """
+
+    key = "where"
+    aliases = ["+where"]
+    locks = "cmd:all()"
+
+    # this is used by the parent
+    account_caller = True
+    help_category = "General"
+
+
+    def func(self):
+        """
+        'Where' doesn't check for special privs, just shows locations.
+        """
+
+        account = self.account
+        all_sessions = SESSIONS.get_sessions()
+
+        all_sessions = sorted(all_sessions, key=lambda o: o.account.key) # sort sessions by account name
+        pruned_sessions = prune_sessions(all_sessions)
+        # to-do: what if I'm not logged in, use Guest permissions
+        if self.cmdstring == "doing":
+            show_session_data = False
+        else:
+           show_session_data = account.check_permstring("Developer") or account.check_permstring(
+               "Admins"
+           )
+
+        naccounts = SESSIONS.account_count()
+        if show_session_data:
+            # privileged info
+            table = self.styled_table(
+                "|wAccount Name",
+                "|wOn for",
+                "|wIdle",
+                "|wPuppeting",
+                "|wRoom",
+                "|wCmds",
+                "|wProtocol",
+                "|wHost",
+            )
+            for session in all_sessions:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                location = puppet.location.key if puppet and puppet.location else "None"
+                table.add_row(
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                    utils.crop(puppet.get_display_name(account) if puppet else "None", width=25),
+                    utils.crop(location, width=35),
+                    session.cmd_total,
+                    session.protocol_key,
+                    isinstance(session.address, tuple) and session.address[0] or session.address,
+                )
+        else:
+            # unprivileged
+            table = self.styled_table("|wAccount name", "|wOn for", "|wIdle", "|wRoom")
+            for session in pruned_sessions:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                location = puppet.location.key if puppet and puppet.location else "None"
+                table.add_row(
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                    utils.crop(location, width=35),
+                )
+        is_one = naccounts == 1
+        self.msg(
+            "|wAccounts:|n\n%s\n%s unique account%s logged in."
+            % (table, "One" if is_one else naccounts, "" if is_one else "s")
+        )
 
 class CmdWall(MuxCommand):
     """
@@ -360,18 +555,6 @@ class CmdListStaff(MuxCommand):
                 obname = CmdWho.format_pname(ob)
                 table.add_row(obname, ob.db.staff_role or "", timestr)
             caller.msg("{wOnline staff:{n\n%s" % table)
-
-'''
-class CmdXWho(MuxCommand):
-    """
-    xwho
-    Usage:
-        xwho
-    Factional Who.
-    Implimentation on hold until we know what groups are, just making a note of it.
-    """
-
-'''
 
 
 class CmdICTime(Command):

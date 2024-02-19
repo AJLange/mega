@@ -29,9 +29,9 @@ from commands.cmdsets.mail import CmdMail, CmdMailCharacter
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal, CmdTidyUp
 from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus
 from commands import command
-from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
+from commands.default.account import CmdOOC, CmdOOCLook, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack, CmdGenericAtk, CmdShowdown
-from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad, CmdCreateGameRoster
+from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad, CmdCreateGameRoster, CmdXWho
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
@@ -41,7 +41,7 @@ from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs, CmdCreateFile, CmdCh
 
 
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
-from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight, CmdAWho
+from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight, CmdAWho, CmdWhere
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 # from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
@@ -118,6 +118,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         self.add(CmdMailCharacter())
         self.add(CmdHighlight())
+        self.add(CmdXWho())
 
         self.add(CmdICTime())
         self.add(CmdWarning())
@@ -217,10 +218,12 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-        self.add(CmdWho())
+        
         self.add(CmdOOCLook())
         self.add(CmdOOC())
         self.add(CmdMail())
+        self.add(CmdWhere())
+        self.add(CmdWho())
 
 
         #self.add(CmdChannelCreate())

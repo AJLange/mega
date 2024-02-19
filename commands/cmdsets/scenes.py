@@ -27,23 +27,6 @@ BEATS_MULTI = 3
 
 # from evennia import default_cmds
 
-def add_participant_to_scene(character, scene):
-    '''
-    Given a character, checks the given scene's participants for that character and, if
-    NOT present, adds the character as a participant to the scene.
-    '''
-
-    if scene.participants.filter(pk=character.id):
-        return
-
-    scene.participants.add(character)
-
-# Borrowing these functions from SCSMUSH autologger with permission
-# text replacement function stolen from https://stackoverflow.com/questions/919056/case-insensitive-replace
-def ireplace(old, repl, text):
-    # This function is used in highlight_names to replace names: it is not case sensitive but maintains case.
-    return re.sub('(?i)'+re.escape(old), lambda m: repl, text)
-
 def prune_sessions(session_list):
     # This function modifies the display of "who" and "+pot" so that, if the same player is connected from multiple
     # devices, their character name is only displayed once to avoid confusion. Admin still see all connected sessions.
@@ -69,6 +52,24 @@ def prune_sessions(session_list):
         pruned_sessions.append(session_list[pos])
 
     return pruned_sessions
+
+def add_participant_to_scene(character, scene):
+    '''
+    Given a character, checks the given scene's participants for that character and, if
+    NOT present, adds the character as a participant to the scene.
+    '''
+
+    if scene.participants.filter(pk=character.id):
+        return
+
+    scene.participants.add(character)
+
+# Borrowing these functions from SCSMUSH autologger with permission
+# text replacement function stolen from https://stackoverflow.com/questions/919056/case-insensitive-replace
+def ireplace(old, repl, text):
+    # This function is used in highlight_names to replace names: it is not case sensitive but maintains case.
+    return re.sub('(?i)'+re.escape(old), lambda m: repl, text)
+
 
 def highlight_names(source_character, in_string, self_color, others_color):
     # This function is used in tailored_msg.
