@@ -27,7 +27,7 @@ from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, Cmd
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdPortal, CmdTidyUp
-from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus
+from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus, CmdAllWeaponSearch
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack, CmdGenericAtk, CmdShowdown
@@ -198,6 +198,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCheckJobs())
         self.add(CmdCreateFile())
         self.add(CmdCreateGameRoster())
+        self.add(CmdAllWeaponSearch())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):

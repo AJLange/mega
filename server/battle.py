@@ -265,7 +265,15 @@ def get_element_text(num):
     num = int(num)
     element_list = ["None", "Slashing", "Piercing", "Electric", "Explosive", "Fire", "Gravity", "Air", "Ice", "Toxic", "Blunt", "Quake", "Karate", "Sonic", "Time", "Wood", "Water", "Plasma", "Laser", "Light", "Darkness", "Psycho", "Chi", "Disenchant"]
     return element_list[num]
-
+ 
+def get_all_elements(weapon):
+    elements_list = []
+    elements_list.append(weapon.db_type_1)
+    if weapon.db_type_2:
+        elements_list.append(weapon.db_type_2)
+    if weapon.db_type_3:
+        elements_list.append(weapon.db_type_3)
+    return elements_list
 
 '''
 attack rolls
@@ -329,7 +337,16 @@ def get_effect_text(num):
         num == 0
     num = int(num)
     element_list = ["None", "Megablast", "Exceed", "Priority", "Stable", "Blind", "Degrade", "Entangle"]
-    return element_list[num]
+    string_value = str(element_list[num])
+    return string_value
+
+def get_all_flags(weapon):
+    fx_list = []
+    fx_list.append(weapon.db_flag_1)
+    if weapon.db_flag_2:
+        fx_list.append(weapon.db_flag_2)
+    return fx_list
+
 
 def calc_damage(target,attacker):
     damage = randint(1,10)

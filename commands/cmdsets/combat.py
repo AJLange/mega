@@ -633,7 +633,7 @@ class CmdAim(Command):
 
     def func(self):
         
-        errmsg = "An error occured."
+        errmsg = "An error occured. Contact an administrator to debug this."
         
         caller= self.caller
         sniper = False

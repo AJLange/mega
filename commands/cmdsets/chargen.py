@@ -18,7 +18,7 @@ from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
 from world.combat.models import Weapon
 from world.armor.models import ArmorMode, Capability
-from server.battle import process_elements, process_attack_class, process_effects
+from server.battle import process_elements, process_attack_class, process_effects, get_all_elements, get_all_flags, get_element_text, get_effect_text, get_class_text
 
 
 '''
@@ -1438,7 +1438,7 @@ class CmdFinishChargen(MuxCommand):
             return
         
 
-class AllWeaponSearch(MuxCommand):
+class CmdAllWeaponSearch(MuxCommand):
     """
     This command allows you to see all weapons in the database.
     You can search by name or type or view all.
@@ -1447,13 +1447,13 @@ class AllWeaponSearch(MuxCommand):
 
     Usage:
       weaponlist
-      weaponlist/search
+      weaponlist/search <name>
       weaponlist/class <weapon class>
       weaponlist/type <element>
       weaponlist/all
 
     The first command, weaponlist, will tell you how many weapons are in 
-    the database.
+    the database. 
 
     weaponlist/search searches to see if a weapon by a particular name
     exists in the DB. It accepts partial matches. It will return all 
@@ -1467,8 +1467,9 @@ class AllWeaponSearch(MuxCommand):
 
     """
     
-    key = ""
+    key = "weaponlist"
     help_category = "Character"
+    aliases = ["+weaponlist"]
 
     def func(self):
         "This performs the actual command"
@@ -1476,31 +1477,125 @@ class AllWeaponSearch(MuxCommand):
         switches = self.switches
 
         if not switches:
-            caller.msg("Number of weapons in DB:")
             all_weapons = Weapon.objects.all()
+            
+            num =  len(all_weapons)
+            caller.msg(f"Number of weapons in DB: {num}") 
             return
 
         if "all" in switches:
+            caller.msg("List of all weapons:")
             all_weapons = Weapon.objects.all()
+            text = ""
+            for weapon in all_weapons:
+                text = text + (f"{weapon.db_name}, ")
+                            
+            caller.msg(text)
             return
 
-        #db weapon classes/elements are titlecase
-        #doesn't work, needs to ref the search function for integers. but stubbed out.
+        
         if "class" in switches:
-            text = self.args.str.title()
+            text = self.args.upper()
             if not text:
                 caller.msg("Search for which class of weapon?")
                 return
-            weapons_of_class = Weapon.objects.filter(db_class__iexact=text)
+            val = process_attack_class(text)
+            weapons_of_class = Weapon.objects.filter(db_class__iexact=val)
+            table = self.styled_table(
+                "|wName",
+                "|wClass",
+                "|wElements",
+                "|wFlags",
+            )
+            for weapon in weapons_of_class:
+                    elements = get_all_elements(weapon)
+                    element_text = ""
+
+                    flag_text = ""
+                    for e in elements:
+                        element_text = element_text + get_element_text(e)
+                    if weapon.db_flag_1:
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_1)
+                    if weapon.db_flag_2:
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_2)
+
+                    table.add_row(
+                        weapon.db_name,
+                        text,
+                        element_text,
+                        flag_text,
+                    )
+            caller.msg(table)
             return
 
         if "type" in switches:
-            text = self.args.str.title()
+            text = self.args.upper()
             if not text:
-                caller.msg("Search for which type of weapon?")
+                caller.msg("Search for which elements?")
                 return
-            weapons_of_type = Weapon.objects.filter(db_type__iexact=text)
+            val = process_elements(text)
+
+            weapons_of_type1 = Weapon.objects.filter(db_type_1__iexact=val)
+            weapons_of_type2 = Weapon.objects.filter(db_type_2__iexact=val)
+            weapons_of_type3 = Weapon.objects.filter(db_type_3__iexact=val)
+            #union of all queries to catch all results
+            weapons_of_type = weapons_of_type1 | weapons_of_type2 | weapons_of_type3
+            if not weapons_of_type:
+                    caller.msg("No matches found.")
+                    return
+            caller.msg("Matching weapons:")
+            table = self.styled_table(
+                "|wName",
+                "|wClass",
+                "|wElements",
+                "|wFlags",
+            )
+            for weapon in weapons_of_type:
+                elements = get_all_elements(weapon)
+                element_text = ""                    
+                flag_text = ""
+                if weapon.db_flag_1:
+                    flag_text = flag_text + get_effect_text(weapon.db_flag_1)
+                if weapon.db_flag_2:
+                    flag_text = flag_text + get_effect_text(weapon.db_flag_2)
+                for e in elements:
+                    element_text = element_text + get_element_text(e)
+
+                table.add_row(
+                        weapon.db_name,
+                        get_class_text(weapon.db_class),
+                        element_text,
+                        flag_text,
+                    )
+            caller.msg(table)
             return
+        
+        if "search" in switches:
+            if not self.args:
+                caller.msg("Which weapon?")
+                return
+            else:
+                weapons = Weapon.objects.filter(db_name__contains=self.args)
+                if not weapons:
+                    caller.msg("Weapon not found.")
+                    return
+                caller.msg("Matching weapons:")
+                for weapon in weapons:
+                    elements = get_all_elements(weapon)
+                    element_text = ""                    
+                    flag_text = ""
+                    if weapon.db_flag_1:
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_1)
+                    if weapon.db_flag_2:
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_2)
+                    for e in elements:
+                        element_text = element_text + get_element_text(e)
+
+                    wclass = get_class_text(weapon.db_class)
+
+                    caller.msg(f"{weapon.db_name}: {wclass} {element_text} {flag_text}")
+                return
+            
 
 
 class ChargenCmdset(CmdSet):
