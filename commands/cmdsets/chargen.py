@@ -1470,6 +1470,7 @@ class CmdAllWeaponSearch(MuxCommand):
     key = "weaponlist"
     help_category = "Character"
     aliases = ["+weaponlist"]
+    locks = "perm(Builder)"
 
     def func(self):
         "This performs the actual command"
