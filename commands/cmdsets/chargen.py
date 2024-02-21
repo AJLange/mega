@@ -1328,10 +1328,19 @@ class CmdWorkArmor(MuxCommand):
 
     Usage:
       +workarmor <name of character>=<name of armor>
+      +workarmor/finish
 
     This will set your working character to the character specified
     and adjust the stats on the armor specified. Use the existing 
     character creation commands to do the stat adjustments.
+
+    Please note that while you are doing this work, this command will
+    force that character to transform to the armor specified. It's best
+    to do work on a character that is not currently in a scene.
+
+    If you do not type +workarmor/finish when you are done, changes
+    made will be temporary and will not be saved to the database.
+    Don't forget it!
 
     """
     
@@ -1372,9 +1381,12 @@ class CmdWorkArmor(MuxCommand):
         if not armor:
             caller.msg(errmsg)
             return
-        
+        caller.msg("You are adjusting an active armor mode. Do not forget to +workarmor/finish to update the database when done!")
         working_armor = ArmorMode.objects.filter(db_name__iexact=armor)
         # doesn't do anything yet, but working on it.
+
+        if "finish" in self.switches:
+            working_armor[1].save() 
         return
         
         
@@ -1514,11 +1526,11 @@ class CmdAllWeaponSearch(MuxCommand):
 
                     flag_text = ""
                     for e in elements:
-                        element_text = element_text + get_element_text(e)
+                        element_text = element_text + get_element_text(e) + " "
                     if weapon.db_flag_1:
-                        flag_text = flag_text + get_effect_text(weapon.db_flag_1)
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_1) + " "
                     if weapon.db_flag_2:
-                        flag_text = flag_text + get_effect_text(weapon.db_flag_2)
+                        flag_text = flag_text + get_effect_text(weapon.db_flag_2) + " "
 
                     table.add_row(
                         weapon.db_name,
@@ -1556,11 +1568,11 @@ class CmdAllWeaponSearch(MuxCommand):
                 element_text = ""                    
                 flag_text = ""
                 if weapon.db_flag_1:
-                    flag_text = flag_text + get_effect_text(weapon.db_flag_1)
+                    flag_text = flag_text + get_effect_text(weapon.db_flag_1) + " "
                 if weapon.db_flag_2:
-                    flag_text = flag_text + get_effect_text(weapon.db_flag_2)
+                    flag_text = flag_text + get_effect_text(weapon.db_flag_2) 
                 for e in elements:
-                    element_text = element_text + get_element_text(e)
+                    element_text = element_text + get_element_text(e) + " "
 
                 table.add_row(
                         weapon.db_name,
