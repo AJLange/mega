@@ -31,6 +31,7 @@ from commands.cmdsets.chargen import CmdUnPlayer, CmdSetPlayer, CmdFCStatus, Cmd
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate, CmdHPDisplay, CmdAttack, CmdGenericAtk, CmdShowdown
+from commands.cmdsets.capabilities import CmdWeaponCopy
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups, CmdFCList, CmdCreateGroup, CmdCreateSquad, CmdCreateGameRoster, CmdXWho
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior

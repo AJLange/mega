@@ -4,7 +4,6 @@ Combat Related Commands
 """
 
 from calendar import c
-from evennia import CmdSet
 from commands.command import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
@@ -15,7 +14,7 @@ from evennia.utils.utils import inherits_from
 from django.conf import settings
 from world.combat.models import Weapon, GenericAttack
 from world.armor.models import ArmorMode, Capability
-#from typeclasses.characters import set_initial_combat
+
 
 
 '''
@@ -1460,58 +1459,3 @@ class CmdRollSet(MuxCommand):
 
 
 
-class CmdWeaponCopy(MuxCommand):
-    """
-    Copy the weapon of your target.
-
-    Usage:
-      wcopy <target>
-
-    If you have a weapon copy ability, this copies the weapon of the target.
-    What weapon you copy depends on if you copy primarily ranged, or primarily melee weapons.
-    This will be on your sheet as either Buster-Copy or Technique-Copy.
-
-    Copied weapons will be listed on your weapon sheet automatically.
-
-    """
-    
-    key = "wcopy"
-    aliases = ["+wcopy", "buster","+buster"]
-    help_category = "Dice"
-    locks = "perm(Player))"
-
-    def func(self):
-        '''
-        To-do: this command should not show up if you can't do it.
-        check permission locks on how to achieve this.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        args = self.args
-        caller.msg("Initiating weapon copy.")
-        if not args:
-            caller.msg("Copy whose weapon?")
-            return
-        
-        if not check_not_ko(caller):
-            caller.msg("You are KOed!")
-            return
-        
-        try:
-            
-            char = caller.search(char, global_search=False)
-            if not char:
-                caller.msg("No target.")
-                return
-            if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
-                caller.msg("No target.")
-                return
-
-            #process attack copy code
-            new_weapon = copy_attack(char,caller)
-
-
-        except ValueError:
-            caller.msg(errmsg)
-            return
