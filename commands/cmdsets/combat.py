@@ -725,6 +725,7 @@ class CmdAttack(MuxCommand):
     Usage:
       attack <target>=<weapon>
       attack <target>
+      attack/final <target>=<weapon>
 
     This will allow you to attack a target with a weapon you have equipped.
 
@@ -747,6 +748,12 @@ class CmdAttack(MuxCommand):
     "Rock attacks Bass with Charged Shot (Mega Buster)!"
 
     Flavor text is optional and has zero impact on the attack rolls.
+
+    attack/final is a last-ditch attempt for a more powerful attack, usually
+    used at the end of a fight. It will always crit (do more damage), but will
+    also guarantee that you will be hit if an attack is directed at you the 
+    following round. Only one final attack can be used per combat.
+
     For more information check 'help combat'.
 
     """
@@ -760,6 +767,7 @@ class CmdAttack(MuxCommand):
 
         errmsg = "Sorry, an error occured."
         caller= self.caller
+        switches = self.switches
         
         if not self.args:
             caller.msg("Attack who?")
@@ -782,7 +790,6 @@ class CmdAttack(MuxCommand):
 
     
             char = self.caller.search(target, global_search=False)
-
 
             target_ok = check_valid_target(char)
             if not target_ok:
@@ -876,7 +883,7 @@ class CmdAttack(MuxCommand):
                 else:
                     #right now defending gives 2x tenacity skill, may change
                     target_defense = int(target_defense * 2)
-            
+
             #TODO - check - is the target being defended by anyone else?
             #if so, high chance of redirecting this attack.
             #higher if you have bodyguard
@@ -901,10 +908,10 @@ class CmdAttack(MuxCommand):
             caller.msg(f"You attack {char.name} with {weapon.db_name}.")
 
             outputmsg = (f"{caller.name} rolls to attack with {weapon_string}: {str_result} \n" )
-            outputmsg += (f"{target.name} defends with: {str_dodge}. \n" )
+            
+            #primitive first draft damage calc. do better later.
+            #TODO - no dodge roll if reckless target.
 
-
-            #primitive first draft damage calc
             damage = 0
             for die in result:
                 damage = damage + int(die)
@@ -915,17 +922,32 @@ class CmdAttack(MuxCommand):
             if damage < 0:
                 damage = 0
 
+            #final attack damage
+            if "final" in switches:
+                damage = damage * 1.5
+                caller.db.reckless = True
+                outputmsg += (f"They're giving it their all!\n" )
+            else:
+                caller.db.reckless = False
+
+            if target.db.reckless:
+                #reckless targets can't defend.
+                target_defense = 0
+                outputmsg += (f"{target.name} used a final strike and can't defend! \n" )
+            else:           
+                outputmsg += (f"{target.name} defends with: {str_dodge}. \n" ) 
+
             #skip element check for generic weapons
             if not weapon_generic:
                 weapon_elements = [weapon.db_type_1, weapon.db_type_2, weapon.db_type_3]
                 for element in weapon_elements:
                     if element:
                         if element == char.db.weakness:
-                            outputmsg += (f"You hit a weakness! \n")
+                            outputmsg += (f"It hit a weakness! \n")
                             damage = damage * CRIT_FACTOR
                     if element:
                         if element == char.db.resistance:
-                            outputmsg += (f"You hit a resist! \n")
+                            outputmsg += (f"It hit a resist! \n")
                             damage = damage * RESIST_FACTOR
             
             if damage == 0:

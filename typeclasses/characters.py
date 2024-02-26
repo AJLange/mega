@@ -226,6 +226,7 @@ class Character(DefaultCharacter):
         self.db.morale = 70
         self.db.active_weapon = "None"
         self.db.defending = 0
+        self.db.reckless = False
         return
     
     def get_all_armors(self):
