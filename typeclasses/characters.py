@@ -55,6 +55,7 @@ class Character(DefaultCharacter):
         self.db.roomquota = 10
         self.db.craftquota = 10
         self.db.cookiequota = 5
+        self.db.cookiedpersons = []
 
         self.db.weakness = 0
         self.db.resistance = 0

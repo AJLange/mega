@@ -193,10 +193,17 @@ class WeeklyEvents(Script):
 
     def at_script_creation(self):
         "called only when the object is first created"
+        self.key = "weekly_cookies"
+        self.desc = "The script that restores cookies and archives jobs."
+        
         self.interval = 3600 * 24 * 7 #hour times day times week
         self.persistent = True
 
     def at_repeat(self):
+        for sess in SESSION_HANDLER.get_sessions():
+            account = sess.get_account()
+            if account:
+                sess.msg(f"ATTN: Weekly cookie reset is now occuring.")
         char = Character.objects.all()
         self.reset_votes(char)
         self.archive_jobs(char)
@@ -205,6 +212,7 @@ class WeeklyEvents(Script):
         #do the thing
         for c in char:
             c.db.cookiequota = 5
+            c.db.cookiedpersons = []
         return
     
     def archive_jobs(char):

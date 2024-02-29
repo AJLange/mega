@@ -722,6 +722,7 @@ class CmdCookie(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
+        persons = caller.db.cookiedpersons
         if not self.args:
             caller.msg("Give cookie to who?")
             return
@@ -740,10 +741,15 @@ class CmdCookie(MuxCommand):
         if (caller.db.cookiequota < 1):
             caller.msg("Sorry, you are out of cookies!")
             return
+        for p in persons:
+            if char == p:
+                caller.msg("You've already cookied that person this week.")
+                return
         try:
             caller.msg(f"You give {char.name} a cookie!")
             char.db.cookiecount += 1
             caller.db.cookiequota -= 1
+            caller.db.cookiedpersons.append(char)
         except ValueError:
             caller.msg("Some error occured.")
             return

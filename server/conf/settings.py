@@ -94,8 +94,14 @@ GLOBAL_SCRIPTS = {
         "typeclass": "typeclasses.scripts.SaveScript",
         "repeats": -1,
         "interval": 60 *60,
-        "desc": "Regular message script"
-    }
+        "desc": "Hourly messages"
+    },
+        "weekly_cookies": {
+        "typeclass": "typeclasses.scripts.WeeklyEvents",
+        "repeats": -1,
+        "interval": 3600 * 24 * 7,
+        "desc": "Cookies and Jobs"
+    },
 }
 
 
