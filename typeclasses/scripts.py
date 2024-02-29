@@ -21,7 +21,14 @@ from evennia.server.models import ServerConfig
 from evennia.server.sessionhandler import SESSION_HANDLER, SESSIONS
 from datetime import datetime, timedelta
 from typeclasses.bboard import BBoard
+from typeclasses.characters import Character
 from typeclasses.accounts import Account
+
+
+
+def get_all_boards():
+
+    return
 
 
 class Script(DefaultScript):
@@ -190,15 +197,19 @@ class WeeklyEvents(Script):
         self.persistent = True
 
     def at_repeat(self):
-        self.reset_votes()
-        self.archive_jobs()
+        char = Character.objects.all()
+        self.reset_votes(char)
+        self.archive_jobs(char)
 
-    def reset_votes():
+    def reset_votes(char):
         #do the thing
+        for c in char:
+            c.db.cookiequota = 5
         return
     
-    def archive_jobs():
+    def archive_jobs(char):
         #for all active jobs
+        #do the thing
         return
 
 

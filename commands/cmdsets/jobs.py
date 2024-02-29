@@ -231,7 +231,7 @@ class CmdRequest(MuxCommand):
     key = "request"
     aliases = ["requests", "+request","+requests"]
     help_category = "Requests"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         """Implement the command"""
@@ -338,7 +338,7 @@ class CmdCheckJobs(MuxCommand):
     key = "job"
     aliases = ["jobs","job", "+job"]
     help_category = "Requests"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
     
     def close_ticket(self, number):
         caller = self.caller
@@ -556,7 +556,7 @@ class CmdCheckFiles(MuxCommand):
     key = "file"
     aliases = ["files","+file","+files"]
     help_category = "Requests"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         
@@ -696,7 +696,7 @@ class CmdCreateFile(MuxCommand):
     key = "writefile"
     aliases = ["+writefile"]
     help_category = "Requests"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
 
     # write these searches
     def find_keyword(self, word):

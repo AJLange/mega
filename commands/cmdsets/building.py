@@ -54,7 +54,7 @@ class CmdMakeCity(MuxCommand):
     key = "makecity"
     aliases = "+makecity"
     help_category = "Building"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
 
     def func(self):
         """Implements command"""
@@ -122,7 +122,7 @@ class CmdLinkTeleport(MuxCommand):
 
     key = "portalgrid"
     aliases = "+portalgrid"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
     help_category = "Building"
 
     def func(self):
@@ -625,7 +625,7 @@ class CmdSetProtector(MuxCommand):
 
     key = "setprotector"
     aliases = "+setprotector"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
     help_category = "Building"
     
 
@@ -696,7 +696,7 @@ class CmdClearProtector(MuxCommand):
 
     key = "rmprotector"
     aliases = "+rmprotector"
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
     help_category = "Building"
     
 

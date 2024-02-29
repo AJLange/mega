@@ -34,7 +34,7 @@ class CmdWeaponCopy(MuxCommand):
     key = "wcopy"
     aliases = ["+wcopy", "buster","+buster"]
     help_category = "Dice"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''
@@ -103,7 +103,7 @@ class CmdEmulate(MuxCommand):
     key = "emulate"
     aliases = ["+emulate"]
     help_category = "Powers"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''
@@ -170,7 +170,7 @@ class CmdCrossfuse(MuxCommand):
     key = "mimic"
     aliases = ["+mimic"]
     help_category = "Powers"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''
@@ -223,7 +223,7 @@ class CmdAuraRead(MuxCommand):
     key = "auraread"
     aliases = ["+auraread"]
     help_category = "Powers"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''
@@ -266,7 +266,7 @@ class CmdRequisition(MuxCommand):
     key = "requisition"
     aliases = ["+requisition"]
     help_category = "Powers"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''
@@ -296,7 +296,7 @@ class CmdCommandeer(MuxCommand):
     key = "commandeer"
     aliases = ["+commandeer"]
     help_category = "Powers"
-    locks = "perm(Player))"
+    locks = "perm(Player)"
 
     def func(self):
         '''

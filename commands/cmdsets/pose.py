@@ -1086,7 +1086,7 @@ class CmdSetSpoof(MuxCommand):
 
     key = "nospoof"
     aliases = ["+nospoof", "spoof", "+spoof"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "Social"
 
     def func(self):

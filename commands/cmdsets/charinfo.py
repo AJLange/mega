@@ -487,7 +487,7 @@ class CmdSheet(BaseCommand):
         """
         key = "stats"
         aliases = ["+stats", "sheet", "+sheet"]
-        locks = "perm(Player))"
+        locks = "perm(Player)"
         help_category = "General"
 
         def func(self):
@@ -568,7 +568,7 @@ class CmdCheckWeapons(MuxCommand):
 
         key = "weapons"
         aliases = ["+weapons", "weapon", "+weapon"]
-        locks = "perm(Player))"
+        locks = "perm(Player)"
         help_category = "General"
 
         def func(self):
@@ -652,7 +652,7 @@ class CmdWeaponDesc(MuxCommand):
 
     key = "weapondesc"
     aliases = ["+weapondesc", "wdesc", "+wdesc"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "General"
 
     def func(self):
@@ -716,31 +716,36 @@ class CmdCookie(MuxCommand):
 
     key = "cookie"
     aliases = ["+cookie", "vote", "+vote"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "Rewards"
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
         if not self.args:
-            self.caller.msg("Give cookie to who?")
+            caller.msg("Give cookie to who?")
             return
         
         # find a player in the db who matches this string
         char_string = self.args.strip()
-        char = self.caller.search(char_string, global_search=True)
+        char = caller.search(char_string, global_search=True)
 
         #make sure this is a valid player!
         if not char:
-            self.caller.msg("Character not found.")
+            caller.msg("Character not found.")
             return
         if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
-            self.caller.msg("Character not found.")
-            return    
+            caller.msg("Character not found.")
+            return
+        if (caller.db.cookiequota < 1):
+            caller.msg("Sorry, you are out of cookies!")
+            return
         try:
-            self.caller.msg(f"You give {char.name} a cookie!")
+            caller.msg(f"You give {char.name} a cookie!")
             char.db.cookiecount += 1
+            caller.db.cookiequota -= 1
         except ValueError:
-            self.caller.msg("Some error occured.")
+            caller.msg("Some error occured.")
             return
 
 
@@ -769,7 +774,7 @@ class CmdDecompileMe(MuxCommand):
 
     key = "decompile"
     aliases = ["+decompile"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "General"
 
     def func(self):
@@ -791,7 +796,7 @@ class CmdCookieCounter(MuxCommand):
 
     key = "tally"
     aliases = ["+tally", "checkcookies", "+checkcookies"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "Rewards"
 
     def func(self):
@@ -812,7 +817,7 @@ class CmdCookiemonsters(MuxCommand):
     """
     key = "100check"
     aliases = ["+100check", "monsters", "+monsters"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "Rewards"
 
     def func(self):
@@ -831,7 +836,7 @@ class CmdCookieBomb(MuxCommand):
     """
     key = "cookiebomb"
     aliases = ["+cookiebomb"]
-    locks = "cmd:all()"
+    locks = "perm(Builder)"
     help_category = "Admin"
 
     def func(self):
@@ -859,7 +864,7 @@ class CmdCookieMsg(MuxCommand):
 
     key = "cookiemsg"
     aliases = ["+cookiemsg"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "Rewards"
 
     def func(self):
@@ -902,7 +907,7 @@ class CmdShowMyToggles(MuxCommand):
     """
     key = "toggles"
     aliases = ["+toggles"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "General"
 
     def func(self):

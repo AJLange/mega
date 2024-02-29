@@ -83,7 +83,7 @@ class CmdMail(default_cmds.MuxAccountCommand):
 
     key = "@mail"
     aliases = ["mail"]
-    locks = "perm(Player))"
+    locks = "perm(Player)"
     help_category = "General"
 
     def parse(self):

@@ -59,7 +59,7 @@ class CmdAWho(MuxCommand):
 
     key = "awho"
     aliases = ["allwho"]
-    locks = "perm(Builder))"
+    locks = "perm(Builder)"
 
     # this is used by the parent
     account_caller = True
