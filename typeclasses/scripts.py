@@ -14,6 +14,14 @@ just overloads its hooks to have it perform its function.
 
 from evennia import DefaultScript
 import random
+# from evennia import DefaultRoom, TICKER_HANDLER
+from evennia import GLOBAL_SCRIPTS
+from evennia.utils import create
+from evennia.server.models import ServerConfig
+from evennia.server.sessionhandler import SESSION_HANDLER, SESSIONS
+from datetime import datetime, timedelta
+from typeclasses.bboard import BBoard
+from typeclasses.accounts import Account
 
 
 class Script(DefaultScript):
@@ -146,3 +154,82 @@ class WeightedPicker(object):
 
         return result
     
+
+    
+ECHOES = ["This is a test of the Save System", 
+        "Fight on, for Everlasting Peace!",
+        "We laugh darkly but we do not crash.",
+        "Ping! Pong!"
+        ] # etc  
+
+
+class SaveScript(Script):
+    "This script is ticked at regular intervals"
+       
+    def at_script_creation(self):
+        "called only when the object is first created"
+        self.key = "save_messages"
+        self.desc = "The script that does cheeky save messages."
+        self.interval = 60 * 60 #every hour, for now
+        self.persistent = True
+
+    def at_repeat(self):
+        "ticked at regular intervals"
+        echo = random.choice(ECHOES)
+        for sess in SESSION_HANDLER.get_sessions():
+            account = sess.get_account()
+            if account:
+                sess.msg(f"|wSAVE:|n {echo}")
+
+
+class WeeklyEvents(Script):
+
+    def at_script_creation(self):
+        "called only when the object is first created"
+        self.interval = 3600 * 24 * 7 #hour times day times week
+        self.persistent = True
+
+    def at_repeat(self):
+        self.reset_votes()
+        self.archive_jobs()
+
+    def reset_votes():
+        #do the thing
+        return
+    
+    def archive_jobs():
+        #for all active jobs
+        return
+
+
+class DailyEvents(Script):
+
+    def at_script_creation(self):
+        "called only when the object is first created"
+        self.interval = 3600 * 24 #hour times day
+        self.start_delay = True
+
+    def at_repeat(self):
+        self.check_weapon_timeouts()
+        self.check_copy_timeouts()
+        self.clean_bboards()
+
+    def clean_bboards():
+        #do the thing
+        return
+    
+    def check_weapon_timeouts():
+        #for all players with weapon copy skills
+
+        #check if there are weapons past their use-by date
+
+
+        #in the future, this might also process ride armor timeouts
+        return
+    
+    def check_copy_timeouts():
+        #for all players with armor copy skills
+
+        #check if there are armors past their use-by date
+
+        return

@@ -89,6 +89,16 @@ TIME_FACTOR = 1
 TIME_GAME_EPOCH = epoch_start
 
 
+GLOBAL_SCRIPTS = {
+    "save_messages": {
+        "typeclass": "typeclasses.scripts.SaveScript",
+        "repeats": -1,
+        "interval": 60 *60,
+        "desc": "Regular message script"
+    }
+}
+
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
