@@ -28,7 +28,7 @@ class CmdCraft(MuxCommand):
     key = "craft"
     aliases = "+craft"
     locks = "perm(Player))"
-    help_category = "Building"
+    help_category = "Build"
     
     new_obj_lockstring = (
         "control:id({id}) or perm(Admin); "
@@ -90,7 +90,7 @@ class CmdDescCraft(MuxCommand):
     key = "craftdesc"
     aliases = ["+craftdesc", "odesc","+odesc"]
     locks = "perm(Player))"
-    help_category = "Building"
+    help_category = "Build"
     
 
     def func(self):
@@ -150,7 +150,7 @@ class CmdJunkCraft(MuxCommand):
     key = "junk"
     alias = "+junk"
     locks = "perm(Player))"
-    help_category = "Building"
+    help_category = "Build"
     
     #todo: 'are you sure'
 
@@ -209,7 +209,7 @@ class CmdSetQuota(MuxCommand):
     key = "setquota"
     alias = "+setquota"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Builder))"
     switch_options = ("craft","stage","room")
     

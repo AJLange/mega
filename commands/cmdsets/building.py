@@ -53,7 +53,7 @@ class CmdMakeCity(MuxCommand):
 
     key = "makecity"
     aliases = "+makecity"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Builder)"
 
     def func(self):
@@ -123,7 +123,7 @@ class CmdLinkTeleport(MuxCommand):
     key = "portalgrid"
     aliases = "+portalgrid"
     locks = "perm(Builder)"
-    help_category = "Building"
+    help_category = "Build"
 
     def func(self):
         """Implements command"""
@@ -176,7 +176,7 @@ class CmdPlotroom(MuxCommand):
     key = "plotroom"
     aliases = "+plotroom"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
 
     def func(self):
@@ -230,7 +230,7 @@ class CmdMakePrivateRoom(MuxCommand):
 
     key = "construct"
     aliases = "+construct"
-    help_category = "Building"
+    help_category = "Build"
     locks = "cmd:all()"
     locks = "perm(Player))"
 
@@ -322,7 +322,7 @@ class CmdDescInterior(MuxCommand):
     key = "idesc"
     aliases = "+idesc"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
     
     def func(self):
@@ -367,7 +367,7 @@ class CmdLockRoom(MuxCommand):
     key = "lock"
     aliases = "+lock"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
     
 
@@ -402,7 +402,7 @@ class CmdUnLockRoom(MuxCommand):
     key = "unlock"
     aliases = "+unlock"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
     
 
@@ -444,7 +444,7 @@ class CmdMyRooms(MuxCommand):
 
     key = "myrooms"
     aliases = "+myrooms"
-    help_category = "Building"
+    help_category = "Build"
     locks = "cmd:all()"
     locks = "perm(Player))"
 
@@ -480,7 +480,7 @@ class CmdDestroyPrivateRoom(MuxCommand):
     key = "demolish"
     aliases = "+demolish"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
 
     #todo - confirm, do you really want to do this?
@@ -555,7 +555,7 @@ class CmdCheckQuota(MuxCommand):
 
     key = "quota"
     aliases = "+quota"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
 
     def func(self):
@@ -590,7 +590,7 @@ class CmdProtector(MuxCommand):
 
     key = "protector"
     aliases = "+protector"
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
 
     def func(self):
@@ -626,7 +626,7 @@ class CmdSetProtector(MuxCommand):
     key = "setprotector"
     aliases = "+setprotector"
     locks = "perm(Builder)"
-    help_category = "Building"
+    help_category = "Build"
     
 
     def func(self):
@@ -697,7 +697,7 @@ class CmdClearProtector(MuxCommand):
     key = "rmprotector"
     aliases = "+rmprotector"
     locks = "perm(Builder)"
-    help_category = "Building"
+    help_category = "Build"
     
 
     def func(self):

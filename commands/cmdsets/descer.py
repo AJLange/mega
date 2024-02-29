@@ -30,7 +30,7 @@ class CmdDesc(MuxCommand):
     key = "desc"
     aliases = "describe", "@desc"
     locks = "cmd:perm(desc) or perm(Builder)"
-    help_category = "Building"
+    help_category = "Build"
 
 
     def func(self):
@@ -104,7 +104,7 @@ class CmdMultiDesc(MuxCommand):
     key = "multidesc"
     aliases = ["+multidesc", "mdesc", "+mdesc"]
     switch_options = ("list","store","set","view", "del", "add","delete", "all")
-    help_category = "Building"
+    help_category = "Build"
     locks = "perm(Player))"
 
     def func(self):
