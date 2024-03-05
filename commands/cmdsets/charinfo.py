@@ -751,6 +751,10 @@ class CmdCookie(MuxCommand):
             char.db.cookiecount += 1
             caller.db.cookiequota -= 1
             caller.db.cookiedpersons.append(char)
+            if caller.db.cookiemsg:
+                char.msg(caller.db.cookiemsg)
+            else:
+                char.msg(f"{caller.name} gives you a cookie for the RP!")
         except ValueError:
             caller.msg("Some error occured.")
             return
@@ -807,8 +811,30 @@ class CmdCookieCounter(MuxCommand):
     help_category = "Rewards"
 
     def func(self):
+
+        #staff only can check all players
+        args = self.args
         caller = self.caller
+        if args:
+            if not caller.check_permstring("builders"):
+                caller.msg("That functionality is only for staff.")
+                return
+            else:
+                char = caller.search(args, global_search=True)
+                if not char:
+                    caller.msg("Character not found.")
+                    return
+                if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                    caller.msg("Character not found.")
+                    return
+                caller.msg(f"{char.name} has {char.db.cookiecount} cookies.")
+                return
+
         caller.msg("You have %s cookies!" % (caller.db.cookiecount))
+        caller.msg("You have %s cookies remaining for the week." % (caller.db.cookiequota))
+        return
+
+
 
 
 
@@ -833,6 +859,8 @@ class CmdCookiemonsters(MuxCommand):
         self.caller.msg("People with 100 cookies:")
         charlist = Character.objects.all()
         monsterlist = []
+        
+        # eventually, this will have to be split into more columns. but fine for now.
 
         table = self.styled_table(
                 "|wName",
@@ -900,7 +928,7 @@ class CmdCookieMsg(MuxCommand):
     """
 
     key = "cookiemsg"
-    aliases = ["+cookiemsg"]
+    aliases = ["+cookiemsg", "cookiemessage", "+cookiemessage"]
     locks = "perm(Player)"
     help_category = "Rewards"
 
@@ -909,19 +937,12 @@ class CmdCookieMsg(MuxCommand):
         if not self.args:
             self.caller.msg("Set the message to what?")
             return
-        
-        # find a player in the db who matches this string
-        player = self.caller.search(self.args)
-        if not player:
-            return
-        char = player
-        if not char:
-            self.caller.msg("Character not found.")
-            return
+        message = self.args
         try:
-            self.caller.msg(f"You give {char.name} a cookie!")
+            self.caller.db.cookiemsg = message
+            self.caller.msg(f"Cookie message set to:\n {message}")
         except ValueError:
-            self.caller.msg("Some error occured.")
+            self.caller.msg("Some error occured. Try a different message.")
             return
 
 
