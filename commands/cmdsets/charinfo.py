@@ -20,6 +20,7 @@ from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 from world.combat.models import Weapon
+from typeclasses.characters import Character
 from server.battle import process_elements, process_attack_class, process_effects, get_element_text, get_class_text, get_effect_text, num_to_line, listcap_to_string, num_to_skill
 
 class CmdFinger(BaseCommand):
@@ -814,7 +815,8 @@ class CmdCookieCounter(MuxCommand):
 class CmdCookiemonsters(MuxCommand):
 
     """
-    Give a mouse a cookie.
+    Checking the leaderboard of cookies. Cookies are given as a reward for RP.
+    See +cookie.
     
     Usage:
       100check
@@ -827,7 +829,28 @@ class CmdCookiemonsters(MuxCommand):
     help_category = "Rewards"
 
     def func(self):
-        self.caller.msg("Wow here's all the people with 100 cookies!")
+
+        self.caller.msg("People with 100 cookies:")
+        charlist = Character.objects.all()
+        monsterlist = []
+
+        table = self.styled_table(
+                "|wName",
+                "|wCount",
+            )
+        for c in charlist:
+            if (c.db.cookiecount >= 100):
+                monsterlist.append(c)
+        for m in monsterlist:
+            #rounds to 100
+            i = m.db.cookiecount/100
+            i = int(i)
+            table.add_row(
+                        m.name,
+                        str(i * 100)
+                    )
+        self.caller.msg(table)
+        return
 
 class CmdCookieBomb(MuxCommand):
 
@@ -846,9 +869,17 @@ class CmdCookieBomb(MuxCommand):
     help_category = "Admin"
 
     def func(self):
-        self.caller.msg("You give everybody a cookie!")
-
-
+        caller = self.caller
+        caller.msg("You give a cookie to:")
+        charlist = []
+        msgstring = ""
+        charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_location=caller.location )
+        for char in charlist:
+            if not char.db.observer:
+                char.db.cookiecount = char.db.cookiecount +1
+                msgstring = msgstring + char.name + " "
+        caller.msg(msgstring)
+        return
 
 class CmdCookieMsg(MuxCommand):
 

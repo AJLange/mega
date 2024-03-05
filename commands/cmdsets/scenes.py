@@ -623,7 +623,7 @@ class CmdSequenceStart(MuxCommand):
             for char in charlist:
                 if not char.db.gm: 
                     if not char.db.observer:
-                        playerlist.append(char)            
+                        playerlist.append(char)
             return len(playerlist)
 
 
