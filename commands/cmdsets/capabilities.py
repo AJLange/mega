@@ -167,8 +167,8 @@ class CmdCrossfuse(MuxCommand):
 
     """
     
-    key = "mimic"
-    aliases = ["+mimic"]
+    key = "crossfuse"
+    aliases = ["+crossfuse", "mimic", "+mimic"]
     help_category = "Powers"
     locks = "perm(Player)"
 
@@ -180,9 +180,9 @@ class CmdCrossfuse(MuxCommand):
         
         caller= self.caller
         args = self.args
-        caller.msg("Initiating weapon copy.")
+        caller.msg("Initiating cross-fusion.")
         if not args:
-            caller.msg("Copy whose weapon?")
+            caller.msg("Cross-fuse with who?")
             return
         
         if not check_not_ko(caller):
@@ -199,15 +199,58 @@ class CmdCrossfuse(MuxCommand):
                 caller.msg("No target.")
                 return
 
-            #process attack copy code
-            new_weapon = copy_attack(char,caller)
+            #process fusion code
+            # TODO - this is a draft, does a full copy. normalize.
+            armor_name = (f"{char.name}Soul")
+            fused_armor  = ArmorMode.objects.create(db_name=armor_name, db_swap = 4, db_pow = char.db.pow, db_dex = char.db.dex, db_ten = char.db.ten, db_cun = char.db.cun, 
+                                            db_edu = char.db.edu, db_chr = char.db.chr, db_aur = char.db.aur, db_size = char.db.size, db_speed = char.db.speed, db_strength = char.db.strength,
+                                            db_resistance = char.db.resistance, db_weakness = char.db.weakness,
+                                            db_discern = char.db.discern, db_aim = char.db.aim, db_athletics = char.db.athletics,
+                                            db_force = char.db.force, db_mechanics = char.db.mechanics, db_medicine = char.db.medicine, db_computer = char.db.computer,
+                                            db_stealth = char.db.stealth, db_heist = char.db.heist, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
+                                            db_primary = char.db.primary, db_secondary = char.db.secondary)
 
 
         except ValueError:
             caller.msg(errmsg)
             return
         
+class CmdCopyList(MuxCommand):
+    """
+    Get a list of everything I have copied, if I have any copy capabilities.
 
+    Usage:
+      copylist
+
+
+    If you have any abilities related to copy, such as copying armors, stats,
+    or weapons, copylist will tell you what you have on your list of copied things
+    along with how long until that copied thing times out. Copy timeouts are rounded
+    to the nearest day.
+
+    """
+    
+    key = "copylist"
+    aliases = ["+copylist"]
+    help_category = "Powers"
+    locks = "perm(Player)"
+
+    def func(self):
+        '''
+        This should only show up if you have the skill
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        args = self.args
+        caller.msg("List of copied weapons or armors:")
+        table = self.styled_table(
+                "|wName",
+                "|wCopied From",
+                "|wTimeout",
+            )
+        return
+        
 
 class CmdAuraRead(MuxCommand):
     """

@@ -100,7 +100,7 @@ def swap_armor(caller, armor):
     return
 
 
-class ModeSwap(MuxCommand):
+class CmdModeSwap(MuxCommand):
     """
     Swap armor modes.
 

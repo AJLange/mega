@@ -32,6 +32,11 @@ class ArmorMode(SharedMemoryModel):
 
     db_name = models.CharField('Name', max_length=255)
 
+    db_belongs_to = models.CharField('Belongs to', max_length=255, default="None")
+    db_is_stolen = models.BooleanField('Is Stolen?', default=False)
+    #todo: autopopulate this. fine for now.
+    db_time_out = models.DateTimeField('time out',blank=True, null=True)
+
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 
