@@ -68,6 +68,7 @@ class CmdAWho(MuxCommand):
 
     # this is used by the parent
     account_caller = True
+    help_category = "General"
 
     # Here we have modified "who" to display the locations of players to other players
     # and to add "where" as an alias.
@@ -169,6 +170,7 @@ class CmdWho(MuxCommand):
 
     # this is used by the parent
     account_caller = True
+    help_category = "General"
 
 
     def func(self):
@@ -244,6 +246,7 @@ class CmdWho(MuxCommand):
 
 
 class CmdWhere(MuxCommand):
+
     """
     List locations of players online.
 
