@@ -7,12 +7,17 @@ from commands.command import BaseCommand, Command
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi, color_check
 from evennia.accounts.models import AccountDB
+from evennia import ObjectDB
 from commands.cmdsets import places
 from evennia.server.sessionhandler import SESSIONS
+from django.conf import settings
 from evennia.utils import evtable, utils
 import time
 from server.utils import time_now
 from datetime import datetime, timezone, timedelta
+from typeclasses.characters import Character
+from typeclasses.rooms import Room, PrivateRoom
+
 
 
 def prune_sessions(session_list):
@@ -259,49 +264,59 @@ class CmdWhere(MuxCommand):
     account_caller = True
     help_category = "General"
 
+    def get_char_names(self, charlist):
+        names = []
+        for c in charlist:
+            names.append(c.name)
+        return names
+
+    def get_ic_rooms(self):
+        rooms = []
+        characters = Character.objects.filter()
+        rooms = (
+            Room.objects.all()
+            .filter(locations_set__in=characters)
+            .distinct()
+            .order_by("db_key")
+        )
+        return rooms
 
     def func(self):
-        account = self.account
-        all_sessions = SESSIONS.get_sessions()
-        caller = self.caller
-
-        all_sessions = sorted(all_sessions, key=lambda o: o.account.key) # sort sessions by account name
-        pruned_sessions = prune_sessions(all_sessions)
         # TODO: what if I'm not logged in, use Guest permissions
 
-        naccounts = SESSIONS.account_count()
+        caller = self.caller
+        message = ""
+        rooms = self.get_ic_rooms()
+        if not rooms:
+            caller.msg("No visible characters found.")
+            return
 
-        for session in all_sessions:
-            
-            table = self.styled_table("|wRoom", "|wCharacters")
-            for session in pruned_sessions:
-                if not session.logged_in:
+        for room in rooms:
+            charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_location=room )
+            '''
+            watchfor not currently in the game:
+
+            elif "watch" in self.switches:
+                watching = caller.db.watching or []
+                matches = [ob for ob in charlist if ob in watching]
+                if not matches:
                     continue
-                delta_cmd = time.time() - session.cmd_last_visible
-                delta_conn = time.time() - session.conn_time
-                session_account = session.get_account()
-                puppet = session.get_puppet()
-                if puppet and puppet.location:
-                    room = puppet.location
-                    if room.tags.has(category="portal"):
-                        location = str(f"|c{room.key}|n")
-                    else:
-                        location = room.key
-                else:
-                    location = "None"
-                
-                table.add_row(
-                    utils.crop(location, width=35),
-                    utils.crop(session_account.get_display_name(account), width=25),
-                    utils.time_format(delta_conn, 0),
-                    utils.time_format(delta_cmd, 1)
-                    
-                )
-        #is_one = naccounts == 1
-        self.msg(
-            "|035Character Locations:|n\n%s\nLocations in |cblue|n are teleport-OK."
-            % (table)
-        )
+            '''
+
+            #TODO: Unf
+            char_names = self.get_char_names(charlist)
+            if not char_names:
+                continue
+            room_name = room.key
+            if room.tags.has(category="portal"):
+                    room_name = str(f"|c{room.key}|n")
+            message += (f"{room_name} {char_names}\n")
+
+        caller.msg(f"|035============================ |wCharacter Locations |035============================|n\n")
+        caller.msg(message)
+        caller.msg(f"|035============================================================================|n\n")
+        caller.msg(f"Locations in |cblue|n are teleport-OK.") 
+
 
 class CmdWall(MuxCommand):
     """
