@@ -449,7 +449,6 @@ number for a month. An example of the command would be:
             # in the future, we will allow people to edit scenes, so this may be refactored.
 
 
-
 class CmdEvent(MuxCommand):
     """
     The +event command is used to log scenes.
@@ -789,7 +788,7 @@ class CmdAutolog(MuxCommand):
         caller = self.caller
 
         if not self.switches:
-            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
+            caller.msg("You must add a switch, like '+log/start' or '+log/stop'.")
             return
 
         #this is from the event code, make it actually do the thing at a later time.

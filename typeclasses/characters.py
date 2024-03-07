@@ -100,6 +100,7 @@ class Character(DefaultCharacter):
         self.db.pcgroups = []
         self.db.squads = []
 
+
     def get_stats(self):
         """
         Simple access method to return ability

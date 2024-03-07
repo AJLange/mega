@@ -42,7 +42,7 @@ from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs, CmdCreateFile, CmdCh
 
 
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
-from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning, CmdHighlight, CmdAWho, CmdWhere
+from commands.cmdsets.utility import CmdWho, CmdICTime, CmdStaffRole, CmdWarning, CmdHighlight, CmdAWho, CmdWhere, CmdListStaff
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 # from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
@@ -182,6 +182,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #request
         self.add(CmdRequest())
         self.add(CmdCheckFiles())
+        self.add(CmdListStaff())
 
 
         # any command below this line is only available to staff.
@@ -204,6 +205,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCreateGameRoster())
         self.add(CmdAllWeaponSearch())
         self.add(CmdCookieBomb())
+        self.add(CmdStaffRole())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
