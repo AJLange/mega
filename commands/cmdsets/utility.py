@@ -271,6 +271,7 @@ class CmdWhere(MuxCommand):
         return names
 
     def get_ic_rooms(self):
+        # TODO : in the future, if there are custom room types, list them.
         rooms = []
         characters = Character.objects.filter()
         rooms = (
@@ -305,16 +306,20 @@ class CmdWhere(MuxCommand):
 
             #TODO: Unf
             char_names = self.get_char_names(charlist)
+            char_names_string = ', '.join(char_names)
             if not char_names:
                 continue
-            room_name = room.key
+            
             if room.tags.has(category="portal"):
                     room_name = str(f"|c{room.key}|n")
-            message += (f"{room_name} {char_names}\n")
+            else:
+                room_name = str(f"|w{room.key}|n")
+            message += (f"{room_name} - {char_names_string}\n")
 
+        # could be prettier, but is OK for now
         caller.msg(f"|035============================ |wCharacter Locations |035============================|n\n")
         caller.msg(message)
-        caller.msg(f"|035============================================================================|n\n")
+        caller.msg(f"|035=============================================================================|n\n")
         caller.msg(f"Locations in |cblue|n are teleport-OK.") 
 
 

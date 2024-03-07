@@ -1499,9 +1499,10 @@ class CmdAllWeaponSearch(MuxCommand):
         if "all" in switches:
             caller.msg("List of all weapons:")
             all_weapons = Weapon.objects.all()
-            text = ""
+            w_list = []
             for weapon in all_weapons:
-                text = text + (f"{weapon.db_name}, ")
+                w_list.append(weapon.db_name)
+            text = ', '.join(w_list)
                             
             caller.msg(text)
             return
