@@ -246,7 +246,6 @@ class CmdWho(MuxCommand):
 
 
 class CmdWhere(MuxCommand):
-
     """
     List locations of players online.
 
