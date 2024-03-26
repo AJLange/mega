@@ -18,7 +18,7 @@ from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
 from world.combat.models import Weapon
 from world.armor.models import ArmorMode, Capability
-from server.battle import process_elements, process_attack_class, process_effects, get_all_elements, get_all_flags, get_element_text, get_effect_text, get_class_text
+from server.battle import process_elements, process_attack_class, num_to_line, num_to_skill, listcap_to_string, process_effects, get_all_elements, get_all_flags, get_element_text, get_effect_text, get_class_text
 
 
 '''
@@ -1306,7 +1306,7 @@ class CmdSetArmor(MuxCommand):
             caller.msg("Character missing necessary attributes. Did you set primary weapons?")
             return
         
-        new_armor = ArmorMode.objects.create(db_name=name, db_swap = armor_type, db_pow = char.db.pow, db_dex = char.db.dex, db_ten = char.db.ten, db_cun = char.db.cun, 
+        new_armor = ArmorMode.objects.create(db_name=name, db_swap = armor_type, db_belongs_to = char.name,db_pow = char.db.pow, db_dex = char.db.dex, db_ten = char.db.ten, db_cun = char.db.cun, 
                                             db_edu = char.db.edu, db_chr = char.db.chr, db_aur = char.db.aur, db_size = char.db.size, db_speed = char.db.speed, db_strength = char.db.strength,
                                             db_resistance = char.db.resistance, db_weakness = char.db.weakness,
                                             db_discern = char.db.discern, db_aim = char.db.aim, db_athletics = char.db.athletics,
@@ -1454,8 +1454,6 @@ class CmdAllWeaponSearch(MuxCommand):
     """
     This command allows you to see all weapons in the database.
     You can search by name or type or view all.
-
-    This is only stubbed out! doesn't work yet.
 
     Usage:
       weaponlist
@@ -1609,8 +1607,136 @@ class CmdAllWeaponSearch(MuxCommand):
 
                     caller.msg(f"{weapon.db_name}: {wclass} {element_text} {flag_text}")
                 return
-            
 
+
+class CmdAllArmorSearch(MuxCommand):
+    """
+    This command allows you to find an armor mode if you know what you are 
+    looking for.
+
+    Usage:
+      armorsearch <name>
+      armorsearch/stats <id>
+
+    The first command returns all armor modes that are named with a partial match 
+    on this, and the armor's database ID. This is so you are sure you are 
+    mapping the right armor mode to a character that needs it in the case of 
+    a conflict.
+
+    The command with the /stats switch takes an armor id only (found via 
+    armorsearch) and will respond with the full stats of that armor.
+
+    """
+    
+    key = "armorsearch"
+    help_category = "Character"
+    aliases = ["+armorsearch"]
+    locks = "perm(Builder)"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        args = self.args
+
+        if "stats" in self.switches:
+            errmsg = "Please choose an armor ID to view."
+            if not args:
+                caller.msg(errmsg)
+                return
+            try:
+                armor_id = int(args)
+                armor = ArmorMode.objects.filter(id__iexact=armor_id)
+                if not armor:
+                    caller.msg("No armor by that ID found.")
+                    return
+                else:
+                    armor = armor[0]
+                    #might want to refactor this later not to be redundant code
+                    size, speed, strength = armor.db_size, armor.db_speed, armor.db_strength
+                    pow, dex, ten, cun, edu, chr, aur = armor.db_pow, armor.db_dex, armor.db_ten, armor.db_cun, armor.db_edu, armor.db_chr, armor.db_aur
+                    cap = armor.db_capabilities
+                    #cap = listcap_to_string(cap)
+
+                    weakness = process_elements(armor.db_weakness)
+                    resistance = process_elements(armor.db_resistance)
+                    if not weakness:
+                        weakness = "None"
+                    if not resistance:
+                        resistance = "None"
+
+                    discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= armor.db_discern, armor.db_aim, armor.db_athletics, armor.db_force, armor.db_mechanics, armor.db_medicine, armor.db_computer, armor.db_stealth, armor.db_heist, armor.db_convince, armor.db_presence, armor.db_arcana
+                    border = "________________________________________________________________________________"
+                    line1 = "Name: %s" % (armor.name)
+
+                    line3 = "Current Mode: %s " % (armor)
+                    line4= (f" POW: {num_to_line(pow)}\n DEX: {num_to_line(dex)}\n TEN: {num_to_line(ten)}\n CUN: {num_to_line(cun)}\n EDU: {num_to_line(edu)}\n CHR: {num_to_line(chr)}\n AUR: {num_to_line(aur)}")
+
+                    line5 = (f"\n Discern:   {num_to_skill(discern)}         Size: {size}\n Aim:       {num_to_skill(aim)}         Speed: {speed}\n Athletics: {num_to_skill(athletics)}         Strength: {strength} \n Force:     {num_to_skill(force)} \n Mechanics: {num_to_skill(mechanics)}         Weakness: {weakness}\n Medicine:  {num_to_skill(medicine)}         Resistance: {resistance}\n Computer:  {num_to_skill(computer)}\n Stealth:   {num_to_skill(stealth)}\n Heist:     {num_to_skill(heist)}\n Convince:  {num_to_skill(convince)}\n Presence:  {num_to_skill(presence)}\n Arcana:    {num_to_skill(arcana)}")
+            
+                    line6 = "\nCapabilities: %s" % (cap)
+                    line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
+                    line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
+
+                    sheetmsg = (border + "\n\n" + line1 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n\n" + border + "\n")
+                    caller.msg(sheetmsg)
+                    return
+            except ValueError:
+                caller.msg(errmsg)
+                return
+
+        if not args:
+            caller.msg("Search for what?")
+            return
+        
+        else:
+            armors = ArmorMode.objects.filter(db_name__contains=self.args)
+            if not armors:
+                caller.msg("No match found.")
+                return
+            caller.msg("Matching armors:")
+            for armor in armors:
+                caller.msg(f"{armor.db_name}: ID: {armor.id} Owner: {armor.db_belongs_to}")
+            return
+        
+
+class CmdWorkArmor(MuxCommand):
+    """
+    This command allows you to work on the stats of an armor that already exists
+    in the database. 
+
+    Usage:
+      workarmor <id>
+
+    This only takes ID numbers, so find the armor you want by searching for it first 
+    using armorsearch.
+
+    """
+    
+    key = "workarmor"
+    help_category = "Character"
+    aliases = ["+workarmor"]
+    locks = "perm(Builder)"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("Select an armor ID.")
+            return
+        
+        else:
+            armors = ArmorMode.objects.filter(id__iexact=self.args)
+            if not armors:
+                caller.msg("No match found.")
+                return
+            caller.msg("Matching armors:")
+            for armor in armors:
+                caller.msg(f"{armor.db_name}: ID: {armor.id} Owner: {armor.db_belongs_to}")
+                caller.msg("The rest of this command doesn't work yet.")
+                #TODO: the rest of this command.
+            return
 
 class ChargenCmdset(CmdSet):
     """

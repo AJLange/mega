@@ -909,6 +909,7 @@ class CmdCookieBomb(MuxCommand):
         caller.msg(msgstring)
         return
 
+
 class CmdCookieMsg(MuxCommand):
 
     """
