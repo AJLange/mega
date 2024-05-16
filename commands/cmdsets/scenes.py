@@ -663,7 +663,8 @@ class CmdSequenceStart(MuxCommand):
 
             room.sequence_beats = room_beats
 
-            room.msg_contents(f"{caller.name} has begun a sequence in this location! The sequence has {room_beats} beats remaining." )       
+            room.msg_contents(f"{caller.name} has begun a sequence in this location! The sequence has {room_beats} beats remaining." )
+            room.msg_contents(f"If you do not want to be included, set +observer. To see info type +sequence/status." )  
             return
 
         if "stop" in switches:
@@ -681,7 +682,7 @@ class CmdSequenceStart(MuxCommand):
             
             room.sequence_beats = 0
             return
-        
+               
         if "gm" in switches:
             if not args:
                 caller.msg("Set who as GM? Please supply a name.")
@@ -741,7 +742,7 @@ class CmdSequenceStart(MuxCommand):
             # find all players here
             charlist = ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_location=room )
             playerlist = []
-            #hacky solution for now, fix with object later
+            #hacky solution for now, but it works
             for char in charlist:
                 if char.db.gm: 
                     text += (f" {char}")

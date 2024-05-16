@@ -1731,11 +1731,84 @@ class CmdWorkArmor(MuxCommand):
             if not armors:
                 caller.msg("No match found.")
                 return
+            # this is a direct id match, this list should only be one item long
+            if len.armors >  1:
+                caller.msg("Error (Multiple matches?) Contact an administrator.")
+                return
+
             caller.msg("Matching armors:")
             for armor in armors:
+                
                 caller.msg(f"{armor.db_name}: ID: {armor.id} Owner: {armor.db_belongs_to}")
-                caller.msg("The rest of this command doesn't work yet.")
-                #TODO: the rest of this command.
+                '''
+                Note: armor modes are considered to belong to a character even if they are
+                deleted from that character. We should always know the original "source" of an armor 
+                mode as they are not directly transferrable from character to character, only copied
+                with the same attributes.
+                '''
+                caller.db.workingchar = armor.db_belongs_to
+                caller.msg(f"Now working on the character {armor.db_belongs_to.name}.")
+                #TODO: refactor chargen above to working on armor?
+                caller.msg("Command is work in progress.")
+
+            return
+        
+
+class CmdRemoveArmor(MuxCommand):
+    """
+    This command will remove an armor from a character that doesn't need that mode anymore.
+    It does not delete the armor from the database. (You shouldn't ever worry about having 
+    to do that.)
+
+    Usage:
+      removearmor <character>=<id>
+
+    This only takes ID numbers, so find the armor you want by searching for it first 
+    using armorsearch.
+
+    """
+    
+    key = "removearmor"
+    help_category = "Character"
+    aliases = ["+removearmor"]
+    locks = "perm(Builder)"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("syntax: removearmor <character>=<id>")
+            return
+        
+        else:
+            armor_id = self.rhs
+            armor_owner = self.lhs
+            match = False
+            armors = ArmorMode.objects.filter(id__iexact=armor_id)
+            if not armors:
+                caller.msg("No match found.")
+                return
+            char = self.caller.search(armor_owner, global_search=True)
+            if not char:
+                caller.msg("Character not found.")
+                return
+            if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                self.caller.msg("Character not found.")
+            #found so continue the process
+            for a in char.db.armor:
+                for b in armors:
+                    if a.id == b.id:
+                        match = True
+            if not match:
+                caller.msg("That armor was not found on that character.")
+                return
+            caller.msg(f"Found: {char} with armor {a.name}")
+            char.db.armor.remove(a.name)
+            char.save()
+            caller.msg("Armor removed.")
+
             return
 
 class ChargenCmdset(CmdSet):
@@ -1759,3 +1832,4 @@ class ChargenCmdset(CmdSet):
         self.add(CmdCreateCapability())
         self.add(CmdSetCapability())
         self.add(CmdListCapability())
+        self.add(CmdRemoveArmor())
