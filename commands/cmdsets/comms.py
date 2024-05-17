@@ -1,5 +1,5 @@
 """
-Home of mail and radio commands
+Home of mail and private messaging commands.
 
 """
 
@@ -1066,49 +1066,3 @@ class CmdTelepath(MuxCommand):
                     )
                     self.mark_command_used()
         caller.posecount += 1
-
-
-class CmdRadio(MuxCommand):
-
-    """
-    Stubbing out radio commands
-
-    Usage:
-      Radio
-    """
-
-    key = "radio"
-    aliases = ["+radio"]
-    locks = "cmd:not pperm(page_banned)"
-    help_category = "Radio"
-
-    def func(self):
-        """Implement function using the Msg methods"""
-
-        # this is a MuxCommand, which means caller will be a Character.
-        caller = self.caller
-        return
-    
-
-class CmdFrequency(MuxCommand):
-
-    """
-    Stubbing out radio commands
-
-    Factional leaders and second in commands can set factional radio frequencies.
-
-    Usage:
-      freq
-    """
-
-    key = "freq"
-    aliases = ["+freq"]
-    locks = "cmd:not pperm(page_banned)"
-    help_category = "Radio"
-
-    def func(self):
-        """Implement function using the Msg methods"""
-
-        # this is a MuxCommand, which means caller will be a Character.
-        caller = self.caller
-        return

@@ -72,6 +72,13 @@ def process_pose(viewer, poser, pose):
 class CmdThink(BaseCommand):
     """
     This is just for thinking out loud.
+
+    Usage:
+      think <message>
+
+    This emits something to yourself. It's useful to check for formatting
+    errors before putting out a complicated pose.
+
     """
     key = "think"
     lock = "cmd:all()"
