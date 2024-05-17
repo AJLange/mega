@@ -381,6 +381,10 @@ class CmdWorkChar(Command):
     Sets the character to work on. Only works in the chargen room.
     Is persisent on server reset, just in case you get interrupted.
 
+    Note that this is working on the base character. Any attributes 
+    to be saved to an armor need to be added when a new armor is created. 
+    To work on a specific armor mode for a character, use +workarmor instead.
+
     """
     key = "+workchar"
     aliases = ["workchar"]
@@ -586,12 +590,16 @@ class CmdSetStat(MuxCommand):
 
     Usage:
       +setstat power=<1-10>
-      +setstat <namestat>=<1-10> 
+      +setstat <namestat>=<1-10>
+      +setstat/armor <namestat>=<1-10>
 
 
     Stats in this system are 
     Power, Dexterity, Tenacity
     Cunning, Education, Charisma, Aura
+
+    The /armor switch is used if you are working on an armor mode
+    rather than on the base character. 
 
     """
     
@@ -608,6 +616,11 @@ class CmdSetStat(MuxCommand):
             caller.msg("You aren't working on an active character.")
             return
         errmsg = "You must supply a number between 1 and 10."
+
+        if "armor" in self.switches:
+            #we're impacting an armor so change to working on an armor 
+        
+            character = caller.db.workingarmor
 
         if not self.args:
             caller.msg(errmsg)
@@ -667,7 +680,8 @@ class CmdSetSkills(MuxCommand):
 
     Usage:
       +setskill Discern=<1-5>
-      +setskill <nameskill>=<1-5> 
+      +setskill <nameskill>=<1-5>
+      +setskill/armor <nameskill>=<1-5>
 
 
     Valid skills in this version are
@@ -684,6 +698,9 @@ class CmdSetSkills(MuxCommand):
     Presence
     Arcana
 
+    The /armor flag is used if you are working on an pre-existing armor
+    rather than the base character.
+
     """
     
     key = "setskill"
@@ -699,6 +716,10 @@ class CmdSetSkills(MuxCommand):
             caller.msg("You aren't working on an active character.")
             return
         errmsg = "You must supply a number between 1 and 5."
+
+        if "armor" in self.switches:
+            #we're impacting an armor so change to working on an armor         
+            character = caller.db.workingarmor
 
         if not self.args:
             caller.msg(errmsg)
@@ -779,6 +800,7 @@ class CmdSetProfileAttr(MuxCommand):
      (formerly skills)
 
     For now just put all the skills in one list.
+    These do not change per armor mode.
 
     Usage:
       +setprofile <attribute>=<value>
@@ -852,10 +874,12 @@ class CmdSetAttribute(MuxCommand):
      The full list is as follows:  
      Weakness, Resistance, Height, Speed
 
-    For now just put all the skills in one list.
-
     Usage:
-      +setattribute/<attribute> <value>
+      +setattribute <attribute>=<value>
+      +setttribute/armor <attribute>=<value>
+
+    Use the /armor flag if you are changing something on an armor mode
+    rather than on the base character.
 
     """
     
@@ -871,36 +895,44 @@ class CmdSetAttribute(MuxCommand):
         if not character:
             caller.msg("You aren't working on an active character.")
             return
-
+        
+        if "armor" in self.switches:
+            #we're impacting an armor so change to working on an armor 
+            character = caller.db.workingarmor
+        
+        try:
+            attr = self.lhs
+            val = self.rhs
+        except:
+            caller.msg("Syntax: +setattribute <attr>=<Val>")
+            return
         errmsg = "Not a valid attribute."
-        if "weakness" in self.switches:
-            if self.args:
-                character.db.weakness = process_elements(self.args)
+        if attr == "weakness":
+            if val:
+                character.db.weakness = process_elements(val)
             else:
                 caller.msg(errmsg)
             if character.db.weakness == 0:
                 caller.msg("Value not set, please be sure this is spelled correctly.")
                 caller.msg("Weakness type set to 'None'.")
             return
-        if "resistance" in self.switches:
-            if self.args:
-                character.db.resistance = process_elements(self.args)
+        if attr == "resistance":
+            if val:
+                character.db.resistance = process_elements(val)
             else:
                 caller.msg(errmsg)
             if character.db.weakness == 0:
                 caller.msg("Value not set, please be sure this is spelled correctly.")
                 caller.msg("Resist type set to 'None'.")
             return
-        if "height" in self.switches:
-            if self.args:
-                character.db.height = self.args
+        if attr == "height":
+            character.db.height = val
             return
-        if "speed" in self.switches:
-            if self.args:
-                character.db.speed = self.args
-        if "strength" in self.switches:
-            if self.args:
-                character.db.strength = self.args
+        if attr == "speed":
+            character.db.speed = val
+            return
+        if attr == "strength":
+            character.db.strength = val
             return
         
         if not self.args:
@@ -959,17 +991,20 @@ class CmdSetWeapons(MuxCommand):
 
     Usage:
       +setweapon <name>
-      +setweapon/primary <name>
-      +setweapon/secondary <name>
+      +setweapon primary=<name>
+      +setweapon secondary=<name>
+      +setweapon/armor <name>
+      +setweapon/armor (primary or secondary)=<name>
 
     This sets the weapon specified on the working character,
-    on the working armor mode. Use /primary or /secondary
-    to set the primary and secondary weapons, which show up
-    on the character sheet and have priority for weapon copy
-    attacks.
+    on the working armor mode if /armor switch is used. Use 
+    Use primary or secondary tags to set primary and secondary weapons.
+    Thsee are required to complete chargen and have priority for 
+    weapon copy skills.
 
     Weapons need to be added to the weapon database first with
-    +addweapon.
+    +addweapon before they can be added to a character.
+    Multiple characters can use the same weapon.
 
     """
     
@@ -995,11 +1030,16 @@ class CmdSetWeapons(MuxCommand):
             return
         
         if switches:
-            if not "primary" in switches and not "secondary" in switches:
+            if not "armor" in switches:
                 caller.msg("Invalid switch.")
-                return        
+                return
         
-        text = self.args
+        try:
+            weapon_type = self.lhs
+            text = self.rhs
+        except:
+           # no = found, so just take weapon
+           text = self.args
         
         check_weapon = Weapon.objects.filter(db_name__iexact=text)
         if not check_weapon:
@@ -1015,14 +1055,17 @@ class CmdSetWeapons(MuxCommand):
             
             character.db.weapons.append(weapon)
             
-            if switches:
-                if "primary" in switches:
+            if weapon_type:
+                if weapon_type == "primary":
                     character.db.primary = weapon
                     caller.msg("Added the weapon (as primary): %s" % text)
                     return
-                if "secondary" in switches:
+                if weapon_type == "secondary":
                     character.db.secondary = weapon
                     caller.msg("Added the weapon (as secondary): %s" % text)
+                    return
+                else:
+                    caller.msg("Invalid syntax.")
                     return
             caller.msg("Added the weapon: %s" % text)
             return
@@ -1167,12 +1210,16 @@ class CmdSetCapability(MuxCommand):
     Usage:
       +setcapability <name>
       +setcapabilty Flight
-      +setcap Flight 
+      +setcap Flight
+      +setcapability/armor <name>
 
     This adds a capability to the working character. Capabilities
     must be valid capabilities that are in the Capability database.
 
     Since 'capability' is a long word, 'setcap' can be used for sure.
+
+    The /armor flag adds this to the working armor mode rather than to the base 
+    character.
     
     To add a new capability to the database, use +addcapability.
     This should not be used often.
@@ -1194,6 +1241,11 @@ class CmdSetCapability(MuxCommand):
         if not self.args:
             caller.msg("What text?")
             return
+        
+        if "armor" in self.switches:
+            #we're impacting an armor so change to working on an armor 
+            character = caller.db.workingarmor
+
         try:
             text = self.args
             #make sure this is valid
@@ -1332,11 +1384,8 @@ class CmdWorkArmor(MuxCommand):
 
     This will set your working character to the character specified
     and adjust the stats on the armor specified. Use the existing 
-    character creation commands to do the stat adjustments.
-
-    Please note that while you are doing this work, this command will
-    force that character to transform to the armor specified. It's best
-    to do work on a character that is not currently in a scene.
+    character creation commands to do the stat adjustments, with the
+    /armor flag to ensure you are working on the correct armor.
 
     If you do not type +workarmor/finish when you are done, changes
     made will be temporary and will not be saved to the database.
@@ -1386,7 +1435,7 @@ class CmdWorkArmor(MuxCommand):
         # doesn't do anything yet, but working on it.
 
         if "finish" in self.switches:
-            working_armor[1].save() 
+            working_armor[0].save() 
         return
         
         
@@ -1710,6 +1759,8 @@ class CmdWorkArmor(MuxCommand):
     This only takes ID numbers, so find the armor you want by searching for it first 
     using armorsearch.
 
+
+
     """
     
     key = "workarmor"
@@ -1747,9 +1798,9 @@ class CmdWorkArmor(MuxCommand):
                 with the same attributes.
                 '''
                 caller.db.workingchar = armor.db_belongs_to
-                caller.msg(f"Now working on the character {armor.db_belongs_to.name}.")
-                #TODO: refactor chargen above to working on armor?
-                caller.msg("Command is work in progress.")
+                caller.db.workingarmor = armor
+                caller.msg(f"Now working on the armor {armor.db_name} from character {armor.db_belongs_to.name}.")
+                caller.msg(f"Be sure to use /armor switches to avoid impacting the base character.")
 
             return
         
