@@ -54,16 +54,36 @@ class CmdRadio(MuxCommand):
         switches = self.switches
 
         if "on" in switches or "off" in switches:
-            #turn radio on or off. 
+            #turn radio on or off.
+            if caller.db.radio_on:
+                caller.db.radio_on = False
+                caller.msg("Radio off.")
+            else:
+                caller.db.radio_on = True
+                caller.msg("Radio on.")
             return
     
         if "spoof" in switches:
             #turn nospoof on or off.
+            if caller.db.radio_nospoof:
+                caller.db.radio_nospoof = False
+                caller.msg("Radio Nospoof turned off.")
+            else:
+                caller.db.radio_nospoof = True
+                caller.msg("Radio Nospoof turned on.")
             return
         
         if "reset" in switches:
             #reset the radio
+            for freq in caller.db.radio_list:
+                freq.pop()
+            for name in  caller.db.radio_names:
+                name.pop()
+            for title in caller.db.radio_titles:
+                title.pop()
+            caller.msg("All radio frequencies cleared.")
             return
+        
         
         else:
             #no switches or invalid switch, continue
@@ -102,18 +122,22 @@ class CmdFrequency(MuxCommand):
         +freq/name <Letter>=<Name>
         +freq/title <Letter>=<Name>
         +freq/color <Letter>=<Color>
+        +freq/total <Number>
         +freq/clear <Letter>
+        +freq/reset
         +freq/gag <Letter>
         +freq/who <Letter>
         +freq/swap <Letter>=<Letter>
         +freq/recall <Letter>
         +freq/recall <Letter>=<Number>
 
+
     These commands will set various settings on a specific frequency. The 
     SET option will set the letter in +radio to the given frequency number. The   
     NAME option will give the channel a specific name which will show up when you 
     receive radio messages. The TITLE option works much like @chan/title and will 
-    amend that title in any message you send out.                                 
+    amend that title in any message you send out. The TOTAL option gives you 
+    more or less frequency slots total, up to 26. 
     
     The CLEAR option will wipe all the settings for the given channel     
     letter. The GAG option will make it so you do not hear messages received on   
@@ -145,12 +169,9 @@ class CmdFrequency(MuxCommand):
             #name frequency
             return
         
-        if "reset" in switches:
-            #reset the radio
-            return
-        
         if "clear" in switches:
-            #clear
+            #clear a frequency
+
             return
     
         if "gag" in switches:
