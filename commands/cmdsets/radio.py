@@ -160,6 +160,7 @@ class CmdFrequency(MuxCommand):
         # this is a MuxCommand, which means caller will be a Character.
         caller = self.caller
         switches = self.switches
+        args = self.args
 
         if "set" in switches:
             #set. 
@@ -194,6 +195,29 @@ class CmdFrequency(MuxCommand):
             #reset the radio
             return
         
+        if "total" in switches:
+            #More total frequencies
+            errmsg = "Supply an integer between 1 and 26."
+            if not args:
+                caller.msg(errmsg)
+                return
+            try:
+                num = int(args)
+            except ValueError:
+                caller.msg(errmsg)
+                return
+            if num < 1 or num > 26:
+                caller.db.radio_channels = num
+            else: 
+                caller.msg(errmsg)
+                return
+            caller.db.radio_channels = num
+            caller.msg(f"Set number of radio frequencies to {num}.")
+            return
+        
+        else:
+            caller.msg("Invalid switch. See help +freq.")
+            return
 
 class CmdFrequencyAdmin(MuxCommand):
 
