@@ -103,8 +103,10 @@ class Character(DefaultCharacter):
         self.db.radio_on = True
         self.db.radio_channels = 8
         self.db.radio_list = []
+        self.db.radio_slots = []
         self.db.radio_names = []
         self.db.radio_titles = []
+        self.db.radio_colors = []
         self.db.radio_nospoof = False
 
 

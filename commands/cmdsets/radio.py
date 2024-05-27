@@ -2,6 +2,7 @@ from evennia.commands.default.muxcommand import MuxCommand
 from evennia import default_cmds, create_object, search_object
 from evennia.utils import utils, create
 from server.utils import sub_old_ansi
+from world.radio.models import Frequency
 
 
 
@@ -94,6 +95,11 @@ class CmdRadio(MuxCommand):
                 freq = str(freq)
                 if len(freq) == 1:
                     #one letter, so it's a frequency, else do a 2way
+                    #how to do - for all members of this radio frequency
+                    #who aren't gagging the channel
+                    #send them a message
+                    #maybe do some processing for interceptors
+                    #also check nospoof
                     return
                 else:
                     receiver_list = freq.strip().split(',')
@@ -102,9 +108,9 @@ class CmdRadio(MuxCommand):
                             #TODO: maybe alert the sender if a radio is off.
                             r.msg(f"Tightbeam from {caller.name}: {msg} \n")
                             if len(receiver_list) > 1:
-                                r.msg("Sent to")
+                                r.msg("(Sent to")
                                 for s in receiver_list:
-                                    r.msg(f"{s.name} \n")
+                                    r.msg(f"{s.name} )\n")
                     return
             except:
                 #no args either, so just return status
@@ -120,7 +126,6 @@ class CmdFrequency(MuxCommand):
     Usage:
         +freq/set <Letter>=<Number>
         +freq/name <Letter>=<Name>
-        +freq/title <Letter>=<Name>
         +freq/color <Letter>=<Color>
         +freq/total <Number>
         +freq/clear <Letter>
@@ -135,9 +140,8 @@ class CmdFrequency(MuxCommand):
     These commands will set various settings on a specific frequency. The 
     SET option will set the letter in +radio to the given frequency number. The   
     NAME option will give the channel a specific name which will show up when you 
-    receive radio messages. The TITLE option works much like @chan/title and will 
-    amend that title in any message you send out. The TOTAL option gives you 
-    more or less frequency slots total, up to 26. 
+    receive radio messages. The TOTAL option gives you more or less frequency slots 
+    total, up to 26. 
     
     The CLEAR option will wipe all the settings for the given channel     
     letter. The GAG option will make it so you do not hear messages received on   
@@ -161,11 +165,46 @@ class CmdFrequency(MuxCommand):
         caller = self.caller
         switches = self.switches
         args = self.args
+        errmsg = "Syntax error. See help +freq"
 
         if "set" in switches:
-            #set. 
+            #set a frequency            
+            if not args:
+                caller.msg(errmsg)
+                return
+            try:
+                letter_freq = self.lhs
+                num_freq = self.rhs
+                num_freq = int(num_freq)
+            except:
+                caller.msg(errmsg)
+                return
+            #just one uppercase letter
+            letter_freq = (letter_freq[0]).upper
+            #check my amount of frequencies
+            my_freq_amount = caller.db.radio_channels
+            number_converted = ord(letter_freq) - 64
+            if my_freq_amount < number_converted:
+                caller.msg("You don't have that many frequencies. Try +freq/total.")
+                return
+            if num_freq > 1000000 or num_freq < 0:
+                caller.msg("Frequency numbers must be positive integers 6 digits or less.")
+                return
+            #does it exist? 
+            freq = Frequency.objects.filter(db_freq__iexact=num_freq)
+            if not freq:
+                #does not exist so create it
+                freq = Frequency.objects.create(db_freq = num_freq)
+
+            freq.db_members.add(caller) 
+            caller.db.radio_list.append(freq)
+            caller.db.radio_names.append("No Name")
+            caller.db.radio_slots.append(letter_freq)
+            caller.db.radio_titles.append("")
+            caller.db.radio_colors.append("|400")
+            caller.msg(f"Added you to frequency {num_freq} on slot {letter_freq}.")
             return
-    
+
         if "name" in switches:
             #name frequency
             return
@@ -177,14 +216,57 @@ class CmdFrequency(MuxCommand):
     
         if "gag" in switches:
             #gag
+            try:
+                freq_letter = args
+                freq_letter = (freq_letter[0]).upper
+            except:
+                caller.msg(errmsg)
+                return
+            i = caller.db.radio_slots.index(freq_letter)
+            if not i:
+                caller.msg("You don't have that many radio channels.")
+                return
+            num_freq = caller.db.radio_list[i]
+            freq = Frequency.objects.filter(db_freq__iexact=num_freq)
+            if not freq:
+                #this shouldn't happen, but...
+                caller.msg("Error, contact an admin to debug this.")
+                return
+            freq.db_gaglist.add(caller)
+            caller.msg(f"Now gagging frequency {freq_letter}.")
+            #TODO: reset gag list on logout
             return
         
         if "color" in switches:
             #over-ride freq color
+            # try getting frequency letter
+            # try checking valid color
+            # find index of frequency and set.
             return
         
         if "who" in switches:
-            #who 
+            #who
+            try:
+                freq_letter = args
+                freq_letter = (freq_letter[0]).upper
+            except:
+                caller.msg(errmsg)
+                return
+            i = caller.db.radio_slots.index(freq_letter)
+            if not i:
+                caller.msg("You don't have that many radio channels.")
+                return
+            num_freq = caller.db.radio_list[i]
+            freq = Frequency.objects.filter(db_freq__iexact=num_freq)
+            if not freq:
+                #this shouldn't happen, but...
+                caller.msg("Error, contact an admin to debug this.")
+                return
+            message = (f"On radio frequency {freq_letter}: ")
+            for c in freq.db_members:
+                message += c.name
+                message += " "
+            caller.msg(message)
             return
     
         if "swap" in switches:
@@ -192,7 +274,7 @@ class CmdFrequency(MuxCommand):
             return
         
         if "recall" in switches:
-            #reset the radio
+            #recall up to 50 messages
             return
         
         if "total" in switches:
@@ -206,7 +288,7 @@ class CmdFrequency(MuxCommand):
             except ValueError:
                 caller.msg(errmsg)
                 return
-            if num < 1 or num > 26:
+            if num > 1 and num < 26:
                 caller.db.radio_channels = num
             else: 
                 caller.msg(errmsg)
