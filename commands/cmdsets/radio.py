@@ -1,9 +1,18 @@
 from evennia.commands.default.muxcommand import MuxCommand
 from evennia import default_cmds, create_object, search_object
 from evennia.utils import utils, create
-from server.utils import sub_old_ansi
+from server.utils import sub_old_ansi, color_check
 from world.radio.models import Frequency
 
+
+def get_frequency_index(caller, letter):
+    try:
+        letter = (letter[0]).upper
+    except:
+        caller.msg("Frequencies should be letters.")
+        return
+    i = caller.db.radio_slots.index(letter)
+    return i
 
 
 class CmdRadio(MuxCommand):
@@ -89,17 +98,38 @@ class CmdRadio(MuxCommand):
         else:
             #no switches or invalid switch, continue
             try:
-                freq = self.lhs
+                letter = self.lhs
                 msg = self.rhs
 
-                freq = str(freq)
-                if len(freq) == 1:
+                letter = str(freq)
+                if len(letter) == 1:
                     #one letter, so it's a frequency, else do a 2way
-                    #how to do - for all members of this radio frequency
+                    i = get_frequency_index(caller,freq)
+                    freq = caller.db.radio_list[i]
+                    freq_name = caller.db.radio_names[i]
+                    freq_title = caller.db.radio_titles[i]
+                    freq_colors = caller.db.radio_colors[i]
+                    #for all members of this radio frequency
+                    for member in freq.db_members:
+                        member.msg("Radio Message from frequency A:")
                     #who aren't gagging the channel
-                    #send them a message
+                    #am i spoofing? 
+                        if msg[0] == "@":
+                            #process as spoofed
+                            spoof_message = msg[1:]
+                            #also check nospoof
+                            if member.db.radio_nospoof:
+                                full_string = (f"(From {caller.name}): {spoof_message} \n")
+                            else:
+                                full_string = (spoof_message + "\n")
+                            member.msg(full_string)
+                            return
+                        else:
+                            member.msg(f'{caller.name} transmits: "{msg}"')
+                            return
+                    #TODO: format with reciever's frequency and color
                     #maybe do some processing for interceptors
-                    #also check nospoof
+                    
                     return
                 else:
                     receiver_list = freq.strip().split(',')
@@ -207,22 +237,46 @@ class CmdFrequency(MuxCommand):
 
         if "name" in switches:
             #name frequency
+            if not args:
+                caller.msg(errmsg)
+                return
+            try:
+                letter_freq = self.lhs
+                name_freq = self.rhs
+            except:
+                caller.msg(errmsg)
+                return
+            #just one uppercase letter
+            letter_freq = (letter_freq[0]).upper
+            #check my amount of frequencies
+            my_freq_amount = caller.db.radio_channels
+            number_converted = ord(letter_freq) - 64
+            if my_freq_amount < number_converted:
+                caller.msg("You don't have that many frequencies. Try +freq/total.")
+                return
+            caller.db.radio_names[i] = name_freq
+            caller.msg(f"Set name of Frequency {letter_freq} to {name_freq}.")
             return
         
         if "clear" in switches:
             #clear a frequency
-
-            return
+            letter = args
+            i = get_frequency_index(caller,letter)
+            if not i:
+                caller.msg("You don't have that many radio channels.")
+                return
+            else:
+                caller.radio_list.pop(i)
+                caller.radio_names.pop(i)
+                caller.radio_titles.pop(i)
+                caller.radio_colors.pop(i)
+                caller.msg(f"Cleared frequency {letter}.")
+                return
     
         if "gag" in switches:
             #gag
-            try:
-                freq_letter = args
-                freq_letter = (freq_letter[0]).upper
-            except:
-                caller.msg(errmsg)
-                return
-            i = caller.db.radio_slots.index(freq_letter)
+            letter = args
+            i = get_frequency_index(caller,letter)
             if not i:
                 caller.msg("You don't have that many radio channels.")
                 return
@@ -238,10 +292,21 @@ class CmdFrequency(MuxCommand):
             return
         
         if "color" in switches:
-            #over-ride freq color
+            # over-ride freq color
             # try getting frequency letter
+            letter = self.lhs
+            color = self.rhs
+            i = get_frequency_index(caller,letter)
+            if not i:
+                caller.msg("You don't have that many radio channels.")
+                return
             # try checking valid color
+            if color_check(color) == "invalid":
+                caller.msg("Please use a valid color code.")
+                return
             # find index of frequency and set.
+            caller.db.radio_colors[i] = color
+            caller.msg(f"Set color of Frequency {letter} to {color}.")
             return
         
         if "who" in switches:

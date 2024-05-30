@@ -15,6 +15,7 @@ from world.roster.models import GameRoster
 from evennia.utils import evmenu
 from evennia.utils.search import object_search
 from evennia.utils.utils import inherits_from
+from server.utils import color_check
 from django.conf import settings
 from typeclasses.objects import Object
 from evennia.objects.models import ObjectDB
@@ -602,8 +603,13 @@ class CmdCreateGroup(MuxCommand):
             else:
                 caller.msg("Group not found.")
         elif "color" in switches:
+            #Make sure this is a valid color
+
             color = self.rhs
             group_name = self.lhs
+            if color_check(color) == "invalid":
+                caller.msg("Please use a valid color code.")
+                return
             group = get_group(caller,group_name)
             if group:
                 group.db_color = color
