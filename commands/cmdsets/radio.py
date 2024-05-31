@@ -135,12 +135,16 @@ class CmdRadio(MuxCommand):
                     receiver_list = freq.strip().split(',')
                     for r in receiver_list:
                         if r.db.radio:
-                            #TODO: maybe alert the sender if a radio is off.
-                            r.msg(f"Tightbeam from {caller.name}: {msg} \n")
+                            if not r.radio_on:
+                                caller.msg(f"{r.name}'s radio is turned off.")
+                            else:
+                                r.msg(f"Tightbeam from {caller.name}: {msg} \n")
+                                
                             if len(receiver_list) > 1:
                                 r.msg("(Sent to")
                                 for s in receiver_list:
                                     r.msg(f"{s.name} )\n")
+                    caller.msg(f"Tightbeam to {freq}: {msg} \n")
                     return
             except:
                 #no args either, so just return status
