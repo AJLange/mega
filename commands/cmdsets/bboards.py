@@ -38,7 +38,7 @@ def list_bboards(caller):
         "bb #", "Name", "New Posts", "Subscribed"
         )
     for bboard in bb_list:
-        bb_number = bb_list.index(bboard)
+        bb_number = bboard.id
         bb_name = bboard.db_name
 
         unread_num = get_num_unread(caller, bboard)
@@ -55,6 +55,12 @@ def check_if_subbed(caller, board_to_check):
         return False
     else:
         return True
+    
+
+def get_post(caller, board_num, number):
+    board = access_bboard(caller, board_num)
+    post = BoardPost.objects.get(id__icontains=number, id__in=board)
+    return post
 
 def access_bboard(caller, args, request="read"):
     """
@@ -64,7 +70,8 @@ def access_bboard(caller, args, request="read"):
     bboards = get_boards()
     if not bboards:
         return
-    if args.isdigit():
+
+    if (isinstance(args, int)):
         bb_num = int(args)
         if (bb_num < 0) or (bb_num >= len(bboards)):
             caller.msg("Invalid board number.")
@@ -74,12 +81,12 @@ def access_bboard(caller, args, request="read"):
     else:
         board_ids = [ob.id for ob in bboards]
         try:
-            board = BulletinBoard.objects.get(db_key__icontains=args, id__in=board_ids)
+            board = BulletinBoard.objects.get(id__icontains=args, id__in=board_ids)
         except BulletinBoard.DoesNotExist:
             caller.msg("Could not find a unique board by name %s." % args)
             return
         except BulletinBoard.MultipleObjectsReturned:
-            boards = BulletinBoard.objects.filter(db_key__icontains=args, id__in=board_ids)
+            boards = BulletinBoard.objects.filter(id__icontains=args, id__in=board_ids)
             caller.msg(
                 "Too many boards returned, please pick one: %s"
                 % ", ".join(str(ob) for ob in boards)
@@ -204,12 +211,13 @@ def check_access(caller, board):
         else:
             return False
 
-def read_post(board, post_num):
-    post = "**** %s ****" % board.db_name.capitalize()
-    post += "Subject: " + post_num.posted_by + "\n"
-    post += "Author: " + post_num.db_title + "\n\n"
-    post += post_num.body_text
-    return post
+def read_post(caller, board, post_num):
+    post = get_post(caller, board, post_num)
+    post_string = "**** %s ****" % board.db_name.capitalize()
+    post_string += "Subject: " + post.posted_by + "\n"
+    post_string += "Author: " + post.db_title + "\n\n"
+    post_string += post.body_text
+    return post_string
 
 '''
 to add- board timeout function for server using the board timeout value
@@ -294,7 +302,7 @@ class CmdBBNew(MuxCommand):
             # caller.msg("Board %s:" % bb.key)
             # posts_on_board = 0
             for post in posts:
-                bb.read_post(caller, post)
+                read_post(caller, bb, post)
                 # if noread:
                 #     bb.mark_read(caller, post)
                 # else:
@@ -369,7 +377,7 @@ class CmdBBRead(MuxCommand):
         if not subbed:
             return
         if not access:
-            caller.msg("You don't the permissions necessary to read that board.")
+            caller.msg("You don't have the permissions necessary to read that board.")
             return
         
         if len(arglist) < 2:
@@ -379,8 +387,12 @@ class CmdBBRead(MuxCommand):
         else:
             #Build and read a post
             post_num = arglist[1]
-            post = read_post(board_num, post_num)
+            post = read_post(caller, board_to_check, post_num)
+            if not post:
+                caller.msg("No post with that number.")
+                return
             caller.msg(post)
+            return
 
 
 
@@ -492,7 +504,7 @@ class CmdBBEdit(MuxCommand):
         board = access_bboard(caller, arglist[0], "write")
         if not board:
             return
-        post = board.get_post(caller, post_num)
+        post = get_post(caller, post_num)
         if not post:
             return
         if not caller.account.check_permstring("Admins"):
