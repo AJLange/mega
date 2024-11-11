@@ -47,7 +47,7 @@ from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 # from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
 # from commands.default.comms import CmdChannelCreate, CmdCdestroy, CmdCBoot
-from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead, CmdBBPost
+from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead, CmdBBPost, CmdBBNew, CmdBBSub, CmdBBUnsub
 
 # from evennia.contrib.dice import CmdDice
 # from evennia.contrib import multidescer
@@ -130,6 +130,9 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #boards
         self.add(CmdBBRead())
         self.add(CmdBBPost())
+        self.add(CmdBBNew())
+        self.add(CmdBBSub())
+        self.add(CmdBBUnsub())
 
         #POT commands
         self.add(CmdObserve())

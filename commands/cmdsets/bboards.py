@@ -24,6 +24,7 @@ def list_bboards(caller):
     """
     bb_list = get_boards()
     if not bb_list:
+        caller.msg("No boards were found.")
         return
     # later set this on the account level, which involves change of model
     my_subs = []
@@ -51,7 +52,9 @@ def check_if_subbed(caller, board_to_check):
     if not caller in board_subs:
         caller.msg("You are not yet a subscriber to {0}.".format(board_to_check.db_name))
         caller.msg("Use bbsub to subscribe to it.")
-        return
+        return False
+    else:
+        return True
 
 def access_bboard(caller, args, request="read"):
     """
@@ -89,8 +92,9 @@ def access_bboard(caller, args, request="read"):
     return board
 
 def get_all_posts(board):
+    posts = []
     try:
-        posts = BoardPost.objects.get(db_board = board).db_board
+        posts = BoardPost.objects.filter(db_board = board)
     except LookupError:
         return 
     return posts
@@ -120,6 +124,7 @@ def list_messages(caller, board):
     # not working for now.
     
     unread_posts = get_unread_posts(caller)
+
     for post in posts:
         unread = post in unread_posts
         msgnum += 1
@@ -130,9 +135,9 @@ def list_messages(caller, board):
         # if unread message, make the message white-bold
         if unread:
             bbmsgnum = "" + "{0}".format(bbmsgnum)
-        subject = post.db_header[:35]
+        subject = post.db_title[:35]
         date = post.db_date_created.strftime("%x")
-        poster = board.get_poster(post)[:10]
+        poster = post.posted_by
         # turn off white-bold color if unread message
         if unread:
             poster = "{0}".format(poster) + ""
@@ -187,7 +192,7 @@ def get_unread_posts(caller):
 
 def check_access(caller, board):
     # boards = get_boards()
-    player_groups = caller.db.pcgroups()
+    player_groups = caller.db.pcgroups
     board_groups = board.db_groups.all()
     if not board_groups:
         # assume all access
@@ -243,7 +248,7 @@ class CmdBBNew(MuxCommand):
     """
 
     key = "bbnext"
-    aliases = ["+bbnext ", "@bbnext", "bbnew", "+bbnew", "+bbcatchup", "bbcatchup"]
+    aliases = ["+bbnext", "@bbnext", "bbnew", "+bbnew", "+bbcatchup", "bbcatchup"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
@@ -359,11 +364,16 @@ class CmdBBRead(MuxCommand):
         board_to_check = access_bboard(caller, board_num)
         if not board_to_check:
             return
-        check_if_subbed(caller, board_to_check)
-        check_access(caller, board_to_check)  
+        subbed = check_if_subbed(caller, board_to_check)
+        access = check_access(caller, board_to_check) 
+        if not subbed:
+            return
+        if not access:
+            caller.msg("You don't the permissions necessary to read that board.")
+            return
         
         if len(arglist) < 2:
-            list_messages(caller, board_to_check, args)
+            list_messages(caller, board_to_check)
             return
         
         else:
@@ -373,7 +383,6 @@ class CmdBBRead(MuxCommand):
             caller.msg(post)
 
 
-        
 
 class CmdBBPost(MuxCommand):
     """
@@ -624,8 +633,8 @@ class CmdBBSub(MuxCommand):
             return
 
         # check permissions
-        if not bboard.access(caller, "read"):
-            self.msg("%s: You are not allowed to listen to this bboard." % bboard.key)
+        if not check_access(caller, bboard):
+            self.msg("%s: You are not allowed to view this bboard." % bboard.key)
             return
         if "add" in self.switches:
             if not caller.check_permstring("builders"):
@@ -636,11 +645,13 @@ class CmdBBSub(MuxCommand):
             targ = caller
         if not targ:
             return
-        if not bboard.subscribe_bboard(targ):
-            if "quiet" not in self.switches:
+        for sub in bboard.has_subscriber.all():
+            if sub == caller:
                 caller.msg("%s is already subscribed to that board." % targ)
-            return
-        caller.msg("Successfully subscribed %s to %s" % (targ, bboard.key.capitalize()))
+                return
+        #wasn't found on list so add to list
+        bboard.has_subscriber.add(caller)
+        caller.msg("Successfully subscribed %s to %s" % (targ, bboard.db_name))
 
 
 class CmdBBUnsub(default_cmds.MuxCommand):
@@ -663,17 +674,21 @@ class CmdBBUnsub(default_cmds.MuxCommand):
 
         caller = self.caller
         args = self.args
+        found = False
         if not args:
             self.msg("Usage: bbunsub <board #>.")
             return
         bboard = access_bboard(caller, args)
         if not bboard:
             return
-        if not bboard.has_subscriber(caller):
-            caller.msg("You are not subscribed to that board.")
-            return
-        bboard.unsubscribe_bboard(caller)
-        caller.msg("Unsubscribed from %s" % bboard.key)
+        for sub in bboard.has_subscriber.all():
+            if sub == caller:
+                found = True
+                bboard.has_subscriber.remove(caller)
+                caller.msg("Unsubscribed from %s" % bboard.db_name)
+                return
+        if not found:
+            caller.msg(f"You were not subscribed to board {args}.")
 
 
 class CmdBBCreate(MuxCommand):
@@ -698,7 +713,7 @@ class CmdBBCreate(MuxCommand):
         caller = self.caller
 
         if not self.args:
-            self.msg("Usage bbcreate <boardname>")
+            self.msg("Usage: bbcreate <boardname>")
             return
 
         lhs = self.lhs
@@ -726,8 +741,8 @@ class CmdBBPerms(MuxCommand):
 
     """
 
-    key = "bbcreate"
-    aliases = ["+bbcreate", "@bbcreate"]
+    key = "bbperms"
+    aliases = ["+bbperms", "@bbperms"]
     locks = "cmd:perm(bbcreate) or perm(Wizards)"
     help_category = "Comms"
 
@@ -737,7 +752,7 @@ class CmdBBPerms(MuxCommand):
         caller = self.caller
 
         if not self.args:
-            self.msg("Usage bbcreate <boardname>")
+            self.msg("Usage: bbperms <boardname>=<group>")
             return
 
         lhs = self.lhs
