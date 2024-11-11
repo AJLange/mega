@@ -1,0 +1,55 @@
+<h1 class="card-title">Welcome to the all-new rebooted Mega Man MUSH!</h1>
+
+<hr/>
+
+<p class="lead">What side will you choose?</p>
+
+<p>
+    Mega Man MUSH tells the story of a group of robots and humans fighting and surviving a twenty-year-plus war. The war began in a world that was experiencing a Second Renaissance of advances in science and technology. The advances of that golden age were turned toward war, which ravaged the world and caused the wholesale destruction of nations. A desperate humanity, tired of being caught in the middle between robot armies, has begun to arm itself again to try to end the war and secure its own destiny among the stars. Robotkind collectively also wishes to end the fighting, but sinister factions of villains have designs on the world -- and beyond. As threats come now from space and even outside this dimension, the universe is ripe for conquest or destruction... but some still hold out hope for an everlasting peace.
+</p>
+
+{% if webclient_enabled %}
+
+<p><a href="{% url 'webclient:index' %}" class="playbutton">Play in the browser!</a></p>
+
+{% endif %}
+{% if telnet_enabled %}
+<p>
+    Telnet: <strong>{{ server_hostname }}</strong>, port
+    {% for port in telnet_ports %}
+    {% if not forloop.first and forloop.last %} or
+    {% elif forloop.counter != 1 %},
+    {% endif %}
+    <strong>{{ port }}</strong>
+    {% endfor %}
+</p>
+{% endif %}
+{% if telnet_ssl_enabled %}
+<p>
+    Telnet (SSL): <strong>{{ server_hostname }}</strong>, port
+    {% for port in telnet_ssl_ports %}
+    {% if not forloop.first and forloop.last %} or
+    {% elif forloop.counter != 1 %},
+    {% endif %}
+    <strong>{{ port }}</strong>
+    {% endfor %}
+</p>
+{% endif %}
+{% if ssh_enabled %}
+<p>
+    SSH: <strong>{{ server_hostname }}</strong>, port
+    {% for port in ssh_ports %}
+    {% if not forloop.first and forloop.last %} or
+    {% elif forloop.counter != 1 %},
+    {% endif %}
+    <strong>{{ port }}</strong>
+    {% endfor %}
+</p>
+{% endif %}
+<p>
+    Megaman MUSH is now running <a href="https://www.evennia.com">Evennia</a>.
+</p>
+<p>
+    Evennia is Open source and can be found on <a href="https://github.com/evennia/evennia">GitHub</a>.
+    If you find bugs, please report them to the <a href="https://github.com/evennia/evennia/issues">Issue tracker</a>.
+</p>
