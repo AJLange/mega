@@ -24,24 +24,22 @@ folder and edit it to add/remove links to the menu.
   <div class="collapse navbar-collapse" id="menu-content">
     <ul class="navbar-nav">
       {% block navbar_left %}
-      <li>
-        <a class="nav-link" href="{% url 'index' %}">Home</a>
-      </li>
-      <!-- game views -->
-      <li><a class="nav-link" href="{% url 'policies' %}">Policies</a></li>
-      <li><a class="nav-link" href="{% url 'setting' %}">Setting</a></li>
-      <li><a class="nav-link" href="{% url 'timeline' %}">Timeline</a></li>
-      <li><a class="nav-link" href="{% url 'characters' %}">Characters</a></li>
-      <li><a class="nav-link" href="{% url 'logs' %}">Logs</a></li>
-      <li><a class="nav-link" href="{% url 'cutscenes' %}">Cutscenes</a></li>
-      <li><a class="nav-link" href="{% url 'sitemap' %}">Sitemap</a></li>
 
-      <li><a class="nav-link" href="{% url 'help' %}">Help</a></li>
+      <!-- game views -->
+      <!-- over-ridden by side nav but reserved -->
+
       <!-- end game views -->
 
       {% if webclient_enabled %}
-      <li><a class="nav-link" href="{% url 'webclient:index' %}">Play Online</a></li>
+      <!-- disabled this for now until right nav is done -->
+      <!-- <li><a class="nav-link" href="{% url 'webclient:index' %}">Play Online</a></li> -->
       {% endif %}
+
+ <!-- staff was here -->
+      {% endblock %}
+    </ul>
+    <ul class="nav navbar-nav ml-auto w-120 justify-content-end">
+      {% block navbar_right %}
 
       {% if user.is_staff %}
       <li><a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
@@ -49,10 +47,7 @@ folder and edit it to add/remove links to the menu.
       <li><a class="nav-link" href="/api">API</a></li>
       {% endif %}
       {% endif %}
-      {% endblock %}
-    </ul>
-    <ul class="nav navbar-nav ml-auto w-120 justify-content-end">
-      {% block navbar_right %}
+
       {% endblock %}
 
       {% block navbar_user %}
@@ -66,8 +61,11 @@ folder and edit it to add/remove links to the menu.
           {% endif %}
         </a>
         <div class="dropdown-menu" aria-labelledby="user_options">
-          <a class="dropdown-item" href="{% url 'character-create' %}">Create Character</a>
-          <a class="dropdown-item" href="{% url 'character-manage' %}">Manage Characters</a>
+          <!-- blocking character creation until a system is in place -->
+          <!-- <a class="dropdown-item" href="{% url 'character-create' %}">Create Character</a> -->
+          <!--<a class="dropdown-item" href="{% url 'character-manage' %}">Manage Characters</a> -->
+
+          <!-- this part allows online management of my character, which will be altered in future builds. -->
           <div class="dropdown-divider"></div>
           {% for character in account.characters|slice:"10" %}
           <a class="dropdown-item" href="{{ character.web_get_puppet_url }}?next={{ request.path }}">{{ character }}</a>

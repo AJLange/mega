@@ -1,0 +1,21 @@
+{% load static %}
+<div class="font-weight-bold navbar-expand-md">
+ 
+    <ul class="nav flex-column">
+      {% block sidebar_left %}
+
+      <!-- game views -->
+      <li><a class="nav-link" href="{% url 'setting' %}">Setting</a></li>
+      <li><a class="nav-link" href="{% url 'timeline' %}">Timeline</a></li>
+      <li><a class="nav-link" href="{% url 'characters' %}">Characters</a></li>
+      <li><a class="nav-link" href="{% url 'logs' %}">Logs</a></li>
+      <li><a class="nav-link" href="{% url 'cutscenes' %}">Cutscenes</a></li>
+      <li><a class="nav-link" href="{% url 'help' %}">Systems</a></li>
+      <li><a class="nav-link" href="{% url 'policies' %}">Policies</a></li>
+      <li><a class="nav-link" href="{% url 'sitemap' %}">Sitemap</a></li>
+
+      <!-- end game views -->
+      {% endblock %}
+    </ul>
+ 
+</div>
