@@ -63,7 +63,7 @@ class CharacterMixin(TypeclassMixin):
         return self.typeclass.objects.filter(id__in=ids).order_by(Lower("db_key"))
 
 
-class CharacterListView(LoginRequiredMixin, CharacterMixin, ListView):
+class CharacterListView(CharacterMixin, ListView):
     """
     This view provides a mechanism by which a logged-in player can view a list
     of all other characters.

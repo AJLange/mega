@@ -12,10 +12,11 @@ from .views import index
 from evennia.web.website.urls import urlpatterns as evennia_website_urlpatterns
 
 # add patterns here
-from web.website.views import (index, policy, logs, setting, timeline, sitemap, cutscenes)
+from web.website.views import (index, policy, logs, setting, timeline, sitemap, cutscenes, characters)
 
 urlpatterns = [
     path("", index.EvenniaIndexView.as_view(), name="index"),
+    path("characters/", characters.CharacterListView.as_view(), name="characters"),
     path("policies/", policy.PolicyView.as_view(), name="policies"),
     path("setting/", setting.SettingView.as_view(), name="setting"),
     path("timeline/", timeline.TimelineView.as_view(), name="timeline"),
