@@ -29,11 +29,9 @@ class Character(DefaultCharacter):
 
 
         '''
-        time to unfortunately refactor this as a character
-        has armor modes and armor modes contain the stats
-
-        and armor modes in turn hold weapons which contain the elemental
-        properties
+        do I need to refactor?
+        Consider: stats are 'on' a character and copied to that character when armor mode is swapped
+        attacks are 'on' the armor, referenced by the armor directly
 
         '''
 

@@ -476,18 +476,22 @@ class CmdFCList(MuxCommand):
         switches = self.switches
         caller = self.caller
         args = self.args
+
+        #TODO - nicer formatting
+        defaultmsg = "List of all games: \n"
+
+        game_list = GameRoster.objects.all()
+        for game in game_list:
+            defaultmsg = defaultmsg + game.db_name + " "
         
         if not switches:
-                #TODO - nicer formatting
-                msg = "List of all games: \n"
-                game_list = GameRoster.objects.all()
-                for game in game_list:
-                    msg = msg + game.db_name + " "
-                caller.msg(msg)
+
+                caller.msg(defaultmsg)
                 return
         elif "game" in switches:
             if not args:
-                caller.msg("From which game? See fclist (no args) for a list.")
+
+                caller.msg(defaultmsg)
                 return
             else:
                 try:
