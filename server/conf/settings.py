@@ -88,6 +88,8 @@ TIME_FACTOR = 1
 # module.
 TIME_GAME_EPOCH = epoch_start
 
+AUTO_CREATE_CHARACTER_WITH_ACCOUNT = False
+AUTO_PUPPET_ON_LOGIN = False
 
 GLOBAL_SCRIPTS = {
     "save_messages": {

@@ -11,7 +11,8 @@ class CutsceneIndexView(TemplateView):
 
     # Tell the view what HTML template to use for the page
     template_name = "website/cutscenes.html"
-
+    page_title = "Cutscenes"
+    access_type = "view"
     # This method tells the view what data should be displayed on the template.
     def get_context_data(self, **kwargs):
         """
