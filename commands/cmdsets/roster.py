@@ -453,8 +453,7 @@ class CmdFCList(MuxCommand):
     Usage:
       +fclist, +cast, +roster
       +fclist/game <game>                                             
-      +fclist/group <group>
-      +fclist/avail                                     
+      +fclist/group <group>                                  
                                                                               
     The +fclist command will list all the various games that are included 
     in our theme and the created FCs (feature characters) from that game. The   
@@ -478,17 +477,16 @@ class CmdFCList(MuxCommand):
         args = self.args
 
         #TODO - nicer formatting
+
         defaultmsg = "List of all games: \n"
 
         game_list = GameRoster.objects.all()
         for game in game_list:
             defaultmsg = defaultmsg + game.db_name + " "
         
-        if not switches:
+        # defaulting fclist to game behavior if group not specified
+        if not switches or "game" in switches:
 
-                caller.msg(defaultmsg)
-                return
-        elif "game" in switches:
             if not args:
 
                 caller.msg(defaultmsg)
@@ -498,7 +496,7 @@ class CmdFCList(MuxCommand):
                     # maybe this should be iexact, check it later
                     game = GameRoster.objects.filter(db_name__icontains=args)[0]
                 except:
-                    caller.msg("Game roster missing. Contact an admin.")
+                    caller.msg("Game roster missing. Check +fclist for a list of valid games.")
                     return
                 msg = "--------------------------------------------------------------------------\n"
                 msg += (f"List of FCs from {game.db_name}: \n\n")

@@ -551,7 +551,7 @@ class CmdFCStatus(MuxCommand):
         +lockfc <character>=<status>
         +lockfc Sigma=Closed
 
-    Common arguments used: Dead, Closed, Played.
+    Common arguments used: Dead, Closed, Played, Reserved.
     This does take "Open" if you want to open an FC with this method, but try
     +unplayer first.
 
