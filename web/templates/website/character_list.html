@@ -15,8 +15,8 @@
         <hr />
 
           <ul>
-              {% for object in object_list %}
-              <li><a href="{{ object.web_get_detail_url }}">{{ object }}</a> - {{ object.db.appstatus }}</li>
+              {% for char in object_list %}
+              <li><a href="{{ char.web_get_detail_url }}">{{ char }}</a> - {{ char.db.appstatus }}</li>
               {% endfor %}
           </ul>
           

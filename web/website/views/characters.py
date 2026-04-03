@@ -17,8 +17,13 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import ListView
 from django.views.generic.base import RedirectView
 
+
 from evennia.utils import class_from_module
 from evennia.web.website import forms
+
+from evennia.server.sessionhandler import SESSIONS
+from evennia.utils.utils import inherits_from
+
 
 from .mixins import TypeclassMixin
 from .objects import (
@@ -97,7 +102,7 @@ class CharacterListView(CharacterMixin, ListView):
         ids = [
 
             # obj.id for obj in self.typeclass.objects.all() if obj.access(account, self.access_type)
-            obj.id for obj in self.typeclass.objects.all() if obj.access(account, self.access_type)
+            obj.id for obj in self.typeclass.objects.all() if inherits_from(obj, settings.BASE_CHARACTER_TYPECLASS)
         ]
 
         return self.typeclass.objects.filter(id__in=ids).order_by(Lower("db_key"))

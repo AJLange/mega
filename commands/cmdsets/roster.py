@@ -40,6 +40,28 @@ def check_char_valid(caller, char):
         return 0
     else:
         return char
+    
+
+def groupadd(caller, char_string, name):        
+    #choosing first match
+    group = get_group(caller, name)
+    if group:
+        #make sure that's a valid character
+        char = caller.search(char_string, global_search=True)
+
+        char = check_char_valid(caller,char)
+        if not char:
+            caller.msg("Character not found.")
+            return
+            
+        group.db_members.add(char)
+        char.db.pcgroups.append(group.db_name)
+        caller.msg(f"Added {char.name} to the group {group.db_name}.")
+        char.msg(f"You were added to the group {group.db_name}.")
+        return
+    else:
+        caller.msg("Error occured. Check the group name or contact admin.")
+        return
 
 
 class CmdSetGroups(MuxCommand):
@@ -61,29 +83,8 @@ class CmdSetGroups(MuxCommand):
     aliases = ["ally", "addgroup", "+ally"]
     help_category = "Roster"
 
-    def groupadd(caller, char_string, name):        
-        #choosing first match
-        group = get_group(caller, name)
-        if group:
-            #make sure that's a valid character
-            char = caller.search(char_string, global_search=True)
-
-            char = check_char_valid(caller,char)
-            if not char:
-                caller.msg("Character not found.")
-                return
-            
-            group.db_members.add(char)
-            char.db.pcgroups.append(group.db_name)
-            caller.msg(f"Added {char.name} to the group {group.db_name}.")
-            char.msg(f"You were added to the group {group.db_name}.")
-            return
-        else:
-            caller.msg("Error occured. Check the group name or contact admin.")
-            return
-
     def func(self):
-        
+      
         caller = self.caller
         errmsg = "Syntax error - check help addgroup"
         args = self.args
@@ -106,14 +107,14 @@ class CmdSetGroups(MuxCommand):
         my_group = get_group(caller,group)
         # am I admin?
         if caller.check_permstring("builders"):
-            self.groupadd(caller, char, group)
+            groupadd(caller, char, group)
             return
         # am I in that group?
         else:
             for member in my_group.db_members:
                 if member == char:
                     #TODO - if rank above a number. not checking this for now
-                    self.groupadd(caller,char,group)
+                    groupadd(caller,char,group)
                     return
                 else:
                     caller.msg(f"You aren't a member of the group {group}.")
@@ -407,7 +408,7 @@ class CmdShowGroups(MuxCommand):
                 groups = PlayerGroup.objects.all()
                 msg = "List of all Groups:\n"
                 for group in groups:
-                    msg = msg + group.db_name + " "
+                    msg = msg + group.db_name + " \n"
                 caller.msg(msg)
                 return
             else:
@@ -423,7 +424,7 @@ class CmdShowGroups(MuxCommand):
                 return
             else:
                 group = get_group(caller, args)
-                text = (f"|{group.db_color}{group.db_name}|n \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
+                text = (f"  {group.db_name}|n \n Leader: {group.db_leader}  Second: {group.db_twoic} \n {group.db_description}")
                 caller.msg(text)
                 return
         if "me" in switches:

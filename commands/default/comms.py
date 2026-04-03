@@ -748,8 +748,7 @@ class CmdCdesc(COMMAND_DEFAULT_CLASS):
 
 
 '''
-This is evennia's default page code. I don't need to change it, probably,
-but if I do, here it is.
+This is evennia's default page code. I need to over ride this with a custom page command.
 
 '''
 
@@ -768,10 +767,11 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
 
     Send a message to target user (if online). If no
     argument is given, you will get a list of your latest messages.
+
     """
 
     key = "page"
-    aliases = ["tell"]
+    aliases = ["tell", "p"]
     switch_options = ("last", "list")
     locks = "cmd:not pperm(page_banned)"
     help_category = "Comms"
