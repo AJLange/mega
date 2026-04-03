@@ -65,11 +65,10 @@ class CharacterMixin(TypeclassMixin):
 
 class CharacterListView(CharacterMixin, ListView):
     """
-    This view provides a mechanism by which a logged-in player can view a list
+    This view provides a mechanism by which a player can view a list
     of all other characters.
 
-    This view requires authentication by default as a nominal effort to prevent
-    human stalkers and automated bots/scrapers from harvesting data on your users.
+    This view no longer requires being logged in, unlike Evennia default.
 
     """
 
@@ -96,6 +95,8 @@ class CharacterListView(CharacterMixin, ListView):
         # Return a queryset consisting of characters the user is allowed to
         # see.
         ids = [
+
+            # obj.id for obj in self.typeclass.objects.all() if obj.access(account, self.access_type)
             obj.id for obj in self.typeclass.objects.all() if obj.access(account, self.access_type)
         ]
 

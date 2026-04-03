@@ -116,7 +116,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #roster commands
         self.add(CmdSetGroups())
         self.add(CmdShowGroups())
-        self.add(CmdFCList())
+
         self.add(CmdCreateSquad())
 
         self.add(CmdMailCharacter())
@@ -237,7 +237,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdMail())
         self.add(CmdWhere())
         self.add(CmdWho())
-
+        self.add(CmdFCList())
 
         #self.add(CmdChannelCreate())
         #self.add(CmdCBoot())

@@ -128,7 +128,7 @@ class CmdCharCreate(COMMAND_DEFAULT_CLASS):
     """
 
     key = "charcreate"
-    locks = "cmd:pperm(Player)"
+    locks = "cmd:pperm(Builder)"
     help_category = "General"
 
     # this is used by the parent
