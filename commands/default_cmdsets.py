@@ -22,7 +22,8 @@ All commented out code needs rebuilt django models
 from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
-from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside, CmdPEmit, CmdSetSpoof, CmdPage
+from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside, CmdPEmit, CmdSetSpoof
+#from commands.cmdsets.pose import CmdPage <- trying to use default override instead
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger, CmdShowMyToggles, CmdCheckWeapons, CmdWeaponDesc, CmdCookieBomb, CmdCookieMsg, CmdCookiemonsters
 #from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
@@ -45,6 +46,7 @@ from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
 from commands.cmdsets.utility import CmdWho, CmdICTime, CmdStaffRole, CmdWarning, CmdHighlight, CmdAWho, CmdWhere, CmdListStaff
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
+from commands.default.comms import CmdPage
 # from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
 # from commands.default.comms import CmdChannelCreate, CmdCdestroy, CmdCBoot
 from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead, CmdBBPost, CmdBBNew, CmdBBSub, CmdBBUnsub
@@ -238,6 +240,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdWhere())
         self.add(CmdWho())
         self.add(CmdFCList())
+        self.add(CmdPage())
 
         #self.add(CmdChannelCreate())
         #self.add(CmdCBoot())
