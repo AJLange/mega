@@ -1511,6 +1511,7 @@ class DefaultAccount(AccountDB, metaclass=TypeclassBase):
         lockstring = "attrread:perm(Admins);attredit:perm(Admins);attrcreate:perm(Admins);"
         self.attributes.add("_playable_characters", [], lockstring=lockstring)
         self.attributes.add("_saved_protocol_flags", {}, lockstring=lockstring)
+        self.lastpaged = []
 
     def at_init(self):
         """

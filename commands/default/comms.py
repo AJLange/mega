@@ -1306,23 +1306,20 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
 
     Usage:
       page <account> <message>
-      page[/switches] [<account>,<account>,... = <message>]
+      page <account>,<account>,... = <message>
       tell        ''
+      p ''
       page <number>
 
-    Switches:
-      last - shows who you last messaged
-      list - show your last <number> of tells/pages (default)
-
     Send a message to target user (if online). If no argument is given, you
-    will get a list of your latest messages. The equal sign is needed for
+    will get the last person you paged. The equal sign is needed for
     multiple targets or if sending to target with space in the name.
 
     """
 
     key = "page"
     aliases = ["tell", "p"]
-    switch_options = ("last", "list")
+    # switch_options = ("last", "list") <- no switches on this
     locks = "cmd:not pperm(page_banned)"
     help_category = "Comms"
 
@@ -1334,37 +1331,38 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
 
         # Since account_caller is set above, this will be an Account.
         caller = self.caller
+        create_tmp_message = Msg.objects.create_message
 
         # get the messages we've sent (not to channels)
-        pages_we_sent = Msg.objects.get_messages_by_sender(caller).order_by("-db_date_created")
+        #pages_we_sent = Msg.objects.get_messages_by_sender(caller).order_by("-db_date_created")
         # get only messages tagged as pages or not tagged at all (legacy pages)
-        pages_we_sent = pages_we_sent.filter(
-            Q(db_tags__db_key__iexact="page", db_tags__db_category__iexact="comms")
-            | Q(db_tags__isnull=True)
-        )
+        #pages_we_sent = pages_we_sent.filter(
+         #   Q(db_tags__db_key__iexact="page", db_tags__db_category__iexact="comms")
+          #  | Q(db_tags__isnull=True)
+        #)
         # we need to default to True to allow for legacy pages
-        pages_we_sent = [msg for msg in pages_we_sent if msg.access(caller, "read", default=True)]
+        #pages_we_sent = [msg for msg in pages_we_sent if msg.access(caller, "read", default=True)]
 
         # get last messages we've got
-        pages_we_got = Msg.objects.get_messages_by_receiver(caller).order_by("-db_date_created")
-        pages_we_got = pages_we_got.filter(
-            Q(db_tags__db_key__iexact="page", db_tags__db_category__iexact="comms")
-            | Q(db_tags__isnull=True)
-        )
+        #pages_we_got = Msg.objects.get_messages_by_receiver(caller).order_by("-db_date_created")
+        #pages_we_got = pages_we_got.filter(
+         #   Q(db_tags__db_key__iexact="page", db_tags__db_category__iexact="comms")
+          #  | Q(db_tags__isnull=True)
+        #)
         # we need to default to True to allow for legacy pages
-        pages_we_got = [msg for msg in pages_we_got if msg.access(caller, "read", default=True)]
+        #pages_we_got = [msg for msg in pages_we_got if msg.access(caller, "read", default=True)]
 
         # get only messages tagged as pages or not tagged at all (legacy pages)
         targets, message, number = [], None, None
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(obj.key for obj in pages_we_sent[0].receivers)
-                self.msg(f"You last paged |c{recv}|n:{pages_we_sent[0].message}")
-                return
-            else:
-                self.msg("You haven't paged anyone yet.")
-                return
+        # if "last" in self.switches:
+           # if pages_we_sent:
+             #   recv = ",".join(obj.key for obj in pages_we_sent[0].receivers)
+             #   self.msg(f"You last paged |c{recv}|n:{pages_we_sent[0].message}")
+              #  return
+            #else:
+              #  self.msg("You haven't paged anyone yet.")
+            #    return
 
         if self.args:
             if self.rhs:
@@ -1393,26 +1391,31 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
                     # a single-word message - use the original args
                     message = self.args.strip()
 
-        pages = list(pages_we_sent) + list(pages_we_got)
-        pages = sorted(pages, key=lambda page: page.date_created)
+        #pages = list(pages_we_sent) + list(pages_we_got)
+        #pages = sorted(pages, key=lambda page: page.date_created)
 
         if message:
             # send a message
             if not targets:
                 # no target given - send to last person we paged
-                if pages_we_sent:
-                    targets = pages_we_sent[0].receivers
+                if caller.lastpaged:
+                    targets = caller.lastpaged
                 else:
                     self.msg("Who do you want to page?")
                     return
+            else:
+                caller.lastpaged = []
+                for target in targets:
+                    caller.lastpaged.append(target)
+
 
             header = f"|wAccount|n |c{caller.key}|n |wpages:|n"
             if message.startswith(":"):
                 message = f"{caller.key} {message.strip(':').strip()}"
 
-            # create the persistent message object
+            # create the temporary message object
             target_perms = " or ".join([f"id({target.id})" for target in targets + [caller]])
-            create.create_message(
+            create_tmp_message(
                 caller,
                 message,
                 receivers=targets,
@@ -1435,8 +1438,7 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
                 if hasattr(target, "sessions") and not target.sessions.count():
                     received.append(f"|C{target.name}|n")
                     rstrings.append(
-                        f"{received[-1]} is offline. They will see your message "
-                        "if they list their pages later."
+                        f"{received[-1]} is offline."
                     )
                 else:
                     received.append(f"|c{target.name}|n")
@@ -1447,6 +1449,22 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
 
         else:
             # no message to send
+            # so we aren't doing anything but telling you who you paged last that's it
+            # the rest is not accessed for now
+
+            targets = caller.lastpaged
+            if targets:
+                if len(targets) > 1:
+                    for target in targets:
+                        page_list = (target + ", " + page_list)
+                else: 
+                    page_list = (targets[0])
+                caller.msg(f"You last paged: {page_list}")
+                return
+            else:
+                caller.msg("No one was paged")
+            return
+        
             if number is not None and len(pages) > number:
                 lastpages = pages[-number:]
             else:
@@ -1492,13 +1510,7 @@ class CmdPage(COMMAND_DEFAULT_CLASS):
                         message=page.message,
                     )
                 )
-            lastpages = "\n ".join(listing)
 
-            if lastpages:
-                string = f"Your latest pages:\n {lastpages}"
-            else:
-                string = "You haven't sent or received any pages yet."
-            self.msg(string)
             return
 
 
