@@ -92,6 +92,9 @@ class CmdSetGroups(MuxCommand):
         if not args:
             caller.msg(errmsg)
             return
+        if not self.rhs:
+            caller.msg(errmsg)
+            return
 
         try:
             group = self.rhs

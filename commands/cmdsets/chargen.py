@@ -1493,7 +1493,7 @@ class CmdFinishChargen(MuxCommand):
 
         try:
             self.caller.cmdset.remove(ChargenCmdset)
-            caller.msg("Char Creation Done. Make sure your character has stats and abilities set.")
+            caller.msg("Char Creation Done. Make sure your character has stats and abilities set.\nDo not forget to add the character to at least one group using the +addgroup command.")
         except ValueError:
             caller.msg(errmsg)
             return
