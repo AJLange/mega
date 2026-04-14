@@ -6,6 +6,11 @@ the Account at all times (they go into the AccountCmdSet). So we
 make sure to homogenize self.caller to always be the account object
 for easy handling.
 
+This is an old version of the file. It's saved for preservation reasons 
+but is not currently referenced in working code and will
+eventually be deleted once I'm sure I don't need it anymore.
+One line in this doesn't work (channelhandler)
+
 """
 import hashlib
 import time

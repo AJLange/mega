@@ -1,5 +1,6 @@
 """
 Home of mail and private messaging commands.
+I THINK this version of this file is no longer accessed. Has problems, needs revisited.
 
 """
 
@@ -15,7 +16,7 @@ from evennia.server.sessionhandler import SESSIONS
 import time
 import re
 from evennia import ObjectDB, AccountDB
-from evennia.comms.models import Msg
+from evennia.comms.models import Msg, TempMsg
 from evennia.commands.default.muxcommand import MuxCommand
 
 
