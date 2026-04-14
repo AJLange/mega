@@ -16,7 +16,14 @@
 
           <ul>
               {% for char in object_list %}
-              <li><a href="{{ char.web_get_detail_url }}">{{ char }}</a> - {{ char.db.appstatus }} </li>
+
+              {% if char.db.pcgroups.0 != "None" %}
+              
+              <li><a href="{{ char.web_get_detail_url }}">{{ char }}</a> - {{ char.db.pcgroups.0 }}
+                {% if char.db.pcgroups.0 != "Admin" %} 
+                - {{ char.db.appstatus }}
+                {% endif %} </li>
+              {% endif %}
               {% endfor %}
           </ul>
 
