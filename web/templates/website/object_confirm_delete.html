@@ -1,0 +1,38 @@
+{% extends "website/base.html" %}
+
+{% block titleblock %}
+{{ view.page_title }}
+{% endblock %}
+
+{% block body %}
+
+{% load addclass %}
+<div class="container main-content mt-4" id="main-copy">
+  <div class="row">
+    <div class="col-lg-5 offset-lg-3 col-sm-12">
+      <div class="card mt-3 border border-danger">
+        <div class="card-body">
+          <h1 class="card-title">{{ view.page_title }}</h1>
+          <hr />
+          <form method="post" action="?">
+            {% csrf_token %}
+            {% if user.is_staff %} 
+            <p>Are you sure you want to delete this: "{{ object }}"?</p>
+                  You can see this because you are staff.
+
+            <hr />
+            <div class="form-group">
+              <input class="form-control btn btn-outline-danger" type="submit" value="yes" />
+              <input type="hidden" name="next" value="{{ next }}" />
+            </div>
+            {% else %}
+            <p>You've reached this page in error. Only staff can do this.</p>
+            {% endif %}
+          </form>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
