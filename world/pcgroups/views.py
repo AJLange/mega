@@ -12,4 +12,5 @@ def group(request):
         'squad_list': squad_list
     }
 
-    return render(request, "group/group.html", context)
+    # TODO: build a URL for each group that includes group members and desc
+    return render(request, "groups.html", context)

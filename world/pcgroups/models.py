@@ -1,5 +1,7 @@
 from django.db import models
 from evennia import ObjectDB
+from django.urls import reverse
+from django.utils.text import slugify
 
 # Storage of groups for PCs
 
@@ -19,6 +21,15 @@ class PlayerGroup(models.Model):
 
     def __str__(self):
         return self.db_name
+    
+    def web_get_detail_url(self):
+        try:
+            return reverse(
+                "%s-detail" % slugify(self._meta.verbose_name),
+                kwargs={"category": slugify(self.db_help_category), "topic": slugify(self.db_key)},
+            )
+        except Exception:
+            return "#"
 
 class Squad(models.Model):
 
@@ -32,7 +43,6 @@ class Squad(models.Model):
 
     def __str__(self):
         return self.db_name
-
 
 
 

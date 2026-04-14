@@ -12,7 +12,9 @@
             <div class="card-body">
             <h1 class="card-title">{{ view.page_title }}</h1>
                 Something else goes here
-
+                {% for group in group_list %}
+              <li><a href="{{ group.web_get_detail_url }}">{{ group }}</a> </li>
+              {% endfor %}
             </div>
         </div>
     </div>

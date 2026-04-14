@@ -21,9 +21,10 @@
           </ul>
 
           <ul>
-              {% for group in group_list %}
+            <li><a class="nav-link" href="{% url 'groups' %}">Groups</a></li>
+              <!-- {% for group in group_list %}
               <li><a href="{{ group.web_get_detail_url }}">{{ group }}</a> </li>
-              {% endfor %}
+              {% endfor %} -->
           </ul>
           
       </div>

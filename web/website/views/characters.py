@@ -2,8 +2,6 @@
 Views for manipulating Characters (children of Objects often used for
 puppeting).
 
-Currently Evennia default
-
 """
 
 from django.conf import settings
