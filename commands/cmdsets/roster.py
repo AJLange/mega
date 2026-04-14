@@ -53,9 +53,27 @@ def groupadd(caller, char_string, name):
         if not char:
             caller.msg("Character not found.")
             return
-            
+        
+        # don't add if I'm already in that group
+        char_groups = char.db.pcgroups
+
+        if not char_groups:
+            caller.msg("Error, contact an admin")
+            return
+
+        for g in char_groups:
+            if g == group.db_name:
+                caller.msg(f"That character is already in {group.db_name}.")
+                return
+
+        if char_groups[0] == "None":
+            # this is my first group, and none is not a real group
+            char_groups[0] = group.db_name
+        else:
+            # append to my existing groups if this is my second group
+            char_groups.append(group.db_name)
+
         group.db_members.add(char)
-        char.db.pcgroups.append(group.db_name)
         caller.msg(f"Added {char.name} to the group {group.db_name}.")
         char.msg(f"You were added to the group {group.db_name}.")
         return

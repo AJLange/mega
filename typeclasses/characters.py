@@ -95,8 +95,8 @@ class Character(DefaultCharacter):
         self.db.pose_time = 0.0
 
         self.db.appstatus = "Open"
-        self.db.pcgroups = []
-        self.db.squads = []
+        self.db.pcgroups = ["None"]
+        self.db.squads = ["None"]
 
         self.db.radio_on = True
         self.db.radio_channels = 8

@@ -13,6 +13,8 @@
 <p><a href="{% url 'webclient:index' %}" class="playbutton">Play in the browser!</a></p>
 
 {% endif %}
+
+
 {% if telnet_enabled %}
 <p>
     Telnet: <strong>{{ server_hostname }}</strong>, port
@@ -46,6 +48,13 @@
     {% endfor %}
 </p>
 {% endif %}
+
+{% if account %}
+<p>
+You are logged in as <a href="{% url 'character-manage' %}">{{ account.username }}</a>
+</p>
+{% endif %}
+
 <p>
     Megaman MUSH is now running <a href="https://www.evennia.com">Evennia</a>.
 </p>
