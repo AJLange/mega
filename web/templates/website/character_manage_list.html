@@ -26,7 +26,13 @@
             </div>
           </div>
           {% endfor %}
+
+          {% if not object_list %}
+            <p>You don't have an active character! Why not try applying for one?</p>
+          {% endif %}
           
+          <hr />
+          <a href="{% url 'character-create' %}">Apply for a Character</a>
       </div>
     </div>
   </div>
