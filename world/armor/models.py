@@ -92,7 +92,7 @@ class ArmorMode(SharedMemoryModel):
     db_medicine =  models.IntegerField('Medicine', default=1)
     db_computer = models.IntegerField('Computer', default=1)
     db_stealth = models.IntegerField('Stealth', default=1) 
-    db_heist = models.IntegerField('Heist', default=1)
+    db_infiltration = models.IntegerField('Infiltration', default=1)
     db_convince = models.IntegerField('Convince', default=1)
     db_presence = models.IntegerField('Presence', default=1)
     db_arcana = models.IntegerField('Arcana', default=1)

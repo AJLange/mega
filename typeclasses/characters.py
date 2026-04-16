@@ -42,12 +42,12 @@ class Character(DefaultCharacter):
         #skills can't be null in combat testing
         # setting to 1 for now, will decide later if 0 is OK
 
-        self.db.discern = self.db.aim = self.db.athletics =  self.db.force = self.db.mechanics = self.db.medicine = self.db.computer = self.db.stealth = self.db.heist = self.db.convince =  self.db.presence = self.db.arcana = 1
+        self.db.discern = self.db.aim = self.db.athletics =  self.db.force = self.db.mechanics = self.db.medicine = self.db.computer = self.db.stealth = self.db.infiltration = self.db.convince =  self.db.presence = self.db.arcana = 1
 
         self.db.size = "Medium"
         self.db.speed = 1
         self.db.strength = "Normal"
-        self.db.type = "Human"
+        self.db.type = ["Human"]
         self.db.cookiecount = 0
         self.db.stagequota = 6
         self.db.roomquota = 10
@@ -145,7 +145,7 @@ class Character(DefaultCharacter):
         Simple access method to return skills
     
         """
-        return self.db.discern, self.db.aim, self.db.athletics, self.db.force, self.db.mechanics, self.db.medicine, self.db.computer, self.db.stealth, self.db.heist, self.db.convince, self.db.presence, self.db.arcana
+        return self.db.discern, self.db.aim, self.db.athletics, self.db.force, self.db.mechanics, self.db.medicine, self.db.computer, self.db.stealth, self.db.infiltration, self.db.convince, self.db.presence, self.db.arcana
 
     def get_a_skill(self, skill):
         #access a single skill
@@ -166,8 +166,8 @@ class Character(DefaultCharacter):
             return self.db.computer
         elif skill == "stealth":
             return self.db.stealth
-        elif skill == "heist":
-            return self.db.heist
+        elif skill == "infiltration":
+            return self.db.infiltration
         elif skill == "convince":
             return self.db.convince
         elif skill == "presence":

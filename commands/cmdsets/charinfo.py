@@ -528,7 +528,7 @@ class CmdSheet(BaseCommand):
             for mode in char.get_all_armors():
                 all_armors_names.append(mode.db_name)
             focuses = char.db.focuses
-            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= char.get_skills()
+            discern, aim, athletics, force, mechanics, medicine, computer, stealth, infiltration, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
             line2 = "Templates: %s" % (types)
@@ -536,7 +536,7 @@ class CmdSheet(BaseCommand):
             line35 = "Available Armors: %s" % str(all_armors_names)
             line4= (f" POW: {num_to_line(pow)}\n DEX: {num_to_line(dex)}\n TEN: {num_to_line(ten)}\n CUN: {num_to_line(cun)}\n EDU: {num_to_line(edu)}\n CHR: {num_to_line(chr)}\n AUR: {num_to_line(aur)}")
             #line5 = "Skills go here"
-            line5 = (f"\n Discern:   {num_to_skill(discern)}         Size: {size}\n Aim:       {num_to_skill(aim)}         Speed: {speed}\n Athletics: {num_to_skill(athletics)}         Strength: {strength} \n Force:     {num_to_skill(force)} \n Mechanics: {num_to_skill(mechanics)}         Weakness: {weakness}\n Medicine:  {num_to_skill(medicine)}         Resistance: {resistance}\n Computer:  {num_to_skill(computer)}\n Stealth:   {num_to_skill(stealth)}\n Heist:     {num_to_skill(heist)}\n Convince:  {num_to_skill(convince)}\n Presence:  {num_to_skill(presence)}\n Arcana:    {num_to_skill(arcana)}")
+            line5 = (f"\n Discern:       {num_to_skill(discern)}       Size: {size}\n Aim:           {num_to_skill(aim)}       Speed: {speed}\n Athletics:     {num_to_skill(athletics)}       Strength: {strength} \n Force:         {num_to_skill(force)} \n Mechanics:     {num_to_skill(mechanics)}       Weakness: {weakness}\n Medicine:      {num_to_skill(medicine)}       Resistance: {resistance}\n Computer:      {num_to_skill(computer)}\n Stealth:       {num_to_skill(stealth)}\n Infiltration:  {num_to_skill(infiltration)}\n Convince:      {num_to_skill(convince)}\n Presence:      {num_to_skill(presence)}\n Arcana:        {num_to_skill(arcana)}")
             
             line6 = "\nCapabilities: %s" % (cap)
             line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)

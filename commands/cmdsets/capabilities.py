@@ -207,7 +207,7 @@ class CmdCrossfuse(MuxCommand):
                                             db_resistance = char.db.resistance, db_weakness = char.db.weakness,
                                             db_discern = char.db.discern, db_aim = char.db.aim, db_athletics = char.db.athletics,
                                             db_force = char.db.force, db_mechanics = char.db.mechanics, db_medicine = char.db.medicine, db_computer = char.db.computer,
-                                            db_stealth = char.db.stealth, db_heist = char.db.heist, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
+                                            db_stealth = char.db.stealth, db_infiltration = char.db.infiltration, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
                                             db_primary = char.db.primary, db_secondary = char.db.secondary)
 
 

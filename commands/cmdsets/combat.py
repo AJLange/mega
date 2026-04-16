@@ -60,7 +60,7 @@ def swap_armor(caller, armor):
     caller.db.medicine = armor.db_medicine
     caller.db.computer = armor.db_computer
     caller.db.stealth = armor.db_stealth
-    caller.db.heist = armor.db_heist
+    caller.db.infiltration = armor.db_infiltration
     caller.db.convince =  armor.db_convince
     caller.db.presence = armor.db_presence
     caller.db.arcana = armor.db_arcana

@@ -11,6 +11,8 @@ class SettingView(TemplateView):
 
     # Tell the view what HTML template to use for the page
     template_name = "website/setting.html"
+    page_title = "Setting"
+    access_type = "view"
 
     # This method tells the view what data should be displayed on the template.
     def get_context_data(self, **kwargs):

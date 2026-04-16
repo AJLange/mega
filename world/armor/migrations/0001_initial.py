@@ -125,7 +125,7 @@ class Migration(migrations.Migration):
                     models.IntegerField(default=1, verbose_name="Computer"),
                 ),
                 ("db_stealth", models.IntegerField(default=1, verbose_name="Stealth")),
-                ("db_heist", models.IntegerField(default=1, verbose_name="Heist")),
+                ("db_infiltration", models.IntegerField(default=1, verbose_name="infiltration")),
                 (
                     "db_convince",
                     models.IntegerField(default=1, verbose_name="Convince"),

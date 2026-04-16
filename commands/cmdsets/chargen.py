@@ -693,7 +693,7 @@ class CmdSetSkills(MuxCommand):
     Medicine
     Computer
     Stealth
-    Heist
+    infiltration
     Convince
     Presence
     Arcana
@@ -768,8 +768,8 @@ class CmdSetSkills(MuxCommand):
             character.db.stealth = stat
             caller.msg(success)
             return
-        if skill_name == "heist":
-            character.db.heist = stat
+        if skill_name == "infiltration":
+            character.db.infiltration = stat
             caller.msg(success)
             return
         if skill_name == "convince":
@@ -1363,7 +1363,7 @@ class CmdSetArmor(MuxCommand):
                                             db_resistance = char.db.resistance, db_weakness = char.db.weakness,
                                             db_discern = char.db.discern, db_aim = char.db.aim, db_athletics = char.db.athletics,
                                             db_force = char.db.force, db_mechanics = char.db.mechanics, db_medicine = char.db.medicine, db_computer = char.db.computer,
-                                            db_stealth = char.db.stealth, db_heist = char.db.heist, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
+                                            db_stealth = char.db.stealth, db_infiltration = char.db.infiltration, db_convince = char.db.convince, db_presence = char.db.presence, db_arcana = char.db.arcana,
                                             db_primary = char.db.primary, db_secondary = char.db.secondary
                                             )
         #db_capabilities.set(char.db.capabilities), db_weapons.set(char.db.weapons)
@@ -1713,14 +1713,14 @@ class CmdAllArmorSearch(MuxCommand):
                     if not resistance:
                         resistance = "None"
 
-                    discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= armor.db_discern, armor.db_aim, armor.db_athletics, armor.db_force, armor.db_mechanics, armor.db_medicine, armor.db_computer, armor.db_stealth, armor.db_heist, armor.db_convince, armor.db_presence, armor.db_arcana
+                    discern, aim, athletics, force, mechanics, medicine, computer, stealth, infiltration, convince, presence, arcana= armor.db_discern, armor.db_aim, armor.db_athletics, armor.db_force, armor.db_mechanics, armor.db_medicine, armor.db_computer, armor.db_stealth, armor.db_infiltration, armor.db_convince, armor.db_presence, armor.db_arcana
                     border = "________________________________________________________________________________"
                     line1 = "Name: %s" % (armor.name)
 
                     line3 = "Current Mode: %s " % (armor)
                     line4= (f" POW: {num_to_line(pow)}\n DEX: {num_to_line(dex)}\n TEN: {num_to_line(ten)}\n CUN: {num_to_line(cun)}\n EDU: {num_to_line(edu)}\n CHR: {num_to_line(chr)}\n AUR: {num_to_line(aur)}")
 
-                    line5 = (f"\n Discern:   {num_to_skill(discern)}         Size: {size}\n Aim:       {num_to_skill(aim)}         Speed: {speed}\n Athletics: {num_to_skill(athletics)}         Strength: {strength} \n Force:     {num_to_skill(force)} \n Mechanics: {num_to_skill(mechanics)}         Weakness: {weakness}\n Medicine:  {num_to_skill(medicine)}         Resistance: {resistance}\n Computer:  {num_to_skill(computer)}\n Stealth:   {num_to_skill(stealth)}\n Heist:     {num_to_skill(heist)}\n Convince:  {num_to_skill(convince)}\n Presence:  {num_to_skill(presence)}\n Arcana:    {num_to_skill(arcana)}")
+                    line5 = (f"\n Discern:   {num_to_skill(discern)}         Size: {size}\n Aim:       {num_to_skill(aim)}         Speed: {speed}\n Athletics: {num_to_skill(athletics)}         Strength: {strength} \n Force:     {num_to_skill(force)} \n Mechanics: {num_to_skill(mechanics)}         Weakness: {weakness}\n Medicine:  {num_to_skill(medicine)}         Resistance: {resistance}\n Computer:  {num_to_skill(computer)}\n Stealth:   {num_to_skill(stealth)}\n infiltration:     {num_to_skill(infiltration)}\n Convince:  {num_to_skill(convince)}\n Presence:  {num_to_skill(presence)}\n Arcana:    {num_to_skill(arcana)}")
             
                     line6 = "\nCapabilities: %s" % (cap)
                     line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
