@@ -33,6 +33,16 @@
               <li><a href="{{ group.web_get_detail_url }}">{{ group }}</a> </li>
               {% endfor %} -->
           </ul>
+          <!-- this is very hacky, but works for now until more elegant solution -->
+          <h3>Robot Masters</h3>
+          <ul>
+            {% for char in object_list %}
+            {% if char.db.pcgroups.0 == "Robot Masters" %}
+            <li><a href="{{ char.web_get_detail_url }}">{{ char }}</a> 
+                - {{ char.db.appstatus }}</li>
+            {% endif %}
+            {% endfor %}
+          </ul>
           
       </div>
     </div>
