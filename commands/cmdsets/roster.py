@@ -40,7 +40,7 @@ def check_char_valid(caller, char):
         return 0
     else:
         return char
-    
+
 
 def groupadd(caller, char_string, name):        
     #choosing first match
@@ -77,6 +77,53 @@ def groupadd(caller, char_string, name):
         caller.msg(f"Added {char.name} to the group {group.db_name}.")
         char.msg(f"You were added to the group {group.db_name}.")
         return
+    else:
+        caller.msg("Error occured. Check the group name or contact admin.")
+        return
+    
+def groupdel(caller, char_string, name):        
+    #choosing first match
+    group = get_group(caller, name)
+    if group:
+        #make sure that's a valid character
+        char = caller.search(char_string, global_search=True)
+
+        char = check_char_valid(caller,char)
+        if not char:
+            caller.msg("Character not found.")
+            return
+        
+        # can't remove me from group I am not in
+        char_groups = char.db.pcgroups
+        exGroup = "None"
+
+        if not char_groups:
+            caller.msg("Error - did you type the right group?")
+            return
+
+        for g in char_groups:
+            if g == group.db_name:
+                exGroup = g
+                caller.msg(f"Group found, removing.")
+                char_groups.remove(exGroup)
+        
+        #didn't find that group
+        if exGroup == "None":
+            caller.msg("That character isn't a member of that group.")
+            return
+
+        if not char_groups:
+            # I was removed from all groups and am not valid as a character, uh-oh
+            char.db.pcgroups.append("None")
+            caller.msg(f"{char.name} was removed from all groups. Setting group to None. Please add this character to a valid group.")
+            return
+
+        group.db_members.remove(char)
+        caller.msg(f"Removed {char.name} from group {group.db_name}.")
+        char.msg(f"You were removed from the group {group.db_name}.")
+        return
+    
+
     else:
         caller.msg("Error occured. Check the group name or contact admin.")
         return
@@ -140,6 +187,58 @@ class CmdSetGroups(MuxCommand):
                 else:
                     caller.msg(f"You aren't a member of the group {group}.")
                     return
+
+class CmdRemoveGroup(MuxCommand):
+    """
+    Adding a character to a particular group.
+
+    Usage:
+      +ungroup <person>=<group>
+
+    Removes a character from a group.
+    This is only available to admin at this time.
+
+    Removing a character from a group will also delete squad 
+    information from that character. Be sure you want to do this.
+
+    """
+    
+    key = "+ungroup"
+    aliases = ["ungroup", "removegroup", "+removegroup"]
+    help_category = "Roster"
+    locks = "perm(Builder)"
+
+    def func(self):
+      
+        caller = self.caller
+        errmsg = "Syntax error - check help ungroup"
+        args = self.args
+
+        if not args:
+            caller.msg(errmsg)
+            return
+        if not self.rhs:
+            caller.msg(errmsg)
+            return
+
+        try:
+            group = self.rhs
+            char_string = self.lhs
+        except ValueError:
+            caller.msg(errmsg)
+            return
+        char = caller.search(char_string, global_search=True)
+        char = check_char_valid(caller,char)
+        if not char:
+            return
+            
+        my_group = get_group(caller,group)
+        # am I admin?
+        if caller.check_permstring("builders"):
+            groupdel(caller, char, group)
+            return
+
+
 
 class CmdCreateSquad(MuxCommand):
     """

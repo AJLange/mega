@@ -521,6 +521,7 @@ class CmdSheet(BaseCommand):
             all_armors_names = []
             weakness = process_elements(char.db.weakness)
             resistance = process_elements(char.db.resistance)
+            groups = char.db.pcgroups
             if not weakness:
                 weakness = "None"
             if not resistance:
@@ -531,6 +532,7 @@ class CmdSheet(BaseCommand):
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, infiltration, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
+            line15 = "Groups: %s" % str(groups)
             line2 = "Templates: %s" % (types)
             line3 = "Current Mode: %s " % (armor)
             line35 = "Available Armors: %s" % str(all_armors_names)
@@ -543,7 +545,7 @@ class CmdSheet(BaseCommand):
             line8 = "Weakness: %s Resistance: %s" % (weakness, resistance)
             line9 = "Focuses: %s" % (focuses)
 
-            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line9 + "\n\n" + border + "\n")
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line15 + "\n" + line2 + "\n" + line3 + "\n" + line35 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line9 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
 
