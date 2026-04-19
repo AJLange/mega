@@ -476,7 +476,6 @@ class CmdXWho(Command):
         self.caller.msg("Get Character List by Group")
 
 
-
 class CmdShowGroups(MuxCommand):
     """
     To see all available groups or squads in a group.
@@ -486,6 +485,7 @@ class CmdShowGroups(MuxCommand):
       +group <name>
       +group/info <name>
       +groups/me
+      +group/squads <name>
       +group/squad <group>/<name>
       +teams
 
@@ -497,7 +497,7 @@ class CmdShowGroups(MuxCommand):
     This will list insider info about the group such as radio frequencies and 
     message of the day.
 
-    If a group has squads, +group <name> will list those squads. If a group 
+    If a group has squads, +group/squads <name> will list those squads. If a group 
     does not have squads (smaller groups) +group <name> will list members.
 
     To see members of a squad in larger groups, use +group/squad group/name
@@ -537,7 +537,12 @@ class CmdShowGroups(MuxCommand):
                 group = self.args
                 caller.msg("Group: "+ group)
 
+                # TODO - does this group have squads?
+                # if not list members
+
+                # TODO - if yes list squads
                 return
+            
         if "info" in switches:
             if not self.args:
                 caller.msg("Get info for which group?")
@@ -551,6 +556,18 @@ class CmdShowGroups(MuxCommand):
             text = (f"My groups: {caller.db.pcgroups}")
             caller.msg(text)
             return
+        if "squads" in switches:
+            if not self.args:
+                caller.msg("Which group?")
+                return
+            else:
+                group = get_group(caller, args)
+                caller.msg(f"Squads in group {group.db_name}: \n")
+
+                # TODO - command to get squads associated with a group
+                caller.msg("Not yet working oops")
+                return
+
         if "squad" in switches:
             errmsg = "Syntax: +group/squad <group>/<name>"
             if not self.args:                
